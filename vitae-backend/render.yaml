@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: auditoria-backend
+    name: hospital.vitae
     env: docker
     plan: free
     dockerfilePath: Dockerfile
