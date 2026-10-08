@@ -15,6 +15,11 @@
 **/*.env
 **/bruno.json.user
 
+# PHP / Laravel
+**/vendor/
+**/storage/*.key
+.phpunit.result.cache
+
 # IDEs & OS
 .idea/
 .vscode/
