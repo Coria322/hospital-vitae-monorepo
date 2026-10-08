@@ -17,20 +17,20 @@ Monorepo del sistema del **Hospital Vitae**, desarrollado para la materia de **A
 
 ```mermaid
 graph TD
-    subgraph Clientes["💻 Capa de Clientes"]
+    subgraph Clientes ["Capa de Clientes"]
         Web["🌐 Web Client (Vue 3 + Vite)<br/>Desplegado en Vercel"]
         Mobile["📱 App Móvil (Kotlin)<br/>Android Native"]
         Bruno["🧪 API Tester<br/>Colección Bruno"]
     end
 
-    subgraph Backend["⚙️ Capa de Servicios"]
-        API["🔌 API Gateway / Routing<br/>Laravel 12 (Render / Docker)"]
+    subgraph Servicios ["Capa de Servicios"]
+        API["🔌 API Gateway & Routing<br/>Laravel 12 (Render / Docker)"]
         Sanctum["🔐 Auth & Security<br/>Laravel Sanctum"]
         AuditModule["📋 Módulo de Auditorías<br/>AuditoriaController"]
     end
 
-    subgraph Almacenamiento["🗄️ Capa de Datos"]
-        DB[(🛢️ Base de Datos<br/>PostgreSQL / SQLite)]
+    subgraph Datos ["Capa de Almacenamiento"]
+        DB[("🛢️ Base de Datos<br/>PostgreSQL / SQLite")]
     end
 
     Web -->|HTTP / JSON| API
@@ -68,7 +68,7 @@ sequenceDiagram
 
 ```mermaid
 graph LR
-    subgraph Monorepo["📁 hospital-vitae-monorepo"]
+    subgraph Monorepo ["hospital-vitae-monorepo"]
         direction TB
         F["📂 vitae-front<br/>(Vue 3, Vite, TS)"]
         B["📂 vitae-backend<br/>(Laravel 12, PHP 8.2)"]
