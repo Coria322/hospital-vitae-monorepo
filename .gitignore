@@ -1,0 +1,23 @@
+# Node / TypeScript
+**/node_modules/
+**/dist/
+**/.next/
+*.tsbuildinfo
+
+# Kotlin / Gradle
+**/.gradle/
+**/build/
+**/target/
+*.class
+*.jar
+
+# Bruno
+**/*.env
+**/bruno.json.user
+
+# IDEs & OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
