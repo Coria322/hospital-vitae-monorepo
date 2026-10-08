@@ -15,6 +15,11 @@ Monorepo del sistema del **Hospital Vitae**, desarrollado para la materia de **A
 
 ### 1. 🏗️ Arquitectura General
 
+![Arquitectura General del Sistema](docs/architecture-diagram.png)
+
+<details>
+<summary>🔍 Ver código Mermaid del diagrama de arquitectura</summary>
+
 ```mermaid
 graph TD
     subgraph Clientes ["Capa de Clientes"]
@@ -40,6 +45,7 @@ graph TD
     API --> AuditModule
     AuditModule --> DB
 ```
+</details>
 
 ---
 
@@ -89,6 +95,8 @@ graph LR
 hospital-vitae-monorepo/
 ├── 📄 README.md              # Documentación general con diagramas Mermaid
 ├── 📄 .gitignore             # Exclusiones globales de Git
+├── 📂 docs/                  # Recursos gráficos y diagramas
+│   └── 🖼️ architecture-diagram.png
 ├── 📂 vitae-backend/         # API RESTful en Laravel 12 (PHP 8.2+)
 ├── 📂 vitae-front/           # Aplicación Web en Vue 3 + Vite + TypeScript
 ├── 📂 vitae-mobile/          # Aplicación Móvil nativa Android (Kotlin)
