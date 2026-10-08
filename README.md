@@ -7,15 +7,87 @@
 [![Vercel](https://img.shields.io/badge/Vercel-Deployment-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com)
 [![Render](https://img.shields.io/badge/Render-Deployment-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com)
 
-Monorepo del sistema de **Hospital Vitae**, desarrollado para la materia de **Auditoría de Software (9no Semestre)**. Integra el Backend de servicios RESTful, la Plataforma Web cliente, la Aplicación Móvil nativa y colecciones de pruebas de API.
+Monorepo del sistema del **Hospital Vitae**, desarrollado para la materia de **Auditoría de Software (9no Semestre)**. Integra el Backend de servicios RESTful, la Plataforma Web cliente, la Aplicación Móvil nativa y colecciones de pruebas de API.
 
 ---
 
-## 📁 Estructura del Monorepo
+## 📊 Diagramas del Sistema
+
+### 1. 🏗️ Arquitectura General
+
+```mermaid
+graph TD
+    subgraph Clientes["💻 Capa de Clientes"]
+        Web["🌐 Web Client (Vue 3 + Vite)<br/>Desplegado en Vercel"]
+        Mobile["📱 App Móvil (Kotlin)<br/>Android Native"]
+        Bruno["🧪 API Tester<br/>Colección Bruno"]
+    end
+
+    subgraph Backend["⚙️ Capa de Servicios"]
+        API["🔌 API Gateway / Routing<br/>Laravel 12 (Render / Docker)"]
+        Sanctum["🔐 Auth & Security<br/>Laravel Sanctum"]
+        AuditModule["📋 Módulo de Auditorías<br/>AuditoriaController"]
+    end
+
+    subgraph Almacenamiento["🗄️ Capa de Datos"]
+        DB[(🛢️ Base de Datos<br/>PostgreSQL / SQLite)]
+    end
+
+    Web -->|HTTP / JSON| API
+    Mobile -->|HTTP / JSON| API
+    Bruno -->|HTTP / JSON| API
+    API --> Sanctum
+    API --> AuditModule
+    AuditModule --> DB
+```
+
+---
+
+### 2. 🔀 Flujo de Trabajo y Secuencia de Auditoría
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Auditor as 👤 Auditor / Usuario
+    participant Front as 🌐 Frontend (Vue 3 / Vercel)
+    participant Back as ⚙️ Backend (Laravel 12 / Render)
+    participant DB as 🛢️ Base de Datos
+
+    Auditor->>Front: Ingresa / Consulta registros de auditoría
+    Front->>Back: GET /api/auditorias (Headers: Bearer Token)
+    Back->>Back: Valida autenticación (Sanctum)
+    Back->>DB: Query SELECT * FROM auditorias
+    DB-->>Back: Retorna colección de datos
+    Back-->>Front: Respuesta JSON (200 OK + Payload)
+    Front-->>Auditor: Muestra tabla interactiva de auditoría
+```
+
+---
+
+### 3. 🧩 Estructura de Componentes del Monorepo
+
+```mermaid
+graph LR
+    subgraph Monorepo["📁 hospital-vitae-monorepo"]
+        direction TB
+        F["📂 vitae-front<br/>(Vue 3, Vite, TS)"]
+        B["📂 vitae-backend<br/>(Laravel 12, PHP 8.2)"]
+        M["📂 vitae-mobile<br/>(Kotlin, Gradle)"]
+        T["📂 vitae-bruno<br/>(OpenCollection API)"]
+    end
+
+    F -.->|Consume API REST| B
+    M -.->|Consume API REST| B
+    T -.->|Audita & Prueba| B
+```
+
+---
+
+## 📁 Estructura de Directorios
 
 ```text
 hospital-vitae-monorepo/
-├── 📄 README.md              # Documentación general del Monorepo
+├── 📄 README.md              # Documentación general con diagramas Mermaid
 ├── 📄 .gitignore             # Exclusiones globales de Git
 ├── 📂 vitae-backend/         # API RESTful en Laravel 12 (PHP 8.2+)
 ├── 📂 vitae-front/           # Aplicación Web en Vue 3 + Vite + TypeScript
@@ -61,7 +133,7 @@ npm run dev
 | :--- | :--- | :--- |
 | `VITE_API_BASE_URL` | URL de la API Backend en Render | `https://vitae-backend.onrender.com/api` |
 
-* **Configuración del proyecto en Vercel:**
+* **Configuración en Vercel:**
   * **Root Directory:** `vitae-front`
   * **Framework Preset:** `Vite`
   * **Build Command:** `npm run build`
@@ -82,20 +154,7 @@ Cliente móvil nativo para Android.
 ### 4. 🧪 Colección de Pruebas API (`vitae-bruno`)
 Colección de solicitudes HTTP estructuradas para auditar y probar la API.
 * **Herramienta:** [Bruno API Client](https://www.usebruno.com/).
-* **Uso:** Abrir Bruno y seleccionar la carpeta `vitae-bruno` para cargar todos los endpoints preconfigurados (GET, POST, PUT, DELETE).
-
----
-
-## 🛠️ Despliegue en Producción
-
-```mermaid
-graph LR
-    User([Usuario / Cliente]) -->|Navegador| Vercel[Frontend - Vercel]
-    User -->|App Android| Mobile[Mobile App]
-    Vercel -->|HTTPS / API REST| Render[Backend - Render]
-    Mobile -->|HTTPS / API REST| Render
-    Render -->|SQL| DB[(Base de Datos)]
-```
+* **Uso:** Abrir Bruno y seleccionar la carpeta `vitae-bruno` para cargar los endpoints preconfigurados.
 
 ---
 
