@@ -1,0 +1,1232 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "generated_by": "ers-to-agentic",
+    "source_document": "Manual de Calidad de Arquitectura - Sistema de Información Hospitalaria (DOC-ARQ-SIH-001, rev 2.0)",
+    "generated_at": "2026-10-09T00:00:00Z",
+    "scope": "mobile",
+    "total_tasks": 25,
+    "by_priority": {
+      "P0": 11,
+      "P1": 14,
+      "P2": 0
+    },
+    "by_area": {
+      "frontend": 8,
+      "backend": 2,
+      "database": 0,
+      "auth": 4,
+      "infra": 2,
+      "testing": 8,
+      "design": 1
+    },
+    "by_stage": {
+      "1": 0,
+      "2": 0,
+      "3": 0,
+      "4": 0,
+      "5": 22,
+      "6": 3
+    },
+    "assertion_format": "kind ∈ {sql,http,shell}; check = acción; expect = resultado esperado verificable por máquina",
+    "id_conventions": "TASK-W-xxx (web), TASK-M-xxx (mobile). Dependencias entre carpetas se referencian por ID completo.",
+    "xl_note": "Tareas XL deben descomponerse al planificar (TASK-W-023-a, -b…)."
+  },
+  "tasks": [
+    {
+      "id": "TASK-M-001",
+      "source_requirement": "RNF-006",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P1",
+      "area": "infra",
+      "title": "Proyecto Kotlin con MVVM, minSdk 29 y CI",
+      "description": "Crear repo Android (Kotlin, Jetpack Compose, ViewModel, Repository, Retrofit/OkHttp, Hilt) con minSdk=29, convenciones PascalCase/camelCase y pipeline con secret-scan y SAST.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-006",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-001",
+        "TASK-W-002"
+      ],
+      "acceptance_criteria": [
+        "Dado el proyecto, cuando se compila, entonces minSdk=29 y compila en CI"
+      ],
+      "normative_refs": [
+        "ISO/IEC-25010"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "grep -c 'minSdk = 29' app/build.gradle.kts",
+          "expect": "1"
+        }
+      ],
+      "agent_notes": "Stack móvil: Kotlin; no usar SDK de Supabase en el cliente (SUP-006).",
+      "estimated_complexity": "M",
+      "tags": [
+        "kotlin",
+        "mvvm",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-002",
+      "source_requirement": "PROV-UX-003",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P1",
+      "area": "design",
+      "title": "Tema accesible y componentes base (sin paleta definida en el ERS)",
+      "description": "Crear tema Material con contraste >= 4.5:1, objetivos >= 48 dp, estados cargando/vacío/error; valores de marca NO_DEFINIDO usan tema por defecto.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-ux-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-001"
+      ],
+      "acceptance_criteria": [
+        "Dado un texto normal, cuando se mide, entonces contraste >= 4.5:1"
+      ],
+      "normative_refs": [
+        "WCAG-2.1-AA"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "accessibility-scanner contrast",
+          "expect": "min_ratio >= 4.5"
+        }
+      ],
+      "agent_notes": "AMB-010.",
+      "estimated_complexity": "M",
+      "tags": [
+        "a11y",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-003",
+      "source_requirement": "PROV-SEC-001",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P0",
+      "area": "auth",
+      "title": "Login con correo y contraseña + OTP de dispositivo nuevo",
+      "description": "Implementar pantalla/ViewModel de login, flujo OTP y manejo de HTTP 423 (cuenta suspendida) con mensajes genéricos.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-001",
+        "TASK-W-081"
+      ],
+      "acceptance_criteria": [
+        "Dado dispositivo nuevo, cuando login, entonces solicita OTP"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "OWASP-ASVS-L2"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-04"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "instrumented-test LoginOtpTest",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "auth",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-004",
+      "source_requirement": "PROV-SEC-002",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P0",
+      "area": "auth",
+      "title": "PKCE, EncryptedSharedPreferences/Keystore, refresh y limpieza al cerrar sesión",
+      "description": "Implementar Authorization Code + PKCE (S256), almacenamiento de tokens en EncryptedSharedPreferences con Android Keystore, refresh rotativo y borrado local + revocación en logout.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-003"
+      ],
+      "acceptance_criteria": [
+        "Dado un logout, cuando se revisa el almacenamiento, entonces no quedan tokens ni datos"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "OWASP-ASVS-L2"
+      ],
+      "risk_mitigated": [
+        "R-02",
+        "R-07"
+      ],
+      "quality_metrics": [
+        "MS-04"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "adb shell run-as app ls shared_prefs",
+          "expect": "no token files in plaintext"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "L",
+      "tags": [
+        "keystore",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-005",
+      "source_requirement": "PROV-SEC-001",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P0",
+      "area": "auth",
+      "title": "Cierre de sesión por inactividad de 5 min",
+      "description": "Implementar temporizador de inactividad de 300 s que limpia el estado y navega a login.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-004"
+      ],
+      "acceptance_criteria": [
+        "Dado 300 s sin interacción, cuando vence, entonces login y datos borrados"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "OWASP-ASVS-L2"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-04"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "instrumented-test InactivityTest",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "session",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-006",
+      "source_requirement": "RNF-003",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Capa de red: TLS >= 1.2, certificate pinning, cleartext off e interceptor 401/403",
+      "description": "Configurar OkHttp con pinning, network_security_config sin cleartext y manejo uniforme de 401 (login) y 403 (error de permisos).",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-001"
+      ],
+      "acceptance_criteria": [
+        "Dado un proxy no fijado, cuando la app conecta, entonces falla"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-07"
+      ],
+      "quality_metrics": [
+        "MS-01"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "mitmproxy-test",
+          "expect": "connection refused"
+        },
+        {
+          "kind": "shell",
+          "check": "grep 'cleartextTrafficPermitted=\"false\"' res/xml/network_security_config.xml",
+          "expect": "match"
+        }
+      ],
+      "agent_notes": "MS-01 = 100%.",
+      "estimated_complexity": "M",
+      "tags": [
+        "tls",
+        "pinning",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-007",
+      "source_requirement": "PROV-SEC-011",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P1",
+      "area": "auth",
+      "title": "Detección de Root/Magisk, FLAG_SECURE y ofuscación",
+      "description": "Bloquear la app en dispositivos comprometidos, bloquear capturas en pantallas clínicas, ofuscar release (R8) y no persistir PII en claro.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-011",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-004"
+      ],
+      "acceptance_criteria": [
+        "Dado un dispositivo rooteado, cuando abre la app, entonces bloqueo sin peticiones"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-07",
+        "R-06"
+      ],
+      "quality_metrics": [
+        "MS-03"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "instrumented-test RootBlockTest",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Librería: SUP-007.",
+      "estimated_complexity": "L",
+      "tags": [
+        "seguridad",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-008",
+      "source_requirement": "RF-002",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P0",
+      "area": "frontend",
+      "title": "Pantallas Inicio y Perfil/aseguradora",
+      "description": "Implementar Inicio (resumen de citas, recetas y resultados) y Perfil (Patient FHIR, seguro_activo) en solo lectura.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-004",
+        "TASK-W-082"
+      ],
+      "acceptance_criteria": [
+        "Dado un paciente, cuando abre Inicio, entonces ve solo datos propios"
+      ],
+      "normative_refs": [
+        "NOM-024-SSA3-2012",
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "instrumented-test HomeTest",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "compose",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-009",
+      "source_requirement": "PROV-RF-002",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P1",
+      "area": "frontend",
+      "title": "Pantalla de citas (solo lectura)",
+      "description": "Listar citas propias con estado vacío y error.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rf-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-008",
+        "TASK-W-084"
+      ],
+      "acceptance_criteria": [
+        "Dado sin citas, cuando abre Citas, entonces estado vacío"
+      ],
+      "normative_refs": [
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "instrumented-test CitasTest",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "compose",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-010",
+      "source_requirement": "RF-009",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P0",
+      "area": "frontend",
+      "title": "Recetas: lista y detalle (MedicationRequest) con QR",
+      "description": "Listar y mostrar detalle con estado activa/dispensada/cancelada y QR; sin imprimir ni modificar.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-009",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-008",
+        "TASK-W-082"
+      ],
+      "acceptance_criteria": [
+        "Dado receta dispensada, cuando se abre, entonces QR inválido y estado dispensada"
+      ],
+      "normative_refs": [
+        "NOM-004-SSA3-2012",
+        "HL7-FHIR-R4"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MC-04"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "instrumented-test RecetasTest",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Modelos Kotlin tipados para FHIR.",
+      "estimated_complexity": "M",
+      "tags": [
+        "compose",
+        "fhir",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-011",
+      "source_requirement": "RF-010",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P0",
+      "area": "frontend",
+      "title": "Resultados: lista y visor interno de PDF/imagen",
+      "description": "Mostrar resultados propios y abrir archivo en visor interno sin escribir a almacenamiento compartido.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-010",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-008",
+        "TASK-W-082"
+      ],
+      "acceptance_criteria": [
+        "Dado un resultado, cuando se abre, entonces se visualiza sin errores"
+      ],
+      "normative_refs": [
+        "NOM-004-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "instrumented-test ResultadosTest",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "compose",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-012",
+      "source_requirement": "PROV-RN-008",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P1",
+      "area": "frontend",
+      "title": "Aviso de privacidad y consentimientos",
+      "description": "Mostrar aviso simplificado antes de recabar datos y permitir aceptar/revocar consentimientos (no preseleccionado).",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-008",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-004",
+        "TASK-W-069"
+      ],
+      "acceptance_criteria": [
+        "Dado primera apertura, cuando inicia, entonces muestra el aviso antes de formularios"
+      ],
+      "normative_refs": [
+        "LFPDPPP"
+      ],
+      "risk_mitigated": [
+        "R-10"
+      ],
+      "quality_metrics": [
+        "MN-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "instrumented-test PrivacidadTest",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "privacidad",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-013",
+      "source_requirement": "PROV-RN-009",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P1",
+      "area": "frontend",
+      "title": "Solicitud ARCO desde la app",
+      "description": "Enviar solicitud ARCO y consultar estado y plazos.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-009",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-012",
+        "TASK-W-070"
+      ],
+      "acceptance_criteria": [
+        "Dado una solicitud, cuando se envía, entonces recibe folio"
+      ],
+      "normative_refs": [
+        "LFPDPPP"
+      ],
+      "risk_mitigated": [
+        "R-10"
+      ],
+      "quality_metrics": [
+        "MN-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "instrumented-test ArcoTest",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Escritura en lista blanca SUP-002.",
+      "estimated_complexity": "S",
+      "tags": [
+        "privacidad",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-014",
+      "source_requirement": "RNF-006",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P1",
+      "area": "frontend",
+      "title": "Pantallas de estado: incompatibilidad, sesión expirada, root y sin conexión",
+      "description": "Implementar pantallas controladas para HTTP 426, sesión expirada, bloqueo por root y offline.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-006",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-006",
+        "TASK-W-083"
+      ],
+      "acceptance_criteria": [
+        "Dado HTTP 426, cuando responde, entonces mensaje controlado sin datos técnicos"
+      ],
+      "normative_refs": [
+        "ISO/IEC-25010"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "instrumented-test EstadosTest",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "compose",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-015",
+      "source_requirement": "RF-011",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P0",
+      "area": "testing",
+      "title": "Verificar ausencia de controles de edición y rechazo de escrituras",
+      "description": "Recorrer pantallas con pruebas de UI (0 botones de guardar/editar) y verificar 403/405 de POST/PUT/DELETE clínicos.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-011",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-010",
+        "TASK-M-011",
+        "TASK-W-080"
+      ],
+      "acceptance_criteria": [
+        "Dado las pantallas, cuando se recorren, entonces 0 controles de edición"
+      ],
+      "normative_refs": [
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-05",
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "ui-scan no-edit-controls",
+          "expect": "count == 0"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "pruebas",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-016",
+      "source_requirement": "RNF-006",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P1",
+      "area": "testing",
+      "title": "Matriz de dispositivos Android >= 10 (3 tamaños)",
+      "description": "Ejecutar suite funcional en 3 dispositivos/emuladores con API >= 29 y 1 con API 28 (mensaje de incompatibilidad).",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-006",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-014"
+      ],
+      "acceptance_criteria": [
+        "Dado la matriz, cuando se ejecuta, entonces 0 crashes"
+      ],
+      "normative_refs": [
+        "ISO/IEC-25010"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "firebase-test-lab matrix",
+          "expect": "crashes == 0"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "pruebas",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-017",
+      "source_requirement": "PROV-UX-003",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P1",
+      "area": "testing",
+      "title": "Accesibilidad móvil: TalkBack, contraste y objetivos táctiles",
+      "description": "Auditar con Accessibility Scanner y TalkBack.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-ux-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-002",
+        "TASK-M-010",
+        "TASK-M-011"
+      ],
+      "acceptance_criteria": [
+        "Dado las pantallas, cuando se auditan, entonces 0 incidencias críticas"
+      ],
+      "normative_refs": [
+        "WCAG-2.1-AA"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "accessibility-scanner",
+          "expect": "critical == 0"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "a11y",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-018",
+      "source_requirement": "RNF-007",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P0",
+      "area": "testing",
+      "title": "Pruebas de contrato API y FHIR (colección compartida)",
+      "description": "Ejecutar la colección de TASK-W-091 contra Staging y pruebas de parseo FHIR válido/ inválido.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-007",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-091",
+        "TASK-M-010"
+      ],
+      "acceptance_criteria": [
+        "Dado un recurso inválido, cuando se procesa, entonces error controlado"
+      ],
+      "normative_refs": [
+        "HL7-FHIR-R4"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-04"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "newman run mobile.json",
+          "expect": "failures == 0"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "pruebas",
+        "fhir",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-019",
+      "source_requirement": "RF-002.1",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P0",
+      "area": "testing",
+      "title": "Cobertura >= 80% y verificación de que la app nunca envía id_paciente",
+      "description": "Pruebas unitarias de ViewModels/Repositories (MC-10 >= 80%) e inspección de tráfico: 0 peticiones con id_paciente.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-002.1",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-008"
+      ],
+      "acceptance_criteria": [
+        "Dado el tráfico capturado, cuando se inspecciona, entonces 0 id_paciente"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "jacoco coverage",
+          "expect": "lines >= 0.80"
+        },
+        {
+          "kind": "shell",
+          "check": "proxy-capture grep id_paciente",
+          "expect": "0 matches"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "pruebas",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-020",
+      "source_requirement": "PROV-SEC-011",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P1",
+      "area": "testing",
+      "title": "Paquete de evidencia móvil para AI-05",
+      "description": "Reunir pruebas de TLS/pinning, root, almacenamiento seguro y matriz de dispositivos.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-011",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-007",
+        "TASK-M-016"
+      ],
+      "acceptance_criteria": [
+        "Dado el paquete, cuando se revisa, entonces incluye pinning y root"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-07",
+        "R-06"
+      ],
+      "quality_metrics": [
+        "MS-03"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "ls evidence/AI-05-mobile | wc -l",
+          "expect": ">= 4"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "auditoria",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-021",
+      "source_requirement": "PROV-RNF-005",
+      "sprint": "RELEASE",
+      "stage": 6,
+      "epic_id": "E6",
+      "priority": "P1",
+      "area": "infra",
+      "title": "Firma APK v2+, SemVer, SBOM y publicación con MFA",
+      "description": "Configurar firma con llaves resguardadas por Seguridad, versionado SemVer, SBOM por release y cuenta de publicación con MFA.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rnf-005",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-020"
+      ],
+      "acceptance_criteria": [
+        "Dado el APK, cuando se verifica, entonces firma v2 o superior válida"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-06"
+      ],
+      "quality_metrics": [
+        "MC-11",
+        "MP-06"
+      ],
+      "audit_checkpoint": "AI-06",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "apksigner verify --print-certs app.apk",
+          "expect": "Verified using v2 scheme: true"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "release",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-022",
+      "source_requirement": "PROV-RNF-005",
+      "sprint": "RELEASE",
+      "stage": 6,
+      "epic_id": "E6",
+      "priority": "P1",
+      "area": "testing",
+      "title": "Gate de contrato contra API desplegada y rollback de la app",
+      "description": "Bloquear publicación si falla el contrato contra la API desplegada y documentar reactivación de la versión estable anterior.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rnf-005",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-021",
+        "TASK-W-100"
+      ],
+      "acceptance_criteria": [
+        "Dado un contrato roto, cuando corre el gate, entonces se bloquea la publicación"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-06"
+      ],
+      "quality_metrics": [
+        "MC-11",
+        "MP-06"
+      ],
+      "audit_checkpoint": "AI-06",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "contract-gate --fixture broken",
+          "expect": "exit != 0"
+        }
+      ],
+      "agent_notes": "Ejemplo del ERS: incompatibilidad app–API tras actualizar endpoints.",
+      "estimated_complexity": "M",
+      "tags": [
+        "release",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-023",
+      "source_requirement": "PROV-RNF-005",
+      "sprint": "RELEASE",
+      "stage": 6,
+      "epic_id": "E6",
+      "priority": "P1",
+      "area": "testing",
+      "title": "Evidencia móvil de Quality Gate y AI-06",
+      "description": "Consolidar MC-10, MS-01, MS-03 y matriz de contrato móvil para AI-06.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rnf-005",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-022",
+        "TASK-W-103"
+      ],
+      "acceptance_criteria": [
+        "Dado el reporte, cuando se revisa, entonces MC-10 >= 80% y MS-03 = 0"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-06"
+      ],
+      "quality_metrics": [
+        "MC-11",
+        "MP-06"
+      ],
+      "audit_checkpoint": "AI-06",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "gate run --scope mobile",
+          "expect": "exit == 0"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "auditoria",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-024",
+      "source_requirement": "RF-003",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Manejo cliente de 401 vs 403 en repositorios",
+      "description": "Mapear HTTP 401 a cierre de sesión local y 403 a error de permisos sin cerrar sesión; no ocultar botones como único control.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-006"
+      ],
+      "acceptance_criteria": [
+        "Dado HTTP 401, cuando se recibe, entonces navega a login y limpia estado",
+        "Dado HTTP 403, cuando se recibe, entonces permanece en sesión con error de permisos"
+      ],
+      "normative_refs": [
+        "OWASP-ASVS-L2"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "unit-test ErrorMapperTest",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "network",
+        "mobile"
+      ]
+    },
+    {
+      "id": "TASK-M-025",
+      "source_requirement": "PROV-UI-003",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P1",
+      "area": "frontend",
+      "title": "NavHost y pantallas base del portal (MVVM)",
+      "description": "Crear navegación Compose y esqueleto de pantallas con estados cargando, vacío y error conforme a UI_UX_SPEC.md.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-ui-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-M-002"
+      ],
+      "acceptance_criteria": [
+        "Dado cada pantalla del mapa de navegación, cuando se abre, entonces existen los 3 estados"
+      ],
+      "normative_refs": [
+        "WCAG-2.1-AA"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "instrumented-test NavGraphTest",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Sin prototipo móvil (AMB-009).",
+      "estimated_complexity": "M",
+      "tags": [
+        "compose",
+        "mobile"
+      ]
+    }
+  ]
+}

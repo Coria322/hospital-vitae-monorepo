@@ -1,0 +1,916 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "generated_by": "ers-to-agentic",
+    "source_document": "Manual de Calidad de Arquitectura - Sistema de Información Hospitalaria (DOC-ARQ-SIH-001, rev 2.0)",
+    "generated_at": "2026-10-09T00:00:00Z",
+    "scope": "mobile",
+    "total_entities": 8,
+    "total_relationships": 4,
+    "notes": [
+      "origin='tabla_26' = definido en el diccionario de datos; origin='derivado' = entidad/campo inferido de un requerimiento explícito (marcado ⚠️).",
+      "TRIAGE.id_paciente homologado a UUID; AUDITORIA_I con 13 columnas (Tabla 46); fechas en UTC.",
+      "Fuente de verdad del esquema: web/schemas/DOMAIN_SCHEMA.json. Esta copia contiene solo los modelos que la app consume."
+    ]
+  },
+  "entities": [
+    {
+      "id": "ENT-001",
+      "name": "PACIENTE",
+      "origin": "tabla_26",
+      "source_requirements": [
+        "RF-002.1",
+        "RF-008.1",
+        "PROV-RN-007"
+      ],
+      "description": "Persona que recibe atención. Identificador interno UUID, CURP como vínculo.",
+      "fields": [
+        {
+          "name": "id_paciente",
+          "type": "uuid",
+          "required": true,
+          "unique": true,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "UUID",
+          "description": "Identificador interno del paciente, no deriva de datos personales.",
+          "source_requirement": "RF-002.1"
+        },
+        {
+          "name": "curp",
+          "type": "string",
+          "required": false,
+          "unique": true,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(18)",
+          "description": "CURP validada por formato; nula si no identificado.",
+          "source_requirement": "RF-008.1"
+        },
+        {
+          "name": "nombre_completo",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(100)",
+          "description": "Nombre del paciente (100 para evitar truncamiento).",
+          "source_requirement": "RF-008.1"
+        },
+        {
+          "name": "fecha_nacimiento",
+          "type": "date",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "DATE",
+          "description": "Para calcular edad y riesgos.",
+          "source_requirement": "RF-008.1"
+        },
+        {
+          "name": "sexo",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(15)",
+          "description": "Sexo biológico (NOM-004).",
+          "source_requirement": "RF-008.1"
+        },
+        {
+          "name": "domicilio",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(200)",
+          "description": "Dirección de residencia (NOM-004).",
+          "source_requirement": "RF-008.1"
+        },
+        {
+          "name": "seguro_activo",
+          "type": "boolean",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "BOOLEAN",
+          "description": "Estado del seguro; congela el perfil si es falso.",
+          "source_requirement": "RF-002"
+        },
+        {
+          "name": "estado_activo",
+          "type": "boolean",
+          "required": true,
+          "unique": false,
+          "default": true,
+          "enum_values": [],
+          "postgres_type": "BOOLEAN",
+          "description": "Soft delete (retención 5 años).",
+          "source_requirement": "RNF-002"
+        },
+        {
+          "name": "identificado",
+          "type": "boolean",
+          "required": true,
+          "unique": false,
+          "default": true,
+          "enum_values": [],
+          "postgres_type": "BOOLEAN",
+          "description": "⚠️ campo derivado (no está en Tabla 26): false para paciente temporal (inconsciente/no identificado).",
+          "source_requirement": "PROV-RN-007"
+        },
+        {
+          "name": "folio_urgencias",
+          "type": "string",
+          "required": false,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(20)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Folio de paciente no identificado.",
+          "source_requirement": "PROV-RN-007"
+        },
+        {
+          "name": "representante_legal",
+          "type": "string",
+          "required": false,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(100)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Representante legal (RF-008.1).",
+          "source_requirement": "RF-008.1"
+        }
+      ],
+      "indexes": [
+        {
+          "fields": [
+            "id_paciente"
+          ],
+          "type": "primary",
+          "reason": "PK"
+        },
+        {
+          "fields": [
+            "curp"
+          ],
+          "type": "unique",
+          "reason": "Prevención de duplicados"
+        }
+      ]
+    },
+    {
+      "id": "ENT-005",
+      "name": "RECETA",
+      "origin": "tabla_26",
+      "source_requirements": [
+        "RF-009"
+      ],
+      "description": "Prescripción vinculada a expediente y médico emisor.",
+      "fields": [
+        {
+          "name": "id_receta",
+          "type": "string",
+          "required": true,
+          "unique": true,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(10)",
+          "description": "Identificador.",
+          "source_requirement": "RF-009"
+        },
+        {
+          "name": "id_expediente",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(10)",
+          "description": "FK a EXPEDIENTE_C.",
+          "source_requirement": "RF-009"
+        },
+        {
+          "name": "id_usuario",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(10)",
+          "description": "Médico emisor. FK a USUARIO.",
+          "source_requirement": "RF-009"
+        },
+        {
+          "name": "medicamentos",
+          "type": "text",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "TEXT",
+          "description": "Denominación genérica y presentación.",
+          "source_requirement": "RF-009"
+        },
+        {
+          "name": "indicaciones",
+          "type": "text",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "TEXT",
+          "description": "Dosis, vía, duración.",
+          "source_requirement": "RF-009"
+        },
+        {
+          "name": "firma_electronica",
+          "type": "text",
+          "required": false,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "TEXT",
+          "description": "e.firma/cadena de validación.",
+          "source_requirement": "RF-009"
+        },
+        {
+          "name": "fecha_hora_emision",
+          "type": "datetime",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "TIMESTAMPTZ",
+          "description": "UTC.",
+          "source_requirement": "RF-009"
+        },
+        {
+          "name": "fraccion",
+          "type": "enum",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [
+            "I",
+            "II",
+            "III",
+            "NINGUNA"
+          ],
+          "postgres_type": "VARCHAR(10)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Fracción controlada I|II|III|NINGUNA.",
+          "source_requirement": "RF-009"
+        },
+        {
+          "name": "folio",
+          "type": "string",
+          "required": true,
+          "unique": true,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(20)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Folio irrepetible.",
+          "source_requirement": "RF-009"
+        },
+        {
+          "name": "qr_codigo",
+          "type": "string",
+          "required": false,
+          "unique": true,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(64)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Código único de un solo uso.",
+          "source_requirement": "RF-009"
+        },
+        {
+          "name": "qr_estado",
+          "type": "enum",
+          "required": false,
+          "unique": false,
+          "default": null,
+          "enum_values": [
+            "VIGENTE",
+            "CONSUMIDO",
+            "CANCELADO"
+          ],
+          "postgres_type": "VARCHAR(12)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): VIGENTE|CONSUMIDO|CANCELADO.",
+          "source_requirement": "RF-009"
+        }
+      ],
+      "indexes": [
+        {
+          "fields": [
+            "id_receta"
+          ],
+          "type": "primary",
+          "reason": "PK"
+        }
+      ]
+    },
+    {
+      "id": "ENT-008",
+      "name": "SOLICITUD_ESTUDIO",
+      "origin": "derivado",
+      "source_requirements": [
+        "RF-010"
+      ],
+      "description": "Solicitud de laboratorio/imagen.",
+      "fields": [
+        {
+          "name": "id_solicitud",
+          "type": "uuid",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "UUID",
+          "description": "⚠️ campo derivado (no está en Tabla 26): PK.",
+          "source_requirement": "RF-010"
+        },
+        {
+          "name": "id_expediente",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(10)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): FK.",
+          "source_requirement": "RF-010"
+        },
+        {
+          "name": "id_usuario",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(10)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Médico solicitante.",
+          "source_requirement": "RF-010"
+        },
+        {
+          "name": "tipo_estudio",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(60)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Tipo.",
+          "source_requirement": "RF-010"
+        },
+        {
+          "name": "estado",
+          "type": "enum",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [
+            "PENDIENTE",
+            "COMPLETADA"
+          ],
+          "postgres_type": "VARCHAR(12)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): PENDIENTE|COMPLETADA.",
+          "source_requirement": "RF-010"
+        }
+      ],
+      "indexes": [
+        {
+          "fields": [
+            "id_solicitud"
+          ],
+          "type": "primary",
+          "reason": "PK"
+        }
+      ]
+    },
+    {
+      "id": "ENT-009",
+      "name": "RESULTADO_ESTUDIO",
+      "origin": "derivado",
+      "source_requirements": [
+        "RF-010"
+      ],
+      "description": "Archivo de resultado cifrado AES-256-GCM.",
+      "fields": [
+        {
+          "name": "id_resultado",
+          "type": "uuid",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "UUID",
+          "description": "⚠️ campo derivado (no está en Tabla 26): PK.",
+          "source_requirement": "RF-010"
+        },
+        {
+          "name": "id_solicitud",
+          "type": "uuid",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "UUID",
+          "description": "⚠️ campo derivado (no está en Tabla 26): FK.",
+          "source_requirement": "RF-010"
+        },
+        {
+          "name": "archivo_cifrado_ref",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "TEXT",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Referencia al blob cifrado.",
+          "source_requirement": "RF-010"
+        },
+        {
+          "name": "mime",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(40)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): PDF o imagen.",
+          "source_requirement": "RF-010"
+        },
+        {
+          "name": "cargado_por",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(10)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Laboratorista.",
+          "source_requirement": "RF-010"
+        },
+        {
+          "name": "fecha_hora",
+          "type": "datetime",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "TIMESTAMPTZ",
+          "description": "⚠️ campo derivado (no está en Tabla 26): UTC.",
+          "source_requirement": "RF-010"
+        }
+      ],
+      "indexes": [
+        {
+          "fields": [
+            "id_resultado"
+          ],
+          "type": "primary",
+          "reason": "PK"
+        }
+      ]
+    },
+    {
+      "id": "ENT-011",
+      "name": "CITA",
+      "origin": "derivado",
+      "source_requirements": [
+        "PROV-RF-002",
+        "RF-011"
+      ],
+      "description": "Cita hospitalaria (modelo mínimo, AMB-018).",
+      "fields": [
+        {
+          "name": "id_cita",
+          "type": "uuid",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "UUID",
+          "description": "⚠️ campo derivado (no está en Tabla 26): PK.",
+          "source_requirement": "PROV-RF-002"
+        },
+        {
+          "name": "id_paciente",
+          "type": "uuid",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "UUID",
+          "description": "⚠️ campo derivado (no está en Tabla 26): FK.",
+          "source_requirement": "PROV-RF-002"
+        },
+        {
+          "name": "fecha_hora",
+          "type": "datetime",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "TIMESTAMPTZ",
+          "description": "⚠️ campo derivado (no está en Tabla 26): UTC.",
+          "source_requirement": "PROV-RF-002"
+        },
+        {
+          "name": "estado",
+          "type": "enum",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [
+            "PENDIENTE",
+            "CONFIRMADA",
+            "CANCELADA"
+          ],
+          "postgres_type": "VARCHAR(12)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): PENDIENTE|CONFIRMADA|CANCELADA.",
+          "source_requirement": "PROV-RF-002"
+        }
+      ],
+      "indexes": [
+        {
+          "fields": [
+            "id_cita"
+          ],
+          "type": "primary",
+          "reason": "PK"
+        }
+      ]
+    },
+    {
+      "id": "ENT-012",
+      "name": "CONSENTIMIENTO",
+      "origin": "derivado",
+      "source_requirements": [
+        "PROV-RN-008"
+      ],
+      "description": "Registro inmutable de consentimiento (Tabla 37).",
+      "fields": [
+        {
+          "name": "id_consentimiento",
+          "type": "uuid",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "UUID",
+          "description": "⚠️ campo derivado (no está en Tabla 26): PK.",
+          "source_requirement": "PROV-RN-008"
+        },
+        {
+          "name": "id_paciente",
+          "type": "uuid",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "UUID",
+          "description": "⚠️ campo derivado (no está en Tabla 26): FK.",
+          "source_requirement": "PROV-RN-008"
+        },
+        {
+          "name": "tipo",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(40)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Tipo.",
+          "source_requirement": "PROV-RN-008"
+        },
+        {
+          "name": "version_documento",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(20)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Versión.",
+          "source_requirement": "PROV-RN-008"
+        },
+        {
+          "name": "finalidades",
+          "type": "array",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "TEXT[]",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Finalidades autorizadas.",
+          "source_requirement": "PROV-RN-008"
+        },
+        {
+          "name": "hash_documento",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "CHAR(64)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): SHA-256.",
+          "source_requirement": "PROV-RN-008"
+        },
+        {
+          "name": "estado",
+          "type": "enum",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [
+            "VIGENTE",
+            "REVOCADO"
+          ],
+          "postgres_type": "VARCHAR(10)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): VIGENTE|REVOCADO.",
+          "source_requirement": "PROV-RN-008"
+        },
+        {
+          "name": "id_consentimiento_original",
+          "type": "uuid",
+          "required": false,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "UUID",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Vincula revocación.",
+          "source_requirement": "PROV-RN-008"
+        },
+        {
+          "name": "fecha_hora",
+          "type": "datetime",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "TIMESTAMPTZ",
+          "description": "⚠️ campo derivado (no está en Tabla 26): UTC.",
+          "source_requirement": "PROV-RN-008"
+        }
+      ],
+      "indexes": [
+        {
+          "fields": [
+            "id_consentimiento"
+          ],
+          "type": "primary",
+          "reason": "PK"
+        }
+      ]
+    },
+    {
+      "id": "ENT-013",
+      "name": "AVISO_PRIVACIDAD",
+      "origin": "derivado",
+      "source_requirements": [
+        "PROV-RN-008"
+      ],
+      "description": "Versiones del aviso.",
+      "fields": [
+        {
+          "name": "version",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(20)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Versión.",
+          "source_requirement": "PROV-RN-008"
+        },
+        {
+          "name": "vigente_desde",
+          "type": "datetime",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "TIMESTAMPTZ",
+          "description": "⚠️ campo derivado (no está en Tabla 26): UTC.",
+          "source_requirement": "PROV-RN-008"
+        }
+      ],
+      "indexes": [
+        {
+          "fields": [
+            "version"
+          ],
+          "type": "primary",
+          "reason": "PK"
+        }
+      ]
+    },
+    {
+      "id": "ENT-014",
+      "name": "SOLICITUD_ARCO",
+      "origin": "derivado",
+      "source_requirements": [
+        "PROV-RN-009"
+      ],
+      "description": "Solicitud de derechos ARCO.",
+      "fields": [
+        {
+          "name": "folio",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(20)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Folio.",
+          "source_requirement": "PROV-RN-009"
+        },
+        {
+          "name": "id_paciente",
+          "type": "uuid",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "UUID",
+          "description": "⚠️ campo derivado (no está en Tabla 26): FK.",
+          "source_requirement": "PROV-RN-009"
+        },
+        {
+          "name": "derecho",
+          "type": "enum",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [
+            "ACCESO",
+            "RECTIFICACION",
+            "CANCELACION",
+            "OPOSICION"
+          ],
+          "postgres_type": "VARCHAR(14)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): ACCESO|RECTIFICACION|CANCELACION|OPOSICION.",
+          "source_requirement": "PROV-RN-009"
+        },
+        {
+          "name": "fecha_recepcion",
+          "type": "date",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "DATE",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Recepción.",
+          "source_requirement": "PROV-RN-009"
+        },
+        {
+          "name": "respuesta_limite",
+          "type": "date",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "DATE",
+          "description": "⚠️ campo derivado (no está en Tabla 26): +20 días hábiles.",
+          "source_requirement": "PROV-RN-009"
+        },
+        {
+          "name": "ejecucion_limite",
+          "type": "date",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "DATE",
+          "description": "⚠️ campo derivado (no está en Tabla 26): +15 días hábiles.",
+          "source_requirement": "PROV-RN-009"
+        },
+        {
+          "name": "estado",
+          "type": "string",
+          "required": true,
+          "unique": false,
+          "default": null,
+          "enum_values": [],
+          "postgres_type": "VARCHAR(20)",
+          "description": "⚠️ campo derivado (no está en Tabla 26): Estado.",
+          "source_requirement": "PROV-RN-009"
+        }
+      ],
+      "indexes": [
+        {
+          "fields": [
+            "folio"
+          ],
+          "type": "primary",
+          "reason": "PK"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "REL-009",
+      "from_entity": "SOLICITUD_ESTUDIO",
+      "to_entity": "RESULTADO_ESTUDIO",
+      "type": "one_to_many",
+      "cardinality": "1:N",
+      "label": "produce",
+      "nullable": false,
+      "cascade": "none",
+      "source_requirement": "RF-010"
+    },
+    {
+      "id": "REL-010",
+      "from_entity": "PACIENTE",
+      "to_entity": "CITA",
+      "type": "one_to_many",
+      "cardinality": "1:N",
+      "label": "tiene",
+      "nullable": false,
+      "cascade": "none",
+      "source_requirement": "PROV-RF-002"
+    },
+    {
+      "id": "REL-011",
+      "from_entity": "PACIENTE",
+      "to_entity": "CONSENTIMIENTO",
+      "type": "one_to_many",
+      "cardinality": "1:N",
+      "label": "otorga",
+      "nullable": false,
+      "cascade": "none",
+      "source_requirement": "PROV-RN-008"
+    },
+    {
+      "id": "REL-012",
+      "from_entity": "PACIENTE",
+      "to_entity": "SOLICITUD_ARCO",
+      "type": "one_to_many",
+      "cardinality": "1:N",
+      "label": "presenta",
+      "nullable": false,
+      "cascade": "none",
+      "source_requirement": "PROV-RN-009"
+    }
+  ],
+  "constraints": [
+    {
+      "id": "CON-012",
+      "type": "custom",
+      "entity": "RECETA",
+      "field": "qr_codigo",
+      "rule": "QR de un solo uso: CONSUMIDO no vuelve a VIGENTE.",
+      "source_requirement": "RF-009"
+    },
+    {
+      "id": "CON-015",
+      "type": "custom",
+      "entity": "*",
+      "field": "fecha_hora*",
+      "rule": "Todas las marcas de tiempo en UTC (timestamptz).",
+      "source_requirement": "PROV-SEC-007"
+    },
+    {
+      "id": "CON-016",
+      "type": "custom",
+      "entity": "CONSENTIMIENTO",
+      "field": "*",
+      "rule": "Inmutable; la revocación crea un registro nuevo.",
+      "source_requirement": "PROV-RN-008"
+    }
+  ],
+  "enumerations": [
+    {
+      "name": "FraccionReceta",
+      "values": [
+        "I",
+        "II",
+        "III",
+        "NINGUNA"
+      ],
+      "used_in": [
+        "RECETA.fraccion"
+      ],
+      "source_requirement": "RF-009"
+    },
+    {
+      "name": "EstadoQr",
+      "values": [
+        "VIGENTE",
+        "CONSUMIDO",
+        "CANCELADO"
+      ],
+      "used_in": [
+        "RECETA.qr_estado"
+      ],
+      "source_requirement": "RF-009"
+    }
+  ]
+}

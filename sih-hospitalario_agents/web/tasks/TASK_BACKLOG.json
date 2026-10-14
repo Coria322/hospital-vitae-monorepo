@@ -1,0 +1,4586 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "generated_by": "ers-to-agentic",
+    "source_document": "Manual de Calidad de Arquitectura - Sistema de Información Hospitalaria (DOC-ARQ-SIH-001, rev 2.0)",
+    "generated_at": "2026-10-09T00:00:00Z",
+    "scope": "web",
+    "total_tasks": 92,
+    "by_priority": {
+      "P0": 59,
+      "P1": 32,
+      "P2": 1
+    },
+    "by_area": {
+      "frontend": 12,
+      "backend": 35,
+      "database": 8,
+      "auth": 6,
+      "infra": 12,
+      "testing": 18,
+      "design": 1
+    },
+    "by_stage": {
+      "1": 18,
+      "2": 16,
+      "3": 18,
+      "4": 19,
+      "5": 14,
+      "6": 7
+    },
+    "assertion_format": "kind ∈ {sql,http,shell}; check = acción; expect = resultado esperado verificable por máquina",
+    "id_conventions": "TASK-W-xxx (web), TASK-M-xxx (mobile). Dependencias entre carpetas se referencian por ID completo.",
+    "xl_note": "Tareas XL deben descomponerse al planificar (TASK-W-023-a, -b…)."
+  },
+  "tasks": [
+    {
+      "id": "TASK-W-001",
+      "source_requirement": "PROV-RN-001",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P1",
+      "area": "infra",
+      "title": "Configurar repositorios, ramas protegidas y Definición de Terminado",
+      "description": "Crear repos backend (Laravel) y frontend (Vue) bajo web/, proteger main y develop, exigir PR con >= 1 aprobación de un revisor distinto del autor, plantilla de PR con checklist de DoD y convención feature/<nombre>.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [],
+      "acceptance_criteria": [
+        "Dado un push directo a main, cuando se ejecuta, entonces es rechazado",
+        "Dado una PR sin aprobación, cuando se intenta fusionar, entonces se bloquea"
+      ],
+      "normative_refs": [
+        "ISO/IEC/IEEE-29148",
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-11"
+      ],
+      "quality_metrics": [
+        "MP-08",
+        "MP-05"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "gh api repos/{o}/{r}/branches/main/protection",
+          "expect": "required_pull_request_reviews.required_approving_review_count >= 1"
+        }
+      ],
+      "agent_notes": "Aplicar SemVer vX.Y.Z y nomenclatura del AGENTS.md.",
+      "estimated_complexity": "S",
+      "tags": [
+        "gobernanza",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-002",
+      "source_requirement": "PROV-SEC-004",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P0",
+      "area": "infra",
+      "title": "Pipeline CI base con escaneo de secretos, SAST y SCA",
+      "description": "Crear pipeline CI con jobs secret-scan, SAST (SonarQube), análisis de composición de software y bloqueo de integraciones con credenciales expuestas.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-004",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-001"
+      ],
+      "acceptance_criteria": [
+        "Dado un commit con una llave, cuando corre el CI, entonces el job secret-scan falla",
+        "Dado la rama limpia, cuando corre el CI, entonces 0 hallazgos"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-06",
+        "R-08"
+      ],
+      "quality_metrics": [
+        "MS-03"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "ci run secret-scan on fixture-with-key",
+          "expect": "exit code != 0"
+        },
+        {
+          "kind": "shell",
+          "check": "ci run secret-scan on main",
+          "expect": "findings == 0"
+        }
+      ],
+      "agent_notes": "Prohibido 'latest' en imágenes y dependencias sin versión fija.",
+      "estimated_complexity": "M",
+      "tags": [
+        "ci",
+        "seguridad",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-003",
+      "source_requirement": "PROV-RN-001",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P1",
+      "area": "backend",
+      "title": "Scaffold Laravel API con capas y Repository Pattern",
+      "description": "Crear la API Laravel bajo /api/v1 con capas (Controller → Service → Repository), versionado, namespaces /api/v1 (personal) y /api/v1/mobile (paciente), manejo uniforme de errores y OpenAPI/Swagger.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-001"
+      ],
+      "acceptance_criteria": [
+        "Dado la API levantada, cuando se pide GET /api/v1/salud, entonces responde 200",
+        "Dado una ruta inexistente, cuando se solicita, entonces responde JSON de error sin stack trace"
+      ],
+      "normative_refs": [
+        "ISO/IEC/IEEE-29148",
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-11"
+      ],
+      "quality_metrics": [
+        "MP-08",
+        "MP-05"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "GET /api/v1/salud",
+          "expect": "200"
+        },
+        {
+          "kind": "http",
+          "check": "GET /api/v1/no-existe",
+          "expect": "404 and body !~ 'stack'"
+        }
+      ],
+      "agent_notes": "Rutas en kebab-case; el frontend jamás se conecta directo a la BD.",
+      "estimated_complexity": "M",
+      "tags": [
+        "laravel",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-004",
+      "source_requirement": "RF-001",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P0",
+      "area": "database",
+      "title": "Migración inicial de usuario con campos de seguridad en BD de desarrollo",
+      "description": "Crear tabla usuario (id_usuario VARCHAR(10) PK, nombre_completo, rol, password_hash VARCHAR(60), cedula nullable) más campos derivados estado_cuenta, intentos_fallidos, bloqueado_hasta, mfa_habilitado, ultimo_acceso_en, debe_cambiar_password, usando la BD local de desarrollo (Supabase en Docker). El endurecimiento ocurre en Stage 2.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-003"
+      ],
+      "acceptance_criteria": [
+        "Dado la migración aplicada, cuando se consulta el esquema, entonces existen las columnas con los tipos del diccionario"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-05",
+        "MS-02"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select count(*) from information_schema.columns where table_name='usuario' and column_name in ('id_usuario','password_hash','rol','cedula')",
+          "expect": "4"
+        }
+      ],
+      "agent_notes": "Los campos derivados no están en Tabla 26: marcados ⚠️ en DOMAIN_SCHEMA.json (AMB-004).",
+      "estimated_complexity": "S",
+      "tags": [
+        "supabase",
+        "migracion",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-005",
+      "source_requirement": "RNF-008",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P0",
+      "area": "auth",
+      "title": "Login con Bcrypt, política de contraseñas y mensajes genéricos",
+      "description": "Implementar POST /api/v1/auth/login con credencial+contraseña, Bcrypt cost >= 12, contraseña mínima 12 caracteres, verificación contra listas comprometidas y respuesta genérica idéntica para usuario inexistente y contraseña errónea.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-008",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-004"
+      ],
+      "acceptance_criteria": [
+        "Dado un alta, cuando se inspecciona password_hash, entonces coincide con ^\\$2y\\$1[2-9]\\$",
+        "Dado usuario inexistente vs contraseña errónea, cuando se comparan respuestas, entonces cuerpo idéntico"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-02"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select password_hash ~ '^\\$2y\\$(1[2-9]|[2-3][0-9])\\$' and length(password_hash)=60 from usuario limit 1",
+          "expect": "true"
+        },
+        {
+          "kind": "http",
+          "check": "POST /api/v1/auth/login {bad} (x2 variantes)",
+          "expect": "401 and same body"
+        }
+      ],
+      "agent_notes": "No registrar contraseñas en logs.",
+      "estimated_complexity": "M",
+      "tags": [
+        "auth",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-006",
+      "source_requirement": "RF-002",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P0",
+      "area": "auth",
+      "title": "Bloqueo al tercer intento fallido y reactivación por administrador",
+      "description": "Contar intentos por identificador de credencial (exista o no) en ventana de 60 min; al 3er fallo suspender y responder HTTP 423 ACCOUNT_SUSPENDED; reactivar solo con ADMINISTRADOR con verificación de identidad y cambio obligatorio de contraseña. Auditar cada evento.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-005"
+      ],
+      "acceptance_criteria": [
+        "Dado 3 fallos en 60 min, cuando se intenta un 4to login correcto, entonces HTTP 423",
+        "Dado una cuenta suspendida, cuando un MEDICO intenta reactivarla, entonces HTTP 403"
+      ],
+      "normative_refs": [
+        "NOM-024-SSA3-2012",
+        "ISO/IEC-27001",
+        "OWASP-ASVS-L2"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-04",
+        "MS-05"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "POST /api/v1/auth/login (wrong) x3",
+          "expect": "[401,401,423]"
+        },
+        {
+          "kind": "sql",
+          "check": "select estado_cuenta from usuario where id_usuario=:id",
+          "expect": "'SUSPENDIDA'"
+        }
+      ],
+      "agent_notes": "Métrica MS-04: 100% de eficacia.",
+      "estimated_complexity": "M",
+      "tags": [
+        "auth",
+        "seguridad",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-007",
+      "source_requirement": "PROV-SEC-002",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P0",
+      "area": "auth",
+      "title": "JWT RS256 de 15 min, refresh rotativo y lista de revocación",
+      "description": "Emitir access_token JWT RS256 con exp-iat <= 900 s, refresh_token rotativo con detección de reuso, blacklist al logout, cambio de contraseña o suspensión; llaves en bóveda de secretos.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-005"
+      ],
+      "acceptance_criteria": [
+        "Dado un login, cuando se decodifica el JWT, entonces alg=RS256 y exp-iat<=900",
+        "Dado un logout, cuando se reutiliza el token, entonces HTTP 401"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "OWASP-ASVS-L2"
+      ],
+      "risk_mitigated": [
+        "R-02",
+        "R-07"
+      ],
+      "quality_metrics": [
+        "MS-04"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "POST /api/v1/auth/login",
+          "expect": "jwt.exp - jwt.iat <= 900 and jwt.alg == 'RS256'"
+        },
+        {
+          "kind": "http",
+          "check": "GET /api/v1/usuarios with revoked token",
+          "expect": "401"
+        }
+      ],
+      "agent_notes": "La carpeta mobile reutiliza este servicio con flujo PKCE (TASK-W-081).",
+      "estimated_complexity": "L",
+      "tags": [
+        "jwt",
+        "auth",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-008",
+      "source_requirement": "PROV-SEC-001",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P0",
+      "area": "auth",
+      "title": "MFA TOTP obligatorio para roles de alto privilegio",
+      "description": "Exigir MFA (TOTP) a ADMINISTRADOR, Seguridad, DevOps y cuentas con acceso a producción; login devuelve mfa_required y access_token solo tras POST /api/v1/auth/mfa/verify.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-007"
+      ],
+      "acceptance_criteria": [
+        "Dado un ADMINISTRADOR sin MFA verificado, cuando hace login, entonces no recibe access_token"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "OWASP-ASVS-L2"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-04",
+        "MS-05"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "POST /api/v1/auth/login (admin)",
+          "expect": "200 and body.mfa_required == true and body.access_token == null"
+        }
+      ],
+      "agent_notes": "Método de MFA no especificado en el ERS: SUP-005.",
+      "estimated_complexity": "M",
+      "tags": [
+        "mfa",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-009",
+      "source_requirement": "RNF-008",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P0",
+      "area": "auth",
+      "title": "Restablecimiento de contraseña con token de un solo uso",
+      "description": "Implementar POST /api/v1/auth/password/reset-request y /reset con tokens aleatorios de un solo uso y expiración; invalidar sesiones al cambiar contraseña.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-008",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-005"
+      ],
+      "acceptance_criteria": [
+        "Dado un token consumido, cuando se reutiliza, entonces HTTP 410"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-02"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "POST /api/v1/auth/password/reset (token reused)",
+          "expect": "410"
+        }
+      ],
+      "agent_notes": "Nunca enviar la contraseña en claro.",
+      "estimated_complexity": "S",
+      "tags": [
+        "auth",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-010",
+      "source_requirement": "RF-002",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P0",
+      "area": "backend",
+      "title": "RBAC con Spatie Permission y matriz de permisos por rol",
+      "description": "Implementar roles ADMINISTRADOR, MEDICO, ENFERMERIA, RECEPCION, LABORATORISTA, PACIENTE (+ AUDITOR, SEGURIDAD, DEVOPS de solo lectura de auditoría) y sembrar la matriz de Tabla 44 como configuración versionada.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-004"
+      ],
+      "acceptance_criteria": [
+        "Dado ENFERMERIA, cuando POST /api/v1/recetas, entonces HTTP 403",
+        "Dado ADMINISTRADOR, cuando GET /api/v1/expedientes-clinicos/{id}, entonces HTTP 403"
+      ],
+      "normative_refs": [
+        "NOM-024-SSA3-2012",
+        "ISO/IEC-27001",
+        "OWASP-ASVS-L2"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-04",
+        "MS-05"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "POST /api/v1/recetas as ENFERMERIA",
+          "expect": "403"
+        },
+        {
+          "kind": "http",
+          "check": "GET /api/v1/expedientes-clinicos/x as ADMINISTRADOR",
+          "expect": "403"
+        }
+      ],
+      "agent_notes": "Matriz Tabla 44 ilegible en origen: confirmar AMB-003 antes de cerrar la tarea.",
+      "estimated_complexity": "M",
+      "tags": [
+        "rbac",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-011",
+      "source_requirement": "RF-003",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Middlewares de autenticación, autorización y propiedad (401 vs 403)",
+      "description": "Implementar cadena autenticación → permiso → propiedad del registro, con 401 sin token/expirado y 403 sin privilegio o propiedad, antes de ejecutar cualquier transacción.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-007",
+        "TASK-W-010"
+      ],
+      "acceptance_criteria": [
+        "Dado sin token, cuando GET protegido, entonces 401 y 0 consultas",
+        "Dado receta ajena, cuando PATCH, entonces 403 antes de SQL"
+      ],
+      "normative_refs": [
+        "OWASP-ASVS-L2",
+        "ISO/IEC-25010",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-05"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "GET /api/v1/expedientes-clinicos/x (no token)",
+          "expect": "401"
+        },
+        {
+          "kind": "http",
+          "check": "PATCH /api/v1/recetas/x (otro médico)",
+          "expect": "403"
+        }
+      ],
+      "agent_notes": "La ocultación de menús en Vue no cuenta como control.",
+      "estimated_complexity": "M",
+      "tags": [
+        "middleware",
+        "seguridad",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-012",
+      "source_requirement": "RF-002.1",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Aislamiento horizontal del paciente por token",
+      "description": "Aplicar global scope que fuerza id_paciente = claim sub del token y devuelve 403 si el cliente envía otro id_paciente.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-002.1",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-011"
+      ],
+      "acceptance_criteria": [
+        "Dado el token del paciente A, cuando GET con id de B, entonces 403 sin datos de B"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "NOM-024-SSA3-2012",
+        "OWASP-ASVS-L2"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-05"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "GET /api/v1/mobile/recetas?id_paciente=B (token A)",
+          "expect": "403 and body !~ B"
+        }
+      ],
+      "agent_notes": "Probar también path params.",
+      "estimated_complexity": "M",
+      "tags": [
+        "idor",
+        "seguridad",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-013",
+      "source_requirement": "RF-001",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Alta y baja de usuarios (administrador)",
+      "description": "Implementar POST /api/v1/usuarios (alta, cédula obligatoria para MEDICO) y POST /api/v1/usuarios/{id}/baja (<= 24 h, revoca tokens, id no reutilizable) y POST /api/v1/usuarios/{id}/reactivar.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-010",
+        "TASK-W-011"
+      ],
+      "acceptance_criteria": [
+        "Dado alta de MEDICO sin cédula, cuando POST, entonces 422",
+        "Dado una baja, cuando se reusa el id_usuario, entonces 409"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-05",
+        "MS-02"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "POST /api/v1/usuarios {rol:MEDICO, sin cedula}",
+          "expect": "422"
+        },
+        {
+          "kind": "http",
+          "check": "POST /api/v1/usuarios {id baja}",
+          "expect": "409"
+        }
+      ],
+      "agent_notes": "Auditar cada alta/baja una vez exista AUDITORIA_I (Stage 2).",
+      "estimated_complexity": "M",
+      "tags": [
+        "usuarios",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-014",
+      "source_requirement": "PROV-SEC-003",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P1",
+      "area": "backend",
+      "title": "Jobs de ciclo de vida de cuentas",
+      "description": "Crear job diario: suspender cuentas sin uso por 90 días y generar el listado de revisión trimestral/mensual de permisos.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-013"
+      ],
+      "acceptance_criteria": [
+        "Dado una cuenta con 91 días sin uso, cuando corre el job, entonces SUSPENDIDA"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-05"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select estado_cuenta from usuario where ultimo_acceso_en < now()-interval '90 days'",
+          "expect": "'SUSPENDIDA'"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "jobs",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-015",
+      "source_requirement": "PROV-SEC-001",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P0",
+      "area": "frontend",
+      "title": "Scaffold Vue con MVVM, login, MFA y cierre por inactividad de 15 min",
+      "description": "Crear SPA Vue (Single-File Components PascalCase), pantallas de login y MFA, cliente HTTP con manejo de 401/403 y temporizador de inactividad de 900 s.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-005",
+        "TASK-W-008"
+      ],
+      "acceptance_criteria": [
+        "Dado 15 min sin actividad, cuando pasa el tiempo, entonces la SPA redirige a /login y limpia el estado"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "OWASP-ASVS-L2"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-04",
+        "MS-05"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "playwright test inactividad-15min",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Nunca guardar tokens en localStorage sin evaluar riesgo XSS (SUP-008).",
+      "estimated_complexity": "M",
+      "tags": [
+        "vue",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-016",
+      "source_requirement": "RF-001",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P0",
+      "area": "frontend",
+      "title": "Pantalla de administración de usuarios",
+      "description": "Implementar listado, alta, baja y reactivación de usuarios con estados vacío, cargando y error.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-013",
+        "TASK-W-015"
+      ],
+      "acceptance_criteria": [
+        "Dado el ADMINISTRADOR, cuando da de alta un usuario, entonces aparece en el listado"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-05",
+        "MS-02"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "playwright test admin-usuarios",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Operable por teclado.",
+      "estimated_complexity": "M",
+      "tags": [
+        "vue",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-017",
+      "source_requirement": "RF-002",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P0",
+      "area": "testing",
+      "title": "Pruebas de control de acceso, 401/403, IDOR y bloqueo de cuenta",
+      "description": "Automatizar casos RBAC, 401/403, IDOR y bloqueo 3/1h y registrar evidencia por caso.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-006",
+        "TASK-W-011",
+        "TASK-W-012"
+      ],
+      "acceptance_criteria": [
+        "Dado la suite, cuando corre, entonces 100% de casos RBAC pasan y MS-05=0"
+      ],
+      "normative_refs": [
+        "NOM-024-SSA3-2012",
+        "ISO/IEC-27001",
+        "OWASP-ASVS-L2"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-04",
+        "MS-05"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "phpunit --testsuite=access",
+          "expect": "failures == 0"
+        }
+      ],
+      "agent_notes": "Alimenta AI-01 y MS-04/MS-05.",
+      "estimated_complexity": "M",
+      "tags": [
+        "pruebas",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-018",
+      "source_requirement": "PROV-RN-002",
+      "sprint": 1,
+      "stage": 1,
+      "epic_id": "E1",
+      "priority": "P1",
+      "area": "testing",
+      "title": "Matriz de trazabilidad y paquete de evidencia AI-01",
+      "description": "Generar la matriz Requisito→Historia→commit→PR→caso→resultado desde TASK_BACKLOG.json y preparar el paquete AI-01 (manual versionado, RACI, backlog).",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-001"
+      ],
+      "acceptance_criteria": [
+        "Dado una muestra de 5 requisitos, cuando el auditor traza, entonces la cadena está completa"
+      ],
+      "normative_refs": [
+        "ISO/IEC/IEEE-29148",
+        "ISO/IEC/IEEE-29119"
+      ],
+      "risk_mitigated": [
+        "R-11"
+      ],
+      "quality_metrics": [
+        "MC-02"
+      ],
+      "audit_checkpoint": "AI-01",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "python tools/trace_matrix.py --check",
+          "expect": "orphans == 0"
+        }
+      ],
+      "agent_notes": "AI-01 cierra el 22 sep.",
+      "estimated_complexity": "S",
+      "tags": [
+        "auditoria",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-020",
+      "source_requirement": "PROV-RNF-001",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P0",
+      "area": "infra",
+      "title": "docker-compose por entorno con imágenes fijas y mínimo privilegio",
+      "description": "Crear definiciones Docker para dev, pruebas y producción: imágenes oficiales con versión fija, usuario no root, límites de CPU/RAM, secretos en runtime, red privada, health-checks.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rnf-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-002"
+      ],
+      "acceptance_criteria": [
+        "Dado los Dockerfile, cuando se analizan, entonces 0 ':latest' y user != root"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-04",
+        "R-06"
+      ],
+      "quality_metrics": [
+        "MC-11"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "grep -R ':latest' docker/",
+          "expect": "no matches"
+        },
+        {
+          "kind": "shell",
+          "check": "docker inspect --format '{{.Config.User}}' api",
+          "expect": "!= ''"
+        }
+      ],
+      "agent_notes": "Misma imagen en 3 entornos (MC-11).",
+      "estimated_complexity": "M",
+      "tags": [
+        "docker",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-021",
+      "source_requirement": "RNF-003",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P0",
+      "area": "database",
+      "title": "Desplegar Supabase autohospedado en Docker en red privada",
+      "description": "Levantar la pila Supabase (PostgreSQL) autohospedada en Docker, publicar solo el puerto del backend en la red interna, TLS hacia la BD con verificación de certificado, deshabilitar acceso público a Auth/PostgREST/Realtime hacia clientes. Laravel es el único cliente.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-020"
+      ],
+      "acceptance_criteria": [
+        "Dado la red externa, cuando se conecta al puerto de PostgreSQL, entonces la conexión falla"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-07",
+        "R-05"
+      ],
+      "quality_metrics": [
+        "MS-01"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "nc -z -w3 <ip-publica> 5432",
+          "expect": "exit != 0"
+        },
+        {
+          "kind": "sql",
+          "check": "show ssl",
+          "expect": "'on'"
+        }
+      ],
+      "agent_notes": "BLOQUEADA por AMB-001 hasta confirmar autohospedado vs Supabase Cloud.",
+      "estimated_complexity": "L",
+      "tags": [
+        "supabase",
+        "seguridad",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-022",
+      "source_requirement": "RNF-002",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P0",
+      "area": "database",
+      "title": "Esquema relacional con soft delete y triggers anti-DELETE",
+      "description": "Migrar PACIENTE, USUARIO, TRIAGE, EXPEDIENTE_C y RECETA conforme a DOMAIN_SCHEMA.json (id_paciente UUID en TRIAGE), con FKs estrictas, estado_activo BOOLEAN, y triggers/REVOKE que rechazan DELETE y TRUNCATE.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-021"
+      ],
+      "acceptance_criteria": [
+        "Dado un DELETE sobre expediente_c, cuando se ejecuta, entonces falla con error de trigger"
+      ],
+      "normative_refs": [
+        "NOM-004-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-05",
+        "R-03"
+      ],
+      "quality_metrics": [
+        "MN-05"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "delete from expediente_c where true",
+          "expect": "ERROR"
+        },
+        {
+          "kind": "sql",
+          "check": "select data_type from information_schema.columns where table_name='triage' and column_name='id_paciente'",
+          "expect": "'uuid'"
+        }
+      ],
+      "agent_notes": "Nunca usar ON DELETE CASCADE sobre tablas clínicas.",
+      "estimated_complexity": "L",
+      "tags": [
+        "supabase",
+        "retencion",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-023",
+      "source_requirement": "RNF-001",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P0",
+      "area": "database",
+      "title": "Esquema auditoria.auditoria_i con 13 columnas, INSERT-only y hash SHA-256 encadenado",
+      "description": "Crear esquema auditoria con propietario sih_audit_owner, tabla auditoria_i (id_auditoria, fecha_hora UTC, tipo_movimiento, id_usuario, tabla_afectada, registro_id, valor_anterior, valor_nuevo, origen, resultado, motivo, es_necesario_auditoria_interna, huella_integridad), GRANT INSERT únicamente a sih_app, triggers BEFORE UPDATE/DELETE/TRUNCATE que lanzan excepción y trigger BEFORE INSERT que calcula la huella con bloqueo asesor para serializar.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-022"
+      ],
+      "acceptance_criteria": [
+        "Dado sih_app, cuando hace UPDATE, entonces permission denied",
+        "Dado dos inserciones, cuando se leen, entonces fila[n].huella = sha256(canónico || fila[n-1].huella)"
+      ],
+      "normative_refs": [
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-03"
+      ],
+      "quality_metrics": [
+        "MN-04"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select has_table_privilege('sih_app','auditoria.auditoria_i','UPDATE')",
+          "expect": "false"
+        },
+        {
+          "kind": "sql",
+          "check": "select count(*) from auditoria.auditoria_i a join auditoria.auditoria_i b on b.id_auditoria=a.id_auditoria+1 where b.huella_integridad <> encode(sha256(convert_to(auditoria.canonico(b)||a.huella_integridad,'UTF8')),'hex')",
+          "expect": "0"
+        }
+      ],
+      "agent_notes": "Primer registro con huella previa de 64 ceros. Ver AMB-004.",
+      "estimated_complexity": "XL",
+      "tags": [
+        "auditoria",
+        "supabase",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-024",
+      "source_requirement": "RNF-001",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Servicio AuditLogger invocado en toda escritura y denegación",
+      "description": "Implementar servicio que inserta en AUDITORIA_I en cada escritura, cambio de estado, solicitud denegada, login/logout y consulta de auditoría; sin contraseñas, tokens, llaves ni OTP.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-023",
+        "TASK-W-011"
+      ],
+      "acceptance_criteria": [
+        "Dado una escritura de triage, cuando termina, entonces existe 1 fila de auditoría",
+        "Dado un 403, cuando ocurre, entonces existe fila con resultado='DENEGADO'"
+      ],
+      "normative_refs": [
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-03"
+      ],
+      "quality_metrics": [
+        "MN-04"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select count(*) from auditoria.auditoria_i where resultado='DENEGADO'",
+          "expect": ">= 1 tras prueba 403"
+        },
+        {
+          "kind": "sql",
+          "check": "select count(*) from auditoria.auditoria_i where valor_nuevo ~* 'password|token|otp'",
+          "expect": "0"
+        }
+      ],
+      "agent_notes": "Registrar en la misma transacción de la escritura.",
+      "estimated_complexity": "L",
+      "tags": [
+        "auditoria",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-025",
+      "source_requirement": "RF-001",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Consulta de auditoría solo lectura con evento de consulta",
+      "description": "Implementar GET /api/v1/auditoria paginado y filtrable para ADMINISTRADOR, Seguridad y Auditor; cada consulta genera evento; métodos de escritura devuelven 405.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-024"
+      ],
+      "acceptance_criteria": [
+        "Dado un ADMINISTRADOR, cuando consulta, entonces 200 y se registra CONSULTA_AUDITORIA"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-05",
+        "MS-02"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "GET /api/v1/auditoria as ADMINISTRADOR",
+          "expect": "200"
+        },
+        {
+          "kind": "http",
+          "check": "DELETE /api/v1/auditoria/1",
+          "expect": "405"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "auditoria",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-026",
+      "source_requirement": "PROV-SEC-005",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P0",
+      "area": "database",
+      "title": "Verificación diaria de cadena y copia externa de solo escritura",
+      "description": "Crear auditoria.verificar_cadena(), job diario y replicación periódica a almacenamiento externo de solo escritura con alerta ante ruptura.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-005",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-023"
+      ],
+      "acceptance_criteria": [
+        "Dado una fila alterada por superusuario, cuando corre la verificación, entonces ok=false y alerta"
+      ],
+      "normative_refs": [
+        "NOM-024-SSA3-2012",
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-03"
+      ],
+      "quality_metrics": [
+        "MN-04"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select ok from auditoria.verificar_cadena()",
+          "expect": "true en estado limpio"
+        }
+      ],
+      "agent_notes": "MN-04 debe ser 100%.",
+      "estimated_complexity": "L",
+      "tags": [
+        "auditoria",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-027",
+      "source_requirement": "RNF-003",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P0",
+      "area": "infra",
+      "title": "Cifrado AES-256 en volúmenes y AES-256-GCM para adjuntos",
+      "description": "Cifrar volúmenes de almacenamiento (AES-256) y crear utilidad de cifrado por sobre AES-256-GCM para adjuntos con llaves en bóveda de secretos.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-021"
+      ],
+      "acceptance_criteria": [
+        "Dado un adjunto almacenado, cuando se inspecciona el blob, entonces no es legible sin llave"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-07",
+        "R-05"
+      ],
+      "quality_metrics": [
+        "MS-01"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "strings attachment.blob | grep -c '%PDF'",
+          "expect": "0"
+        }
+      ],
+      "agent_notes": "Sin criptografía propia.",
+      "estimated_complexity": "L",
+      "tags": [
+        "cifrado",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-028",
+      "source_requirement": "RNF-003",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P0",
+      "area": "infra",
+      "title": "TLS >= 1.2, HSTS, proxy inverso con WAF y límite de tasa",
+      "description": "Configurar proxy inverso con TLS 1.2/1.3, HSTS >= 1 año, WAF y rate limiting; deshabilitar SSL/TLS1.0/1.1.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-020"
+      ],
+      "acceptance_criteria": [
+        "Dado TLS 1.1, cuando se negocia, entonces el handshake falla"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-07",
+        "R-05"
+      ],
+      "quality_metrics": [
+        "MS-01"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "openssl s_client -tls1_1 -connect host:443",
+          "expect": "handshake failure"
+        },
+        {
+          "kind": "http",
+          "check": "GET http://host/",
+          "expect": "301 https"
+        }
+      ],
+      "agent_notes": "MS-01 = 100%.",
+      "estimated_complexity": "M",
+      "tags": [
+        "tls",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-029",
+      "source_requirement": "RNF-004",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P0",
+      "area": "infra",
+      "title": "Réplicas de API, balanceador interno y health-checks",
+      "description": "Desplegar >= 2 réplicas de API con balanceador y reinicio automático ante falla de health-check.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-004",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-020"
+      ],
+      "acceptance_criteria": [
+        "Dado una réplica detenida, cuando se hacen peticiones, entonces siguen respondiendo 200"
+      ],
+      "normative_refs": [
+        "ISO/IEC-25010"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-06",
+        "MC-07"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "docker stop api-1 && curl -s -o /dev/null -w '%{http_code}' https://host/api/v1/salud",
+          "expect": "200"
+        }
+      ],
+      "agent_notes": "RTO contenedor <= 5 min.",
+      "estimated_complexity": "M",
+      "tags": [
+        "ha",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-030",
+      "source_requirement": "PROV-SEC-006",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P1",
+      "area": "infra",
+      "title": "Respaldos diarios, WAL a bucket externo y alerta de lag",
+      "description": "Configurar respaldo completo diario cifrado, archivado WAL, regla 3-2-1, retención 30 d/12 m y alerta de lag > 10 min.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-006",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-021"
+      ],
+      "acceptance_criteria": [
+        "Dado lag > 600 s, cuando corre el monitor, entonces alerta crítica a DevOps"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-05"
+      ],
+      "quality_metrics": [
+        "MC-06",
+        "MC-07"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "promtool query 'wal_lag_seconds > 600'",
+          "expect": "alert firing in test"
+        }
+      ],
+      "agent_notes": "Probar restauración mensual (RTO desastre <= 4 h).",
+      "estimated_complexity": "L",
+      "tags": [
+        "backup",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-031",
+      "source_requirement": "PROV-SEC-007",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P1",
+      "area": "infra",
+      "title": "NTP con CENAM y almacenamiento UTC",
+      "description": "Configurar NTP en hosts y contenedores con deriva <= 1 s y asegurar timestamptz en UTC en todo el esquema.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-007",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-020"
+      ],
+      "acceptance_criteria": [
+        "Dado un contenedor, cuando se mide el offset, entonces <= 1 s"
+      ],
+      "normative_refs": [
+        "CENAM/NTP",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-01"
+      ],
+      "quality_metrics": [
+        "MN-01"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "chronyc tracking | offset <= 1s",
+          "expect": "true"
+        },
+        {
+          "kind": "sql",
+          "check": "select count(*) from information_schema.columns where data_type='timestamp without time zone' and table_schema in ('public','auditoria')",
+          "expect": "0"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "ntp",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-032",
+      "source_requirement": "PROV-SEC-010",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P1",
+      "area": "database",
+      "title": "Seeders sintéticos y política de no-PII en no productivo",
+      "description": "Crear seeders con datos ficticios para Dev/Pruebas y verificación automática de ausencia de CURP reales.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-010",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-022"
+      ],
+      "acceptance_criteria": [
+        "Dado Staging, cuando se ejecuta el verificador, entonces 0 PII real"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "LFPDPPP"
+      ],
+      "risk_mitigated": [
+        "R-08"
+      ],
+      "quality_metrics": [
+        "MS-02"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "python tools/pii_scan.py staging",
+          "expect": "matches == 0"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "datos",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-033",
+      "source_requirement": "PROV-RN-003",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P1",
+      "area": "backend",
+      "title": "Actualización de fecha_ultimo_acto_medico y relación mensual de retención",
+      "description": "Actualizar fecha_ultimo_acto_medico al insertar notas/recetas y generar mensualmente la relación de expedientes con plazo concluido sin ejecutar acciones.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-022"
+      ],
+      "acceptance_criteria": [
+        "Dado una nota nueva, cuando se inserta, entonces fecha_ultimo_acto_medico se actualiza"
+      ],
+      "normative_refs": [
+        "NOM-004-SSA3-2012",
+        "LFPDPPP"
+      ],
+      "risk_mitigated": [
+        "R-10"
+      ],
+      "quality_metrics": [
+        "MN-05"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select fecha_ultimo_acto_medico >= :nota_fecha from expediente_c where id_expediente=:id",
+          "expect": "true"
+        }
+      ],
+      "agent_notes": "Supresión física fuera de alcance (AMB-005).",
+      "estimated_complexity": "M",
+      "tags": [
+        "retencion",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-034",
+      "source_requirement": "RNF-002",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P0",
+      "area": "testing",
+      "title": "Pruebas de inalterabilidad, DELETE bloqueado, aislamiento de red y caída de contenedor",
+      "description": "Automatizar: UPDATE/DELETE/TRUNCATE sobre AUDITORIA_I con superusuario, DELETE sobre expedientes, puerto BD externo y apagado de contenedor web (RTO < 5 min x3).",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-023",
+        "TASK-W-021",
+        "TASK-W-029"
+      ],
+      "acceptance_criteria": [
+        "Dado los intentos, cuando se ejecutan, entonces 100% fallan o se detectan"
+      ],
+      "normative_refs": [
+        "NOM-004-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-05",
+        "R-03"
+      ],
+      "quality_metrics": [
+        "MN-05"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "delete from auditoria.auditoria_i",
+          "expect": "ERROR"
+        },
+        {
+          "kind": "shell",
+          "check": "chaos stop api && time-to-recover",
+          "expect": "< 300s (x3)"
+        }
+      ],
+      "agent_notes": "Evidencia para AI-02 (Tabla 54).",
+      "estimated_complexity": "L",
+      "tags": [
+        "pruebas",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-035",
+      "source_requirement": "PROV-RN-013",
+      "sprint": 2,
+      "stage": 2,
+      "epic_id": "E2",
+      "priority": "P1",
+      "area": "testing",
+      "title": "Paquete de evidencia AI-02",
+      "description": "Reunir configuración de contenedores, scripts de BD, bitácora de pipeline y prueba de inalterabilidad para la auditoría AI-02 (cierre 08 oct).",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-013",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-034"
+      ],
+      "acceptance_criteria": [
+        "Dado el paquete, cuando el Auditor lo revisa, entonces incluye los 4 artefactos"
+      ],
+      "normative_refs": [
+        "ISO/IEC/IEEE-29148"
+      ],
+      "risk_mitigated": [
+        "R-03",
+        "R-11"
+      ],
+      "quality_metrics": [
+        "MN-04",
+        "MC-02"
+      ],
+      "audit_checkpoint": "AI-02",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "ls evidence/AI-02 | wc -l",
+          "expect": ">= 4"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "auditoria",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-040",
+      "source_requirement": "RF-004",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P0",
+      "area": "database",
+      "title": "Migraciones de triage: campos derivados, SLA, salas y camas",
+      "description": "Extender TRIAGE con folio_ingreso, estimacion_sangre_perdida, sla_vencimiento_en, sla_vencido, desviacion_minutos y crear salas/camas (3 salas de emergencia + consultorios) conforme a DOMAIN_SCHEMA.json.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-004",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-022"
+      ],
+      "acceptance_criteria": [
+        "Dado la migración, cuando se consulta, entonces existen 3 salas de emergencia"
+      ],
+      "normative_refs": [
+        "NOM-206-SSA1-2002",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-01"
+      ],
+      "quality_metrics": [
+        "MC-01"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select count(*) from sala_atencion where tipo='EMERGENCIA'",
+          "expect": "3"
+        }
+      ],
+      "agent_notes": "Campos derivados marcados ⚠️.",
+      "estimated_complexity": "M",
+      "tags": [
+        "supabase",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-041",
+      "source_requirement": "RF-004",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P0",
+      "area": "backend",
+      "title": "POST /api/v1/triages con validaciones obligatorias e historial",
+      "description": "Implementar captura con validación de rangos, obligatoriedad, rol ENFERMERIA y almacenamiento histórico; auditar INSERT.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-004",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-040",
+        "TASK-W-024"
+      ],
+      "acceptance_criteria": [
+        "Dado frecuencia_card=999, cuando POST, entonces 422",
+        "Dado ENFERMERIA y datos válidos, cuando POST, entonces 201 y fila de auditoría"
+      ],
+      "normative_refs": [
+        "NOM-206-SSA1-2002",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-01"
+      ],
+      "quality_metrics": [
+        "MC-01"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "POST /api/v1/triages {frecuencia_card:999}",
+          "expect": "422"
+        },
+        {
+          "kind": "http",
+          "check": "POST /api/v1/triages {valido}",
+          "expect": "201"
+        }
+      ],
+      "agent_notes": "Rangos: AMB-006.",
+      "estimated_complexity": "M",
+      "tags": [
+        "triage",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-042",
+      "source_requirement": "RF-005",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Motor de reglas Manchester con AVDI=Inconsciente → Rojo",
+      "description": "Implementar motor con configuración versionada de reglas (RN-004), forzar ROJO si INCONSCIENTE, impedir degradación manual y publicar evento de alerta.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-005",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-041"
+      ],
+      "acceptance_criteria": [
+        "Dado INCONSCIENTE y signos normales, cuando se registra, entonces color_asig='ROJO'"
+      ],
+      "normative_refs": [
+        "NOM-206-SSA1-2002"
+      ],
+      "risk_mitigated": [
+        "R-01"
+      ],
+      "quality_metrics": [
+        "MC-01"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select color_asig from triage where nivel_conciencia='INCONSCIENTE'",
+          "expect": "'ROJO' (100% de filas)"
+        }
+      ],
+      "agent_notes": "Apoyo a la decisión; MC-01 = 100%.",
+      "estimated_complexity": "L",
+      "tags": [
+        "triage",
+        "motor-reglas",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-043",
+      "source_requirement": "RF-006",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Colas separadas, asignación a 3 salas de emergencia y liberación de consultorio",
+      "description": "Implementar colas de emergencia y consultorios, saltar cola en ROJO asignando sala libre, POST /api/v1/salas/{id}/liberar y GET /api/v1/colas-atencion y /api/v1/sala-espera (solo folio/iniciales).",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-006",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-042"
+      ],
+      "acceptance_criteria": [
+        "Dado ROJO con sala libre, cuando se registra, entonces se asigna sala"
+      ],
+      "normative_refs": [
+        "NOM-206-SSA1-2002"
+      ],
+      "risk_mitigated": [
+        "R-01",
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MN-01"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select id_sala from triage where color_asig='ROJO' order by fecha_hora_ingreso desc limit 1",
+          "expect": "not null"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "L",
+      "tags": [
+        "colas",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-044",
+      "source_requirement": "RF-007",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Reclasificación manual con temporizador de 30 min en backend",
+      "description": "Implementar POST /api/v1/triages/{id}/reclasificaciones con motivo obligatorio, restricción a roles privilegiados (AMB-008), bloqueo de degradación de ROJO y job que marca es_necesario_auditoria_interna al vencer 1 800 s sin justificación.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-007",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-042"
+      ],
+      "acceptance_criteria": [
+        "Dado motivo vacío, cuando POST, entonces 422",
+        "Dado 30 min sin justificación, cuando corre el job, entonces es_necesario_auditoria_interna=true"
+      ],
+      "normative_refs": [
+        "NOM-206-SSA1-2002",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-01",
+        "R-03"
+      ],
+      "quality_metrics": [
+        "MN-03"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "POST /api/v1/triages/x/reclasificaciones {motivo:''}",
+          "expect": "422"
+        },
+        {
+          "kind": "sql",
+          "check": "select es_necesario_auditoria_interna from auditoria.auditoria_i where motivo is null and tipo_movimiento='RECLASIFICACION'",
+          "expect": "true"
+        }
+      ],
+      "agent_notes": "NC-001: no depender del temporizador de UI.",
+      "estimated_complexity": "L",
+      "tags": [
+        "triage",
+        "auditoria",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-045",
+      "source_requirement": "PROV-RN-005",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Job de SLA vencido: alerta a Jefatura y registro de desviación",
+      "description": "Detectar temporizadores vencidos, marcar sla_vencido, calcular desviación y emitir alerta crítica a Jefatura sin bloquear el sistema.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-005",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-043"
+      ],
+      "acceptance_criteria": [
+        "Dado un SLA vencido, cuando corre el job, entonces alerta en <= 5 s y auditoría SLA_VENCIDO"
+      ],
+      "normative_refs": [
+        "NOM-206-SSA1-2002",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-01"
+      ],
+      "quality_metrics": [
+        "MN-02"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select count(*) from triage where sla_vencido and desviacion_minutos is null",
+          "expect": "0"
+        }
+      ],
+      "agent_notes": "MN-02 = 100%.",
+      "estimated_complexity": "M",
+      "tags": [
+        "triage",
+        "alertas",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-046",
+      "source_requirement": "PROV-RN-006",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P1",
+      "area": "backend",
+      "title": "Captura retroactiva de folios manuales",
+      "description": "Permitir captura_retroactiva=true conservando el timestamp de arribo original y registrando la hora real de captura en auditoría.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-006",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-041"
+      ],
+      "acceptance_criteria": [
+        "Dado arribo 08:15 capturado a las 09:40, cuando se guarda, entonces fecha_hora_ingreso=08:15"
+      ],
+      "normative_refs": [
+        "NOM-206-SSA1-2002",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MN-04"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select fecha_hora_ingreso from triage where folio_ingreso=:f",
+          "expect": "'08:15'"
+        }
+      ],
+      "agent_notes": "Permiso: AMB-008.",
+      "estimated_complexity": "M",
+      "tags": [
+        "triage",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-047",
+      "source_requirement": "PROV-RN-007",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P1",
+      "area": "backend",
+      "title": "Pacientes no identificados y fusión autorizada",
+      "description": "Implementar POST /api/v1/pacientes (identificado=false genera UUID temporal y folio) y POST /api/v1/pacientes/{id}/fusiones con justificación y auditoría.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-007",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-041"
+      ],
+      "acceptance_criteria": [
+        "Dado un paciente temporal, cuando se fusiona, entonces se conservan datos y queda inactivo"
+      ],
+      "normative_refs": [
+        "NOM-004-SSA3-2012",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-01"
+      ],
+      "quality_metrics": [
+        "MN-05"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select estado_activo from paciente where id_paciente=:temporal",
+          "expect": "false"
+        }
+      ],
+      "agent_notes": "CURP duplicada → 409.",
+      "estimated_complexity": "M",
+      "tags": [
+        "pacientes",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-048",
+      "source_requirement": "PROV-UX-001",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Difusión en tiempo real con Laravel Reverb y fallback a polling",
+      "description": "Publicar eventos de triage/cola por canales autorizados (sin PII) y proveer endpoint de polling cada 5 s como contingencia.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-ux-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-043"
+      ],
+      "acceptance_criteria": [
+        "Dado un ROJO nuevo, cuando se registra, entonces el evento llega en <= 2 s"
+      ],
+      "normative_refs": [
+        "WCAG-2.1-AA",
+        "NOM-206-SSA1-2002"
+      ],
+      "risk_mitigated": [
+        "R-01"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "ws-client wait triage.alert",
+          "expect": "latency <= 2000ms"
+        }
+      ],
+      "agent_notes": "No usar Supabase Realtime directo desde clientes (SUP-006).",
+      "estimated_complexity": "M",
+      "tags": [
+        "realtime",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-049",
+      "source_requirement": "PROV-BR-001",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P0",
+      "area": "design",
+      "title": "Tokens de color de triage con icono y texto",
+      "description": "Definir tokens semánticos para los 5 niveles con icono+texto obligatorios; hex como NO_DEFINIDO hasta decisión del PO.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-br-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [],
+      "acceptance_criteria": [
+        "Dado un badge de nivel, cuando se renderiza, entonces incluye icono y texto"
+      ],
+      "normative_refs": [
+        "WCAG-2.1-AA",
+        "NOM-206-SSA1-2002"
+      ],
+      "risk_mitigated": [
+        "R-01"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "grep -c 'NO_DEFINIDO' design/tokens.json",
+          "expect": ">= 1"
+        }
+      ],
+      "agent_notes": "No inventar paleta (AMB-010).",
+      "estimated_complexity": "S",
+      "tags": [
+        "diseño",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-050",
+      "source_requirement": "PROV-UI-001",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P1",
+      "area": "frontend",
+      "title": "Pantalla de captura de triage con bloqueo y alertas en vivo",
+      "description": "Implementar formulario con validación cliente/servidor, botón bloqueado hasta completar, selectores AVDI y EVA, indicador de nivel y temporizador.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-ui-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-041",
+        "TASK-W-049",
+        "TASK-W-048"
+      ],
+      "acceptance_criteria": [
+        "Dado formulario incompleto, cuando se intenta enviar, entonces el botón está deshabilitado"
+      ],
+      "normative_refs": [
+        "WCAG-2.1-AA"
+      ],
+      "risk_mitigated": [
+        "R-01"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "playwright test triage-form",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Operable por teclado.",
+      "estimated_complexity": "L",
+      "tags": [
+        "vue",
+        "triage",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-051",
+      "source_requirement": "PROV-UX-002",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P1",
+      "area": "frontend",
+      "title": "Pantalla de sala de espera con folio/iniciales",
+      "description": "Mostrar cola con folio, iniciales, nivel (icono+texto+color) y posición; actualización sin recarga.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-ux-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-043",
+        "TASK-W-048"
+      ],
+      "acceptance_criteria": [
+        "Dado el payload, cuando se inspecciona, entonces 0 campos de nombre completo o clínicos"
+      ],
+      "normative_refs": [
+        "LFPDPPP",
+        "WCAG-2.1-AA"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MN-05"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "GET /api/v1/sala-espera",
+          "expect": "body !~ 'nombre_completo|diagnostico|curp'"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "vue",
+        "privacidad",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-052",
+      "source_requirement": "RF-007",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P0",
+      "area": "frontend",
+      "title": "Modal de reclasificación con temporizador visible de 30 min",
+      "description": "Implementar modal con motivo obligatorio y cuenta regresiva, sincronizada con el vencimiento del backend.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-007",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-044"
+      ],
+      "acceptance_criteria": [
+        "Dado motivo vacío, cuando se envía, entonces se muestra error en línea"
+      ],
+      "normative_refs": [
+        "NOM-206-SSA1-2002",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-01",
+        "R-03"
+      ],
+      "quality_metrics": [
+        "MN-03"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "playwright test reclasificacion",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "vue",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-053",
+      "source_requirement": "PROV-RN-005",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P0",
+      "area": "frontend",
+      "title": "Alertas visuales críticas para Jefatura de Urgencias",
+      "description": "Mostrar alertas persistentes de SLA vencido con icono+texto, sin recarga.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-005",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-045",
+        "TASK-W-048"
+      ],
+      "acceptance_criteria": [
+        "Dado un SLA vencido, cuando ocurre, entonces la alerta es visible a Jefatura en <= 5 s"
+      ],
+      "normative_refs": [
+        "NOM-206-SSA1-2002",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-01"
+      ],
+      "quality_metrics": [
+        "MN-02"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "playwright test alerta-sla",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "vue",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-054",
+      "source_requirement": "RF-005",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P0",
+      "area": "testing",
+      "title": "Casos TC-TRG-001..005 y matriz AVDI × 5 niveles",
+      "description": "Automatizar los casos TC-TRG y la matriz completa; 100% requerido.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-005",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-042",
+        "TASK-W-044"
+      ],
+      "acceptance_criteria": [
+        "Dado la matriz, cuando se ejecuta, entonces 100% aprobados"
+      ],
+      "normative_refs": [
+        "NOM-206-SSA1-2002"
+      ],
+      "risk_mitigated": [
+        "R-01"
+      ],
+      "quality_metrics": [
+        "MC-01"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "phpunit --testsuite=triage",
+          "expect": "failures == 0"
+        }
+      ],
+      "agent_notes": "MC-01 = 100%.",
+      "estimated_complexity": "L",
+      "tags": [
+        "pruebas",
+        "triage",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-055",
+      "source_requirement": "PROV-UX-003",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P1",
+      "area": "testing",
+      "title": "Auditoría axe-core y teclado en triage",
+      "description": "Ejecutar axe-core y navegación por teclado en la pantalla de triage.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-ux-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-050"
+      ],
+      "acceptance_criteria": [
+        "Dado la pantalla, cuando se audita, entonces 0 incidencias críticas"
+      ],
+      "normative_refs": [
+        "WCAG-2.1-AA",
+        "ISO/IEC-25010"
+      ],
+      "risk_mitigated": [
+        "R-01"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "axe triage",
+          "expect": "violations(critical) == 0"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "a11y",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-056",
+      "source_requirement": "PROV-RN-013",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P1",
+      "area": "testing",
+      "title": "Paquete de evidencia AI-03",
+      "description": "Reunir código del algoritmo, casos ejecutados, registros de reclasificación y desviaciones para AI-03 (22 oct).",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-013",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-054"
+      ],
+      "acceptance_criteria": [
+        "Dado el paquete, cuando se revisa, entonces incluye muestra de reclasificaciones y desviaciones"
+      ],
+      "normative_refs": [
+        "ISO/IEC/IEEE-29148"
+      ],
+      "risk_mitigated": [
+        "R-03",
+        "R-11"
+      ],
+      "quality_metrics": [
+        "MN-04",
+        "MC-02"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "ls evidence/AI-03 | wc -l",
+          "expect": ">= 4"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "auditoria",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-060",
+      "source_requirement": "RF-008",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P0",
+      "area": "database",
+      "title": "Migraciones ECE: notas, estudios, consentimientos, ARCO, acceso de emergencia y QR",
+      "description": "Crear tablas derivadas (nota_medica, solicitud_estudio, resultado_estudio, consentimiento, aviso_privacidad, solicitud_arco, acceso_emergencia) y columnas QR en RECETA, con triggers de inmutabilidad en notas cerradas.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-008",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-022"
+      ],
+      "acceptance_criteria": [
+        "Dado una nota cerrada, cuando se hace UPDATE, entonces el trigger lo rechaza"
+      ],
+      "normative_refs": [
+        "NOM-004-SSA3-2012",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MC-03",
+        "MN-05"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "update nota_medica set contenido='x' where cerrada",
+          "expect": "ERROR"
+        }
+      ],
+      "agent_notes": "Campos derivados marcados ⚠️.",
+      "estimated_complexity": "L",
+      "tags": [
+        "supabase",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-061",
+      "source_requirement": "RF-008.1",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Creación y consulta de expediente con relación asistencial",
+      "description": "Implementar POST/GET /api/v1/expedientes-clinicos con campos NOM-004, UNIQUE(id_paciente), 409 si existe y 403 sin relación asistencial.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-008.1",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-060",
+        "TASK-W-024"
+      ],
+      "acceptance_criteria": [
+        "Dado campos faltantes, cuando POST, entonces 422",
+        "Dado expediente existente, cuando POST, entonces 409"
+      ],
+      "normative_refs": [
+        "NOM-004-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MN-05"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "POST /api/v1/expedientes-clinicos {incompleto}",
+          "expect": "422"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "L",
+      "tags": [
+        "ece",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-062",
+      "source_requirement": "RF-008.2",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Notas inmutables y notas aclaratorias",
+      "description": "Implementar notas de evolución/ingreso/egreso con firma y sello de tiempo, sin PUT/PATCH/DELETE, y aclaraciones vinculadas.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-008.2",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-061"
+      ],
+      "acceptance_criteria": [
+        "Dado una nota, cuando PATCH, entonces 405/403 y hash intacto"
+      ],
+      "normative_refs": [
+        "NOM-004-SSA3-2012",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-03"
+      ],
+      "quality_metrics": [
+        "MN-05"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "PATCH /api/v1/expedientes-clinicos/x/notas/y",
+          "expect": "405"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "L",
+      "tags": [
+        "ece",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-063",
+      "source_requirement": "RF-008.2",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Cierre de expediente con campos obligatorios NOM-004",
+      "description": "Rechazar cierre sin identificación, motivo, diagnóstico, tratamiento, nombre y firma; fecha_creacion inmutable.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-008.2",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-062"
+      ],
+      "acceptance_criteria": [
+        "Dado un expediente sin diagnóstico, cuando se cierra, entonces 422"
+      ],
+      "normative_refs": [
+        "NOM-004-SSA3-2012",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-03"
+      ],
+      "quality_metrics": [
+        "MN-05"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "POST /api/v1/expedientes-clinicos/x/cierre (sin diagnostico)",
+          "expect": "422"
+        }
+      ],
+      "agent_notes": "MN-05 = 100%.",
+      "estimated_complexity": "M",
+      "tags": [
+        "ece",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-064",
+      "source_requirement": "RF-009",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Recetas: campos obligatorios, vínculo a expediente y reglas de fracción",
+      "description": "Implementar POST /api/v1/recetas con denominación genérica, dosis, vía, presentación y duración; Fracción I solo QR único; II/III con límite por evento (AMB-011).",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-009",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-061"
+      ],
+      "acceptance_criteria": [
+        "Dado ENFERMERIA, cuando POST receta, entonces 403",
+        "Dado Fracción I sin QR, cuando se emite, entonces 422"
+      ],
+      "normative_refs": [
+        "COFEPRIS/SAT",
+        "NOM-004-SSA3-2012",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-09"
+      ],
+      "quality_metrics": [
+        "MN-06"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "POST /api/v1/recetas as ENFERMERIA",
+          "expect": "403"
+        }
+      ],
+      "agent_notes": "MN-06 = 100%.",
+      "estimated_complexity": "L",
+      "tags": [
+        "recetas",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-065",
+      "source_requirement": "RF-009",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Validación de e.firma X.509 y revocación contra el SAT",
+      "description": "Crear puerto/adaptador para validar certificado vigente y revocación antes de cada firma; bloquear PDF si no valida; tolerar caída del servicio con procedimiento alterno.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-009",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-064"
+      ],
+      "acceptance_criteria": [
+        "Dado certificado revocado, cuando se firma, entonces 422 y PDF 409"
+      ],
+      "normative_refs": [
+        "COFEPRIS/SAT",
+        "NOM-004-SSA3-2012",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-09"
+      ],
+      "quality_metrics": [
+        "MN-06"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "GET /api/v1/recetas/x/pdf (firma inválida)",
+          "expect": "409"
+        }
+      ],
+      "agent_notes": "Usar doble de pruebas del SAT en Staging; llaves privadas nunca en el sistema.",
+      "estimated_complexity": "XL",
+      "tags": [
+        "firma",
+        "sat",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-066",
+      "source_requirement": "RF-009",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Código QR único e invalidación tras surtido",
+      "description": "Generar QR único; POST /api/v1/recetas/{folio}/surtido invalida el QR; reuso → 409 + incidente de seguridad.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-009",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-065"
+      ],
+      "acceptance_criteria": [
+        "Dado QR consumido, cuando se reusa, entonces 409 y evento de incidente"
+      ],
+      "normative_refs": [
+        "COFEPRIS/SAT",
+        "NOM-004-SSA3-2012",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-09"
+      ],
+      "quality_metrics": [
+        "MN-06"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select qr_estado from receta where folio=:f",
+          "expect": "'CONSUMIDO'"
+        }
+      ],
+      "agent_notes": "Consumidor del QR: AMB-011.",
+      "estimated_complexity": "M",
+      "tags": [
+        "qr",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-067",
+      "source_requirement": "RF-010",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Solicitudes de estudio y carga de resultados cifrados",
+      "description": "Implementar solicitudes (MEDICO), bandeja (LABORATORISTA) y carga de PDF/imagen con AES-256-GCM, límites y tipos permitidos.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-010",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-061",
+        "TASK-W-027"
+      ],
+      "acceptance_criteria": [
+        "Dado un resultado, cuando se carga, entonces el médico lo visualiza"
+      ],
+      "normative_refs": [
+        "NOM-004-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MC-03"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "POST /api/v1/solicitudes-estudio/x/resultados {pdf}",
+          "expect": "201"
+        }
+      ],
+      "agent_notes": "Límite de tamaño: AMB-012.",
+      "estimated_complexity": "L",
+      "tags": [
+        "estudios",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-068",
+      "source_requirement": "RNF-007",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Capa FHIR R4: Patient, Encounter, Observation, MedicationRequest",
+      "description": "Implementar mapeos y endpoints /api/v1/fhir/{Recurso} con validación de esquema; estado de MedicationRequest consistente.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-007",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-064",
+        "TASK-W-041"
+      ],
+      "acceptance_criteria": [
+        "Dado un Patient, cuando se pide, entonces valida contra FHIR R4"
+      ],
+      "normative_refs": [
+        "HL7-FHIR-R4",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-04"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "GET /api/v1/fhir/Patient/x",
+          "expect": "200 and fhir-validate == ok"
+        }
+      ],
+      "agent_notes": "Excepción PascalCase en rutas FHIR (AMB-013).",
+      "estimated_complexity": "XL",
+      "tags": [
+        "fhir",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-069",
+      "source_requirement": "PROV-RN-008",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P1",
+      "area": "backend",
+      "title": "Consentimientos inmutables con hash y revocación",
+      "description": "Implementar consentimientos inmutables, hash SHA-256 del documento, revocación como registro nuevo y flujo de urgencia con 2 médicos.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-008",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-060"
+      ],
+      "acceptance_criteria": [
+        "Dado un consentimiento, cuando se hace UPDATE, entonces se rechaza"
+      ],
+      "normative_refs": [
+        "LFPDPPP",
+        "NOM-004-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-10"
+      ],
+      "quality_metrics": [
+        "MN-05"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "update consentimiento set estado='X'",
+          "expect": "ERROR"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "L",
+      "tags": [
+        "privacidad",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-070",
+      "source_requirement": "PROV-RN-009",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P1",
+      "area": "backend",
+      "title": "Flujo de solicitudes ARCO con plazos",
+      "description": "Implementar solicitudes ARCO, verificación de identidad, cálculo de plazos 20/15 días hábiles y auditoría por etapa.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-009",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-060"
+      ],
+      "acceptance_criteria": [
+        "Dado una solicitud, cuando se crea, entonces se calculan ambos plazos"
+      ],
+      "normative_refs": [
+        "LFPDPPP",
+        "NOM-004-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-10"
+      ],
+      "quality_metrics": [
+        "MN-05"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select respuesta_limite is not null and ejecucion_limite is not null from solicitud_arco limit 1",
+          "expect": "true"
+        }
+      ],
+      "agent_notes": "Calendario hábil: AMB-014.",
+      "estimated_complexity": "M",
+      "tags": [
+        "privacidad",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-071",
+      "source_requirement": "PROV-RN-010",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P1",
+      "area": "backend",
+      "title": "Acceso de emergencia con justificación y alerta",
+      "description": "Implementar POST /api/v1/accesos-emergencia con motivo, vigencia limitada, marca de auditoría interna y notificación a Seguridad.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-010",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-061"
+      ],
+      "acceptance_criteria": [
+        "Dado sin motivo, cuando POST, entonces 422"
+      ],
+      "normative_refs": [
+        "NOM-024-SSA3-2012",
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-05"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select es_necesario_auditoria_interna from auditoria.auditoria_i where tipo_movimiento='ACCESO_EMERGENCIA'",
+          "expect": "true"
+        }
+      ],
+      "agent_notes": "Duración: AMB-015.",
+      "estimated_complexity": "M",
+      "tags": [
+        "ece",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-072",
+      "source_requirement": "PROV-SEC-008",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P1",
+      "area": "backend",
+      "title": "Enmascaramiento y exportaciones auditadas",
+      "description": "Enmascarar identificación en roles sin necesidad y registrar cada impresión/exportación.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-008",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-061"
+      ],
+      "acceptance_criteria": [
+        "Dado una exportación, cuando se ejecuta, entonces queda auditada"
+      ],
+      "normative_refs": [
+        "LFPDPPP",
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-05"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select count(*) from auditoria.auditoria_i where tipo_movimiento='EXPORTACION_DOCUMENTO'",
+          "expect": ">= 1"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "privacidad",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-073",
+      "source_requirement": "PROV-UI-002",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P1",
+      "area": "frontend",
+      "title": "Pantallas de expediente y notas",
+      "description": "Implementar consulta de expediente, alta de nota y aclaración; sin botones de edición/eliminación.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-ui-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-062"
+      ],
+      "acceptance_criteria": [
+        "Dado una nota guardada, cuando se abre, entonces solo existe 'Agregar aclaración'"
+      ],
+      "normative_refs": [
+        "WCAG-2.1-AA",
+        "NOM-004-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "playwright test ece-notas",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "L",
+      "tags": [
+        "vue",
+        "ece",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-074",
+      "source_requirement": "PROV-UI-002",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P1",
+      "area": "frontend",
+      "title": "Pantalla de emisión de recetas con paso de e.firma",
+      "description": "Implementar flujo de receta con bloqueo de impresión hasta validar e.firma, vista previa PDF y QR.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-ui-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-065",
+        "TASK-W-066"
+      ],
+      "acceptance_criteria": [
+        "Dado Fracción I, cuando se emite, entonces el botón Imprimir permanece bloqueado hasta validar e.firma"
+      ],
+      "normative_refs": [
+        "WCAG-2.1-AA",
+        "NOM-004-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "playwright test recetas-firma",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "L",
+      "tags": [
+        "vue",
+        "recetas",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-075",
+      "source_requirement": "RF-010",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P0",
+      "area": "frontend",
+      "title": "Bandeja de laboratorista y visor de resultados",
+      "description": "Implementar bandeja de solicitudes, carga de resultados y visor en historial.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-010",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-067"
+      ],
+      "acceptance_criteria": [
+        "Dado una solicitud, cuando se emite, entonces aparece en la bandeja en <= 2 s"
+      ],
+      "normative_refs": [
+        "NOM-004-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MC-03"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "playwright test estudios",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "vue",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-076",
+      "source_requirement": "PROV-RN-008",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P1",
+      "area": "frontend",
+      "title": "Pantallas de consentimiento, ARCO y acceso de emergencia (admisión)",
+      "description": "Implementar captura de consentimiento, registro de ARCO y solicitud de acceso de emergencia con justificación.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-008",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-069",
+        "TASK-W-070",
+        "TASK-W-071"
+      ],
+      "acceptance_criteria": [
+        "Dado urgencia sin consentimiento, cuando se registra con 1 médico, entonces error de validación"
+      ],
+      "normative_refs": [
+        "LFPDPPP",
+        "NOM-004-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-10"
+      ],
+      "quality_metrics": [
+        "MN-05"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "playwright test privacidad",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "L",
+      "tags": [
+        "vue",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-077",
+      "source_requirement": "RNF-007",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P0",
+      "area": "testing",
+      "title": "Pruebas de contrato OpenAPI, validación FHIR, concurrencia y recetas controladas",
+      "description": "Automatizar contrato de endpoints, validación FHIR, concurrencia READ COMMITTED y casos de Fracciones I/II/III.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-007",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-068",
+        "TASK-W-066"
+      ],
+      "acceptance_criteria": [
+        "Dado los endpoints, cuando se prueban, entonces 100% conformes"
+      ],
+      "normative_refs": [
+        "HL7-FHIR-R4",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-04"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "newman run api.json",
+          "expect": "failures == 0"
+        }
+      ],
+      "agent_notes": "MC-04 >= 99% en producción.",
+      "estimated_complexity": "L",
+      "tags": [
+        "pruebas",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-078",
+      "source_requirement": "PROV-RN-013",
+      "sprint": 4,
+      "stage": 4,
+      "epic_id": "E4",
+      "priority": "P1",
+      "area": "testing",
+      "title": "Paquete de evidencia AI-04",
+      "description": "Reunir muestras de notas y recetas, documentación de API y reportes FHIR para AI-04 (05 nov).",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-013",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-077"
+      ],
+      "acceptance_criteria": [
+        "Dado el paquete, cuando se revisa, entonces incluye reportes FHIR"
+      ],
+      "normative_refs": [
+        "ISO/IEC/IEEE-29148"
+      ],
+      "risk_mitigated": [
+        "R-03",
+        "R-11"
+      ],
+      "quality_metrics": [
+        "MN-04",
+        "MC-02"
+      ],
+      "audit_checkpoint": "AI-04",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "ls evidence/AI-04 | wc -l",
+          "expect": ">= 4"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "auditoria",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-080",
+      "source_requirement": "RF-011",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Namespace /api/v1/mobile solo lectura con lista blanca de escrituras",
+      "description": "Crear rutas /api/v1/mobile/* exclusivas del rol PACIENTE; GET de perfil, citas, recetas y resultados; escrituras solo en la lista blanca SUP-002; todo POST/PUT/PATCH/DELETE clínico → 403.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-011",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-012",
+        "TASK-W-064",
+        "TASK-W-067"
+      ],
+      "acceptance_criteria": [
+        "Dado un token de paciente, cuando POST receta, entonces 403",
+        "Dado un token MEDICO, cuando GET /mobile/recetas, entonces 403"
+      ],
+      "normative_refs": [
+        "NOM-024-SSA3-2012",
+        "OWASP-ASVS-L2"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "POST /api/v1/mobile/recetas (token paciente)",
+          "expect": "403"
+        },
+        {
+          "kind": "http",
+          "check": "GET /api/v1/mobile/recetas (token MEDICO)",
+          "expect": "403"
+        }
+      ],
+      "agent_notes": "Contrato compartido con mobile/.",
+      "estimated_complexity": "M",
+      "tags": [
+        "api-mobile",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-081",
+      "source_requirement": "PROV-SEC-002",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P0",
+      "area": "auth",
+      "title": "OAuth 2.0 Authorization Code + PKCE y OTP de dispositivo nuevo para la app",
+      "description": "Implementar endpoints /api/v1/mobile/auth/* (código+PKCE S256, otp-verify, refresh rotativo, logout con blacklisting) reutilizando el servicio JWT.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-007"
+      ],
+      "acceptance_criteria": [
+        "Dado dispositivo nuevo, cuando login, entonces otp_required"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "OWASP-ASVS-L2"
+      ],
+      "risk_mitigated": [
+        "R-02",
+        "R-07"
+      ],
+      "quality_metrics": [
+        "MS-04"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "POST /api/v1/mobile/auth/token {sin code_verifier}",
+          "expect": "400"
+        }
+      ],
+      "agent_notes": "Cliente público: sin client_secret.",
+      "estimated_complexity": "L",
+      "tags": [
+        "oauth",
+        "mobile",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-082",
+      "source_requirement": "RF-009",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E6",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Endpoints móviles FHIR de perfil, recetas y resultados",
+      "description": "Exponer GET /api/v1/mobile/perfil (Patient), /recetas (MedicationRequest), /citas y /resultados con archivo en stream cifrado en tránsito.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-009",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-080",
+        "TASK-W-068"
+      ],
+      "acceptance_criteria": [
+        "Dado un paciente, cuando consulta recetas, entonces solo propias y FHIR válido"
+      ],
+      "normative_refs": [
+        "COFEPRIS/SAT",
+        "NOM-004-SSA3-2012",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-09"
+      ],
+      "quality_metrics": [
+        "MN-06"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "GET /api/v1/mobile/recetas",
+          "expect": "200 and fhir-validate == ok"
+        }
+      ],
+      "agent_notes": "Resultados como PDF/imagen + metadatos (SUP-003).",
+      "estimated_complexity": "L",
+      "tags": [
+        "api-mobile",
+        "fhir",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-083",
+      "source_requirement": "RNF-006",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P1",
+      "area": "backend",
+      "title": "Versión mínima de cliente móvil: HTTP 426",
+      "description": "Validar X-Client-Version/api_level >= 29 y responder 426 con mensaje controlado.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-006",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-080"
+      ],
+      "acceptance_criteria": [
+        "Dado api_level=28, cuando GET perfil, entonces 426"
+      ],
+      "normative_refs": [
+        "ISO/IEC-25010"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "GET /api/v1/mobile/perfil (api_level=28)",
+          "expect": "426"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "api-mobile",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-084",
+      "source_requirement": "PROV-RF-002",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E6",
+      "priority": "P1",
+      "area": "backend",
+      "title": "API de citas y confirmación",
+      "description": "Implementar GET /api/v1/citas y PATCH /api/v1/citas/{id}/confirmacion (RECEPCION), auditoría y consulta móvil.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rf-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-010",
+        "TASK-W-024"
+      ],
+      "acceptance_criteria": [
+        "Dado RECEPCION, cuando confirma, entonces estado CONFIRMADA"
+      ],
+      "normative_refs": [
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MC-02"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "PATCH /api/v1/citas/x/confirmacion as RECEPCION",
+          "expect": "200"
+        }
+      ],
+      "agent_notes": "Modelo de cita derivado (AMB-018).",
+      "estimated_complexity": "M",
+      "tags": [
+        "agenda",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-085",
+      "source_requirement": "PROV-RF-001",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E6",
+      "priority": "P1",
+      "area": "backend",
+      "title": "Tableros NOM-035 con datos disociados, CLUES y exportación",
+      "description": "Implementar consultas agregadas sin PII, identificador CLUES y exportación; generar con consultas de solo lectura.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rf-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-041",
+        "TASK-W-061"
+      ],
+      "acceptance_criteria": [
+        "Dado una exportación, cuando se inspecciona, entonces 0 columnas PII"
+      ],
+      "normative_refs": [
+        "NOM-035-SSA3-2012",
+        "LFPDPPP"
+      ],
+      "risk_mitigated": [
+        "R-10"
+      ],
+      "quality_metrics": [
+        "MN-09"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "http",
+          "check": "GET /api/v1/reportes/nom-035/exportacion",
+          "expect": "body !~ 'curp|nombre_completo|domicilio'"
+        }
+      ],
+      "agent_notes": "Formato/frecuencia: AMB-017.",
+      "estimated_complexity": "L",
+      "tags": [
+        "dashboards",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-086",
+      "source_requirement": "PROV-RF-001",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E6",
+      "priority": "P1",
+      "area": "frontend",
+      "title": "Dashboards estadísticos y exportación",
+      "description": "Implementar tableros y exportación con estados vacío, cargando y error; accesibles.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rf-001",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-085"
+      ],
+      "acceptance_criteria": [
+        "Dado datos, cuando se abre el tablero, entonces muestra métricas sin PII"
+      ],
+      "normative_refs": [
+        "NOM-035-SSA3-2012",
+        "LFPDPPP"
+      ],
+      "risk_mitigated": [
+        "R-10"
+      ],
+      "quality_metrics": [
+        "MN-09"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "playwright test dashboards",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "vue",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-087",
+      "source_requirement": "PROV-RF-002",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E6",
+      "priority": "P1",
+      "area": "frontend",
+      "title": "Pantalla de agenda y confirmación de citas (Recepción)",
+      "description": "Implementar vista de agenda y acción de confirmación.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rf-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-084"
+      ],
+      "acceptance_criteria": [
+        "Dado una cita futura, cuando se confirma, entonces cambia a CONFIRMADA"
+      ],
+      "normative_refs": [
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MC-02"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "playwright test agenda",
+          "expect": "pass"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "vue",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-088",
+      "source_requirement": "RNF-005",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E6",
+      "priority": "P0",
+      "area": "testing",
+      "title": "Carga, estrés, soak de 8 h y RTO x3",
+      "description": "Ejecutar carga pico (P95 <= 2.0 s), estrés, soak 8 h (degradación <= 20%) y prueba de recuperación 3 veces.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rnf-005",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-034",
+        "TASK-W-068"
+      ],
+      "acceptance_criteria": [
+        "Dado carga pico, cuando termina, entonces P95 <= 2.0 s"
+      ],
+      "normative_refs": [
+        "ISO/IEC-25010"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-03"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "k6 run peak.js",
+          "expect": "http_req_duration p(95) < 2000"
+        }
+      ],
+      "agent_notes": "Evidencia MC-03.",
+      "estimated_complexity": "XL",
+      "tags": [
+        "rendimiento",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-089",
+      "source_requirement": "PROV-SEC-009",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E6",
+      "priority": "P0",
+      "area": "testing",
+      "title": "SAST, DAST, pentest y verificación de bloqueo/segregación",
+      "description": "Ejecutar SAST, SCA, DAST, pentest PTES de caja gris y pruebas de MS-04/MS-05.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-sec-009",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-002",
+        "TASK-W-017"
+      ],
+      "acceptance_criteria": [
+        "Dado el reporte, cuando se revisa, entonces 0 críticas/altas abiertas"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "OWASP-ASVS-L2"
+      ],
+      "risk_mitigated": [
+        "R-06"
+      ],
+      "quality_metrics": [
+        "MS-03",
+        "MS-04",
+        "MS-01"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "python tools/vuln_gate.py",
+          "expect": "critical+high == 0"
+        }
+      ],
+      "agent_notes": "MS-03 = 0.",
+      "estimated_complexity": "XL",
+      "tags": [
+        "seguridad",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-090",
+      "source_requirement": "PROV-UX-003",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E6",
+      "priority": "P1",
+      "area": "testing",
+      "title": "Compatibilidad de navegadores y accesibilidad WCAG 2.1 AA formal",
+      "description": "Ejecutar suite en Chrome, Firefox y Edge (vigente y anterior) sobre Windows y auditoría WCAG AA (axe-core + teclado + lector + daltonismo).",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-ux-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-050",
+        "TASK-W-073",
+        "TASK-W-074"
+      ],
+      "acceptance_criteria": [
+        "Dado la matriz, cuando se ejecuta, entonces 100% de casos críticos sin defectos"
+      ],
+      "normative_refs": [
+        "WCAG-2.1-AA",
+        "ISO/IEC-25010"
+      ],
+      "risk_mitigated": [
+        "R-01"
+      ],
+      "quality_metrics": [
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "playwright test --project=all",
+          "expect": "failures == 0"
+        },
+        {
+          "kind": "shell",
+          "check": "axe all",
+          "expect": "violations(blocker|critical) == 0"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "L",
+      "tags": [
+        "a11y",
+        "compatibilidad",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-091",
+      "source_requirement": "RF-011",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E5",
+      "priority": "P0",
+      "area": "testing",
+      "title": "Pruebas de contrato API móvil (compartidas con mobile/)",
+      "description": "Validar OpenAPI de /api/v1/mobile/*, lista blanca de escrituras y FHIR; publicar colección compartida.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#rf-011",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-082"
+      ],
+      "acceptance_criteria": [
+        "Dado cada endpoint móvil, cuando se prueba, entonces conforme"
+      ],
+      "normative_refs": [
+        "NOM-024-SSA3-2012",
+        "OWASP-ASVS-L2"
+      ],
+      "risk_mitigated": [
+        "R-02"
+      ],
+      "quality_metrics": [
+        "MS-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "newman run mobile.json",
+          "expect": "failures == 0"
+        }
+      ],
+      "agent_notes": "Misma colección consumida por TASK-M-018.",
+      "estimated_complexity": "M",
+      "tags": [
+        "pruebas",
+        "mobile",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-092",
+      "source_requirement": "PROV-RN-013",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E6",
+      "priority": "P1",
+      "area": "testing",
+      "title": "Paquete de evidencia AI-05",
+      "description": "Reunir reportes de vulnerabilidad, matriz de permisos, logs de autenticación y evidencia TLS para AI-05 (19 nov).",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-013",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-089",
+        "TASK-W-091"
+      ],
+      "acceptance_criteria": [
+        "Dado el paquete, cuando se revisa, entonces incluye evidencia TLS"
+      ],
+      "normative_refs": [
+        "ISO/IEC/IEEE-29148"
+      ],
+      "risk_mitigated": [
+        "R-03",
+        "R-11"
+      ],
+      "quality_metrics": [
+        "MN-04",
+        "MC-02"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "ls evidence/AI-05 | wc -l",
+          "expect": ">= 4"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "auditoria",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-100",
+      "source_requirement": "PROV-RNF-003",
+      "sprint": "RELEASE",
+      "stage": 6,
+      "epic_id": "E6",
+      "priority": "P0",
+      "area": "infra",
+      "title": "Pipeline de despliegue inmutable con SemVer, SBOM y rolling update",
+      "description": "Construir imágenes desde tag vX.Y.Z, generar SBOM, desplegar con Rolling Update/draining y bloquear cambios manuales en producción.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rnf-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-020",
+        "TASK-W-002"
+      ],
+      "acceptance_criteria": [
+        "Dado v1.1.0, cuando se despliega, entonces 0 peticiones fallidas"
+      ],
+      "normative_refs": [
+        "ISO/IEC-25010",
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-06",
+        "MC-07",
+        "MP-06",
+        "MC-11"
+      ],
+      "audit_checkpoint": "AI-06",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "deploy v1.1.0 && load-test",
+          "expect": "error_rate == 0"
+        }
+      ],
+      "agent_notes": "Solo el PO aprueba producción.",
+      "estimated_complexity": "L",
+      "tags": [
+        "deploy",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-101",
+      "source_requirement": "PROV-RNF-003",
+      "sprint": "RELEASE",
+      "stage": 6,
+      "epic_id": "E6",
+      "priority": "P0",
+      "area": "infra",
+      "title": "Rollback <= 5 min y down-migrations",
+      "description": "Automatizar reactivación de la imagen estable anterior y scripts down de BD retrocompatibles.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rnf-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-100"
+      ],
+      "acceptance_criteria": [
+        "Dado una falla crítica, cuando se ejecuta rollback, entonces servicio en <= 300 s"
+      ],
+      "normative_refs": [
+        "ISO/IEC-25010",
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-06",
+        "MC-07",
+        "MP-06",
+        "MC-11"
+      ],
+      "audit_checkpoint": "AI-06",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "rollback v1.1.0->v1.0.1",
+          "expect": "elapsed <= 300s"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "L",
+      "tags": [
+        "deploy",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-102",
+      "source_requirement": "PROV-RNF-004",
+      "sprint": "RELEASE",
+      "stage": 6,
+      "epic_id": "E6",
+      "priority": "P1",
+      "area": "infra",
+      "title": "Monitoreo CPU/RAM 85%, error logs y plan BCP/DRP",
+      "description": "Configurar métricas y alertas, escalamiento a 85% y logs de error con fecha, hora, HTTP y endpoint; documentar BCP/DRP.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rnf-004",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-100"
+      ],
+      "acceptance_criteria": [
+        "Dado CPU > 85%, cuando corre el monitor, entonces escala"
+      ],
+      "normative_refs": [
+        "ISO/IEC-25010",
+        "NOM-024-SSA3-2012"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-06",
+        "MC-07"
+      ],
+      "audit_checkpoint": "AI-06",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "promtool alert test",
+          "expect": "cpu_85 fires"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "monitoreo",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-103",
+      "source_requirement": "PROV-RN-011",
+      "sprint": "RELEASE",
+      "stage": 6,
+      "epic_id": "E6",
+      "priority": "P0",
+      "area": "testing",
+      "title": "Job Quality Gate en el pipeline",
+      "description": "Implementar job que consulta MC-01, MC-02, MP-01, MS-01, MS-03, MS-05, MC-10, MP-08, MN-04 y NC abiertas y bloquea el despliegue si alguno incumple.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-011",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-092",
+        "TASK-W-088"
+      ],
+      "acceptance_criteria": [
+        "Dado MS-03=1, cuando corre el gate, entonces RECHAZADO"
+      ],
+      "normative_refs": [
+        "ISO/IEC-25010",
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-01",
+        "R-03",
+        "R-06"
+      ],
+      "quality_metrics": [
+        "MC-01",
+        "MC-02",
+        "MP-01",
+        "MS-01",
+        "MS-03",
+        "MS-05",
+        "MC-10",
+        "MP-08",
+        "MN-04"
+      ],
+      "audit_checkpoint": "AI-06",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "gate run --fixture ms03=1",
+          "expect": "exit != 0"
+        }
+      ],
+      "agent_notes": "Homologaciones MC-08=MS-01 etc.",
+      "estimated_complexity": "L",
+      "tags": [
+        "quality-gate",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-104",
+      "source_requirement": "PROV-RNF-003",
+      "sprint": "RELEASE",
+      "stage": 6,
+      "epic_id": "E6",
+      "priority": "P0",
+      "area": "testing",
+      "title": "Ensayo de despliegue y rollback en Staging (x3)",
+      "description": "Ejecutar 3 ciclos despliegue/rollback y registrar tiempos.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rnf-003",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-101"
+      ],
+      "acceptance_criteria": [
+        "Dado 3 ensayos, cuando se miden, entonces todos <= 300 s"
+      ],
+      "normative_refs": [
+        "ISO/IEC-25010",
+        "ISO/IEC-27001"
+      ],
+      "risk_mitigated": [
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-06",
+        "MC-07",
+        "MP-06",
+        "MC-11"
+      ],
+      "audit_checkpoint": "AI-06",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "rollback-drill x3",
+          "expect": "max(elapsed) <= 300"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "M",
+      "tags": [
+        "deploy",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-105",
+      "source_requirement": "PROV-RN-012",
+      "sprint": "RELEASE",
+      "stage": 6,
+      "epic_id": "E6",
+      "priority": "P2",
+      "area": "infra",
+      "title": "Procesos de defectos y RFC",
+      "description": "Configurar clasificación de defectos P1-P3 y plantilla RFC (Anexo F).",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-012",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-100"
+      ],
+      "acceptance_criteria": [
+        "Dado un fallo de cálculo de triage, cuando se registra, entonces severidad CRITICO"
+      ],
+      "normative_refs": [
+        "ISO/IEC-27001",
+        "ISO/IEC/IEEE-29148"
+      ],
+      "risk_mitigated": [
+        "R-11"
+      ],
+      "quality_metrics": [
+        "MP-06",
+        "MP-01"
+      ],
+      "audit_checkpoint": "AI-06",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "tracker check template rfc",
+          "expect": "exists"
+        }
+      ],
+      "agent_notes": "Seguir convenciones de AGENTS.md; no modificar el esquema sin revisar DOMAIN_SCHEMA.json.",
+      "estimated_complexity": "S",
+      "tags": [
+        "proceso",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-106",
+      "source_requirement": "PROV-RN-013",
+      "sprint": "RELEASE",
+      "stage": 6,
+      "epic_id": "E6",
+      "priority": "P1",
+      "area": "testing",
+      "title": "Paquete AI-06 y acta de liberación",
+      "description": "Consolidar Tablero de Métricas, no conformidades y acta de liberación firmada por QA, Seguridad y PO.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-013",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-103",
+        "TASK-W-104"
+      ],
+      "acceptance_criteria": [
+        "Dado el acta, cuando se revisa, entonces tiene 3 firmas"
+      ],
+      "normative_refs": [
+        "ISO/IEC/IEEE-29148"
+      ],
+      "risk_mitigated": [
+        "R-03",
+        "R-11"
+      ],
+      "quality_metrics": [
+        "MN-04",
+        "MC-02"
+      ],
+      "audit_checkpoint": "AI-06",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "ls evidence/AI-06 | wc -l",
+          "expect": ">= 3"
+        }
+      ],
+      "agent_notes": "Ventana 20-24 nov.",
+      "estimated_complexity": "S",
+      "tags": [
+        "auditoria",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-057",
+      "source_requirement": "PROV-RN-004",
+      "sprint": 3,
+      "stage": 3,
+      "epic_id": "E3",
+      "priority": "P0",
+      "area": "backend",
+      "title": "Configuración versionada de SLA por nivel Manchester",
+      "description": "Crear tabla/config versionada con minutos por nivel (ROJO=0, NARANJA=15, AMARILLO=60, VERDE=120, AZUL=240), cálculo de sla_vencimiento_en y auditoría de cambios de reglas.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rn-004",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-040",
+        "TASK-W-024"
+      ],
+      "acceptance_criteria": [
+        "Dado un triage NARANJA a las 10:00:00Z, cuando se calcula el SLA, entonces sla_vencimiento_en = 10:15:00Z",
+        "Dado un cambio de configuración, cuando se guarda, entonces queda auditado"
+      ],
+      "normative_refs": [
+        "NOM-206-SSA1-2002"
+      ],
+      "risk_mitigated": [
+        "R-01"
+      ],
+      "quality_metrics": [
+        "MN-01",
+        "MC-01"
+      ],
+      "audit_checkpoint": "AI-03",
+      "verification_assertions": [
+        {
+          "kind": "sql",
+          "check": "select sla_vencimiento_en - fecha_hora_ingreso from triage where color_asig='NARANJA' limit 1",
+          "expect": "'00:15:00'"
+        }
+      ],
+      "agent_notes": "Los cambios de reglas de triage son evento de auditoría administrativo (Tabla 45).",
+      "estimated_complexity": "S",
+      "tags": [
+        "triage",
+        "sla",
+        "web"
+      ]
+    },
+    {
+      "id": "TASK-W-093",
+      "source_requirement": "PROV-RNF-002",
+      "sprint": 5,
+      "stage": 5,
+      "epic_id": "E6",
+      "priority": "P0",
+      "area": "testing",
+      "title": "Plan y matriz de pruebas (ISO 29119): funcional, integración, rendimiento, compatibilidad y accesibilidad",
+      "description": "Consolidar el plan y la matriz Requisito–Caso–Resultado de todas las suites, con umbrales MC-01=100%, MC-10>=80% y fallos de seguridad del paciente como bloqueantes.",
+      "context_files": [
+        "docs/REQUIREMENTS_EXECUTION.md#prov-rnf-002",
+        "docs/ARCHITECTURE.md",
+        "schemas/DOMAIN_SCHEMA.json",
+        "docs/AGENTS.md#constraints"
+      ],
+      "dependencies": [
+        "TASK-W-088",
+        "TASK-W-090",
+        "TASK-W-054"
+      ],
+      "acceptance_criteria": [
+        "Dado la matriz, cuando se genera, entonces cada requisito P0 tiene >= 1 caso con resultado"
+      ],
+      "normative_refs": [
+        "ISO/IEC/IEEE-29119",
+        "ISO/IEC-25010",
+        "WCAG-2.1-AA"
+      ],
+      "risk_mitigated": [
+        "R-01",
+        "R-04"
+      ],
+      "quality_metrics": [
+        "MC-01",
+        "MC-10",
+        "MC-05"
+      ],
+      "audit_checkpoint": "AI-05",
+      "verification_assertions": [
+        {
+          "kind": "shell",
+          "check": "python tools/trace_matrix.py --check-tests",
+          "expect": "uncovered_p0 == 0"
+        }
+      ],
+      "agent_notes": "Evidencia ISO/IEC/IEEE 29119-3.",
+      "estimated_complexity": "M",
+      "tags": [
+        "pruebas",
+        "web"
+      ]
+    }
+  ]
+}
