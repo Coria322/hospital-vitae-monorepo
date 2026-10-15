@@ -115,8 +115,10 @@ Constantes y variables de entorno:              SCREAMING_SNAKE_CASE (MAX_TIEMPO
 Rutas API:                                      kebab-case   (/api/v1/expedientes-clinicos); excepción FHIR (SUP-010)
 ```
 
-### Estructura de repositorios (Multirepo, §12.2)
-Ramas: `main` (estable), `develop` (integración), `feature/<tarea>`. Protegidas; PR con >= 1 aprobación de un revisor distinto del autor. Versionado SemVer `vX.Y.Z`.
+### Estructura de repositorios y ramas (§12.2)
+Ver directrices generales en [AGENTS.md general](../../AGENTS.md).
+Ramas principales: `main` (producción protegida, prohibido commit directo), `dev` (integración y desarrollo base), ramificaciones de trabajo (`feature/<alcance>-<tarea>`, `bugfix/<alcance>-<tarea>`).
+Todo merge se realiza hacia `dev` mediante PR con >= 1 aprobación de revisor distinto al autor. Versionado SemVer `vX.Y.Z`.
 
 ### Modularidad
 - MVVM en cliente; Repository Pattern en backend; sin dependencias circulares; YAGNI; funciones breves de un solo nivel de abstracción.
