@@ -1,0 +1,32 @@
+meta {
+  name: 03 - Login Fallido (Generico 401)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id_usuario": "ADM-001",
+    "password": "password_incorrecto"
+  }
+}
+
+tests {
+  test("Credenciales invalidas retorna 401", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+  test("Mensaje generico contra enumeracion", function() {
+    expect(res.getBody().message).to.equal('Credenciales inválidas.');
+  });
+}

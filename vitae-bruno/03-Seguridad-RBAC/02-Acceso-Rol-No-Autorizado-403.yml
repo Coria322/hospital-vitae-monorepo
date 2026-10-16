@@ -1,0 +1,28 @@
+info:
+  name: 02 - Acceso Medico a Usuarios (403 Forbidden)
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{base_url}}/usuarios"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: Bearer {{medico_token}}
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Acceso con rol no autorizado retorna 403 Forbidden", function() {
+          expect(res.getStatus()).to.equal(403);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

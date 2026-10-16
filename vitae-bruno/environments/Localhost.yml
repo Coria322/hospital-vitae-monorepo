@@ -1,0 +1,11 @@
+name: Localhost
+variables:
+  - name: base_url
+    value: http://127.0.0.1:8000/api/v1
+    enabled: true
+  - name: admin_token
+    value: ""
+    enabled: true
+  - name: medico_token
+    value: ""
+    enabled: true
