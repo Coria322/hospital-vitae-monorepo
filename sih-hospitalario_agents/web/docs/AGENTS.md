@@ -115,8 +115,16 @@ Constantes y variables de entorno:              SCREAMING_SNAKE_CASE (MAX_TIEMPO
 Rutas API:                                      kebab-case   (/api/v1/expedientes-clinicos); excepción FHIR (SUP-010)
 ```
 
-### Estructura de repositorios (Multirepo, §12.2)
-Ramas: `main` (estable), `develop` (integración), `feature/<tarea>`. Protegidas; PR con >= 1 aprobación de un revisor distinto del autor. Versionado SemVer `vX.Y.Z`.
+### Estructura de repositorios y flujo de ramas (§12.2)
+- Ramas principales: `main` (producción estable), `dev` (integración de desarrollo), `feature/<tarea>`.
+- **POLÍTICA DE INTEGRACIÓN:**
+  - El **`merge`** va **ÚNICAMENTE hacia la rama `dev`** (Pull Request aprobado).
+  - **`main` SE REBASARÁ (`rebase`), NUNCA SE HARÁ `merge` DIRECTO A `main`** (`git checkout main && git rebase dev`).
+- Versionado SemVer `vX.Y.Z`.
+
+### Regla de Matriz de Trazabilidad y Tachado por Sprint
+- Al concluir cada Sprint, DEBE actualizarse obligatoriamente `matriz_trazabilidad.md`.
+- Cada requerimiento o norma completada DEBE tacharse con sintaxis `~~RF-XXX~~` y registrarse como `✅ Cumplido (Sprint N)`.
 
 ### Modularidad
 - MVVM en cliente; Repository Pattern en backend; sin dependencias circulares; YAGNI; funciones breves de un solo nivel de abstracción.
