@@ -177,4 +177,44 @@ class Sprint1AuthTest extends TestCase
 
         $this->assertEquals('BAJA', Usuario::where('id_usuario', 'MED-TEST')->value('estado_cuenta'));
     }
+
+    public function test_refresh_token_retorna_nuevo_token_y_revoca_el_anterior(): void
+    {
+        $medico = Usuario::where('id_usuario', 'MED-TEST')->first();
+        $token = $medico->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/api/v1/auth/refresh');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'status',
+                'message',
+                'data' => [
+                    'token',
+                    'token_type',
+                    'expires_in',
+                ],
+            ]);
+
+        $newToken = $response->json('data.token');
+        $this->assertNotEmpty($newToken);
+        $this->assertNotEquals($token, $newToken);
+
+        // Olvidar guard en memoria de Laravel para forzar re-autenticacion por header
+        app('auth')->forgetGuards();
+
+        // Verificar que el token anterior ya no puede usarse
+        $oldResponse = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson('/api/v1/auth/me');
+        $oldResponse->assertStatus(401);
+
+        app('auth')->forgetGuards();
+
+        // Verificar que el nuevo token es valido
+        $newResponse = $this->withHeader('Authorization', 'Bearer ' . $newToken)
+            ->getJson('/api/v1/auth/me');
+        $newResponse->assertStatus(200);
+    }
 }
+
