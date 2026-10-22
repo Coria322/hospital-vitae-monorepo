@@ -70,6 +70,10 @@ Route::prefix('v1')->group(function () {
             Route::get('/usuarios/{id}', [UsuarioController::class, 'show']);
             Route::post('/usuarios/{id}/baja', [UsuarioController::class, 'baja']);
             Route::post('/usuarios/{id}/reactivar', [UsuarioController::class, 'reactivar']);
+
+            // Bitácora inalterable AUDITORIA_I (NOM-024 / AI-02)
+            Route::get('/auditoria', [\App\Http\Controllers\Api\V1\AuditoriaIController::class, 'index']);
+            Route::match(['post', 'put', 'patch', 'delete'], '/auditoria/{id?}', [\App\Http\Controllers\Api\V1\AuditoriaIController::class, 'methodNotAllowed']);
         });
     });
 });

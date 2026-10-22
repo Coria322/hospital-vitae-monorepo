@@ -1,0 +1,30 @@
+info:
+  name: 01 - Consulta de Auditoria Admin (200 OK)
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{base_url}}/auditoria"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: Bearer {{admin_token}}
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Administrador puede consultar bitácora de auditoría inalterable", function() {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().status).to.equal("success");
+          expect(res.getBody().data.data).to.be.an("array");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
