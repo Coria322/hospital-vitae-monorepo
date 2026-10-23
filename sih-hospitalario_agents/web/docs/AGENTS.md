@@ -125,6 +125,10 @@ Rutas API:                                      kebab-case   (/api/v1/expediente
 ### Regla de Matriz de Trazabilidad y Tachado por Sprint
 - Al concluir cada Sprint, DEBE actualizarse obligatoriamente `matriz_trazabilidad.md`.
 - Cada requerimiento o norma completada DEBE tacharse con sintaxis `~~RF-XXX~~` y registrarse como `✅ Cumplido (Sprint N)`.
+### Estructura de repositorios y ramas (§12.2)
+Ver directrices generales en [AGENTS.md general](../../AGENTS.md).
+Ramas principales: `main` (producción protegida, prohibido commit directo), `dev` (integración y desarrollo base), ramificaciones de trabajo (`feature/<alcance>-<tarea>`, `bugfix/<alcance>-<tarea>`).
+Todo merge se realiza hacia `dev` mediante PR con >= 1 aprobación de revisor distinto al autor. Versionado SemVer `vX.Y.Z`.
 
 ### Modularidad
 - MVVM en cliente; Repository Pattern en backend; sin dependencias circulares; YAGNI; funciones breves de un solo nivel de abstracción.
