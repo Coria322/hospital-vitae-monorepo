@@ -1,0 +1,44 @@
+info:
+  name: 02 - Login Medico
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{base_url}}/auth/login"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "id_usuario": "MED-001",
+        "password": "password123"
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Login medico exitoso con 200 OK", function() {
+          expect(res.getStatus()).to.equal(200);
+        });
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.data.token
+        method: jsonq
+      variable:
+        name: medico_token
+        scope: runtime
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

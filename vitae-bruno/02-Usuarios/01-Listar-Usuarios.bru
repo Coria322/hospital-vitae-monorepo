@@ -1,0 +1,23 @@
+meta {
+  name: 01 - Listar Usuarios (Paginado)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/usuarios
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer {{admin_token}}
+}
+
+tests {
+  test("Listado de usuarios retorna 200 paginado", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.data).to.be.an('array');
+  });
+}

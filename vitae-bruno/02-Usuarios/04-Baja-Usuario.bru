@@ -1,0 +1,22 @@
+meta {
+  name: 04 - Baja Logica de Usuario (200)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/usuarios/MED-002/baja
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer {{admin_token}}
+}
+
+tests {
+  test("Baja logica de usuario retorna 200 o 404", function() {
+    expect([200, 404]).to.include(res.getStatus());
+  });
+}

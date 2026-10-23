@@ -1,0 +1,47 @@
+info:
+  name: 01 - Login Admin
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{base_url}}/auth/login"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "id_usuario": "ADM-001",
+        "password": "password123"
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Login exitoso con 200 OK", function() {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("Token devuelto", function() {
+          expect(res.getBody().data.token).to.be.a('string');
+        });
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.data.token
+        method: jsonq
+      variable:
+        name: admin_token
+        scope: runtime
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

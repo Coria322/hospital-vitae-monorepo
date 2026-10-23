@@ -1,0 +1,21 @@
+meta {
+  name: 01 - Acceso Sin Token (401)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/usuarios
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+tests {
+  test("Acceso sin token retorna 401 Unauthorized", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+}

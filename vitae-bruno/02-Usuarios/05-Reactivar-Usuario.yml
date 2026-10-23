@@ -1,0 +1,28 @@
+info:
+  name: 05 - Reactivar Usuario (200)
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{base_url}}/usuarios/MED-002/reactivar"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: Bearer {{admin_token}}
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Reactivacion de usuario retorna 200 o 404", function() {
+          expect([200, 404]).to.include(res.getStatus());
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

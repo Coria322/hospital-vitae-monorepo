@@ -115,6 +115,16 @@ Constantes y variables de entorno:              SCREAMING_SNAKE_CASE (MAX_TIEMPO
 Rutas API:                                      kebab-case   (/api/v1/expedientes-clinicos); excepción FHIR (SUP-010)
 ```
 
+### Estructura de repositorios y flujo de ramas (§12.2)
+- Ramas principales: `main` (producción estable), `dev` (integración de desarrollo), `feature/<tarea>`.
+- **POLÍTICA DE INTEGRACIÓN:**
+  - El **`merge`** va **ÚNICAMENTE hacia la rama `dev`** (Pull Request aprobado).
+  - **`main` SE REBASARÁ (`rebase`), NUNCA SE HARÁ `merge` DIRECTO A `main`** (`git checkout main && git rebase dev`).
+- Versionado SemVer `vX.Y.Z`.
+
+### Regla de Matriz de Trazabilidad y Tachado por Sprint
+- Al concluir cada Sprint, DEBE actualizarse obligatoriamente `matriz_trazabilidad.md`.
+- Cada requerimiento o norma completada DEBE tacharse con sintaxis `~~RF-XXX~~` y registrarse como `✅ Cumplido (Sprint N)`.
 ### Estructura de repositorios y ramas (§12.2)
 Ver directrices generales en [AGENTS.md general](../../AGENTS.md).
 Ramas principales: `main` (producción protegida, prohibido commit directo), `dev` (integración y desarrollo base), ramificaciones de trabajo (`feature/<alcance>-<tarea>`, `bugfix/<alcance>-<tarea>`).

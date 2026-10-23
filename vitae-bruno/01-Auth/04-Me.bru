@@ -1,0 +1,23 @@
+meta {
+  name: 04 - Consultar Perfil Me
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base_url}}/auth/me
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer {{admin_token}}
+}
+
+tests {
+  test("Consulta de perfil me retorna 200", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.id_usuario).to.equal('ADM-001');
+  });
+}

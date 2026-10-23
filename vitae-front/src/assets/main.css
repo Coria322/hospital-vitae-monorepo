@@ -1,35 +1,53 @@
+
 @import './base.css';
 
+:root {
+  /* Paleta Oficial Hospital Vitae */
+  --vitae-primary: #0F4C81;
+  --vitae-primary-hover: #0D3F6B;
+  --vitae-accent: #2563EB;
+  --vitae-accent-hover: #1D4ED8;
+  --vitae-accent-light: #EBF3FE;
+  --vitae-bg-neutral: #F4F6F9;
+  --vitae-card-bg: #FFFFFF;
+  --vitae-border: #E2E8F0;
+  --vitae-border-focus: #3B82F6;
+  --vitae-text-main: #1E293B;
+  --vitae-text-muted: #64748B;
+  
+  /* Alertas y Triage */
+  --triage-rojo: #D32F2F;
+  --triage-rojo-light: #FEE2E2;
+  --status-green: #10B981;
+}
+
+/* Escala fluida adaptable en toda la aplicación */
+html {
+  font-size: clamp(14px, 0.95vw + 2px, 16px);
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background-color: var(--vitae-bg-neutral);
+  color: var(--vitae-text-main);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* El contenedor principal ocupa el 100% de la ventana sin restricciones fijas */
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
-}
-
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
-}
-
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
-  }
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  max-width: none;
 }

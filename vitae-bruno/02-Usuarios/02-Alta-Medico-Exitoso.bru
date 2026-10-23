@@ -1,0 +1,33 @@
+meta {
+  name: 02 - Alta Medico (Exitoso 201)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/usuarios
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{admin_token}}
+}
+
+body:json {
+  {
+    "id_usuario": "MED-002",
+    "nombre_completo": "Dra. Sofia Navarro",
+    "rol": "MEDICO",
+    "cedula": "7896541230",
+    "password": "password123"
+  }
+}
+
+tests {
+  test("Alta valida de medico retorna 201 o 422 si ya existe", function() {
+    expect([201, 422]).to.include(res.getStatus());
+  });
+}
