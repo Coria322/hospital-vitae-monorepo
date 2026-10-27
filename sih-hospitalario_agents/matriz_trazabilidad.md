@@ -11,7 +11,7 @@
 | Sprint | Épica | Punto de Auditoría | Enfoque | Total Reqs | Estado del Sprint |
 | :---: | :---: | :---: | :--- | :---: | :---: |
 | **Sprint 1** | E1 | **AI-01** | Gobernanza Ágil, Seguridad Base y Control de Accesos | 10 | **✅ CUMPLIDO (Tachado)** |
-| **Sprint 2** | E2 | **AI-02** | Infraestructura Docker, Base de Datos y Trazabilidad | 10 | 🔄 En progreso (2/10 cumplidos) |
+| **Sprint 2** | E2 | **AI-02** | Infraestructura Docker, Base de Datos y Trazabilidad | 10 | 🔄 En progreso (5/10 cumplidos) |
 | **Sprint 3** | E3 | **AI-03** | Triage Manchester, Urgencias y Admisión | 13 | ⏳ Pendiente |
 | **Sprint 4** | E4 | **AI-04** | ECE, Recetas Médicas Controladas e Interoperabilidad | 11 | ⏳ Pendiente |
 | **Sprint 5** | E5/E6 | **AI-05** | Portal Móvil del Paciente, Estadística y QA Integral | 7 | ⏳ Pendiente |
@@ -40,20 +40,20 @@
 ---
 
 ### Sprint 2: Infraestructura Docker, Base de Datos y Trazabilidad (Auditoría AI-02)
-> *Estado: En progreso. Implementada bitácora inalterable AUDITORIA_I con 13 columnas normativas, triggers anti-modificación, servicio AuditLogger con SHA-256 encadenado, auto-auditoría, bloqueo 405 y pruebas certificadas (Sprint2AuditoriaTest y Bruno).*
+> *Estado: En progreso. Implementada bitácora inalterable AUDITORIA_I, esquema clínico PACIENTE y EXPEDIENTE_C con triggers anti-DELETE, servicio AuditLogger con SHA-256 encadenado, reporte de retención legal NOM-004 (1,825 días), seeders sintéticos no-PII y 35 pruebas automatizadas.*
 
 | ID | Tipo | Prioridad | Requerimiento / Descripción | Módulo | Normas Asociadas | Estado |
 | :--- | :---: | :---: | :--- | :--- | :--- | :---: |
 | ~~**RNF-001**~~ | No Funcional | P0 | ~~Trazabilidad y auditoría de eventos clínicos y de seguridad (tabla `AUDITORIA_I` inalterable con 13 columnas normativas, INSERT-only y servicio `AuditLogger`).~~ | `auditoria` | NOM-024-SSA3-2012 | ✅ **~~Cumplido (Sprint 2)~~** |
-| **RNF-002** | No Funcional | P0 | Retención documental y persistencia legal (retención mínima de 5 años desde última atención). | `expediente` | NOM-004-SSA3-2012 | ⏳ Pendiente (Sprint 2) |
+| ~~**RNF-002**~~ | No Funcional | P0 | ~~Retención documental y persistencia legal (retención mínima de 5 años desde última atención, triggers anti-DELETE en `paciente` y `expediente_c`).~~ | `expediente` | NOM-004-SSA3-2012 | ✅ **~~Cumplido (Sprint 2)~~** |
 | **RNF-003** | No Funcional | P0 | Seguridad de la información en red y reposo (TLS >= 1.2 en tránsito, AES-256 en reposo). | `infraestructura` | ISO/IEC-27001 | ⏳ Pendiente (Sprint 2) |
 | **RNF-004** | No Funcional | P0 | Alta disponibilidad y aislamiento de fallos (aislamiento por contenedor, reinicio automático). | `infraestructura` | ISO/IEC-25010 | ⏳ Pendiente (Sprint 2) |
 | **PROV-RNF-001** | No Funcional | P0 | Infraestructura Docker endurecida y paridad de entornos (servicios aislados, sin usuarios root). | `devops` | ISO/IEC-27001 | ⏳ Pendiente (Sprint 2) |
 | ~~**PROV-SEC-005**~~ | No Funcional | P0 | ~~Garantías de inalterabilidad de `AUDITORIA_I` (encadenamiento criptográfico SHA-256 estilo blockchain, génesis 64 ceros y comando `auditoria:verificar-cadena`).~~ | `auditoria` | NOM-024-SSA3-2012, ISO/IEC-27001 | ✅ **~~Cumplido (Sprint 2)~~** |
-| **PROV-RN-003** | Regla Negocio | P1 | Ciclo de retención documental y bloqueo tras 5 años (bloqueo automático para fines médico-legales). | `expediente` | NOM-004-SSA3-2012 | ⏳ Pendiente (Sprint 2) |
+| ~~**PROV-RN-003**~~ | Regla Negocio | P1 | ~~Ciclo de retención documental y bloqueo tras 5 años (actualización de `fecha_ultimo_acto_medico` y comando `expedientes:reporte-retencion`).~~ | `expediente` | NOM-004-SSA3-2012 | ✅ **~~Cumplido (Sprint 2)~~** |
 | **PROV-SEC-006** | No Funcional | P1 | Estrategia de respaldos 3-2-1 y archivado continuo WAL (Point-in-Time Recovery). | `base_datos` | ISO/IEC-27001 | ⏳ Pendiente (Sprint 2) |
 | **PROV-SEC-007** | No Funcional | P1 | Sincronización horaria estricta (NTP con deriva <= 1 s y marcas en UTC). | `infraestructura` | CENAM / NTP | ⏳ Pendiente (Sprint 2) |
-| **PROV-SEC-010** | No Funcional | P1 | Entornos y datos de prueba sintéticos (prohibición de datos reales de pacientes en dev). | `seguridad`, `qa` | LFPDPPP | ⏳ Pendiente (Sprint 2) |
+| ~~**PROV-SEC-010**~~ | No Funcional | P1 | ~~Entornos y datos de prueba sintéticos (prohibición de datos reales de pacientes en dev, `ClinicoSinteticoSeeder`).~~ | `seguridad`, `qa` | LFPDPPP | ✅ **~~Cumplido (Sprint 2)~~** |
 
 ---
 
