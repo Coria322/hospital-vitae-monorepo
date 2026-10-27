@@ -18,6 +18,7 @@ Esta matriz contrasta el estado del sistema frente a los requerimientos normativ
 | **RNF-002** (NOM-004) | Retención documental de 5 años (1825 días) y prohibición de DELETE físico en registros médicos. | Inexistente en tablas clínicas. | Tablas `paciente` y `expediente_c` con UUIDs, borrado lógico y triggers anti-DELETE físicos. | ✅ **Cerrada (100%)** |
 | **PROV-RN-003** (NOM-004) | Tracking de `fecha_ultimo_acto_medico` y reporte de expedientes con plazo concluido. | Inexistente. | Campo y método `registrarActoMedico()`, más comando `expedientes:reporte-retencion`. | ✅ **Cerrada (100%)** |
 | **PROV-SEC-010** (LFPDPPP)| Datos de prueba sintéticos sin PII real en entornos de desarrollo y pruebas. | Inexistente. | Seeder `ClinicoSinteticoSeeder` con CURPs y pacientes sintéticos para desarrollo y testing. | ✅ **Cerrada (100%)** |
+| **PROV-RNF-001** (ISO-27001) | Infraestructura Docker endurecida: versión fija, prohibición de `:latest`, usuario no root (`www-data`), hardening Apache/PHP y healthcheck `/up`. | Dockerfile con imagen base genérica `:latest` y ejecución default como root. | Imagen fija `php:8.2.26-apache-bookworm`, `composer:2.8.2`, `USER www-data`, puerto no privilegiado 8080/10000 y healthcheck `/up`. | ✅ **Cerrada (100%)** |
 
 ---
 
@@ -25,6 +26,7 @@ Esta matriz contrasta el estado del sistema frente a los requerimientos normativ
 
 | ID Tarea | Requisito | Constraint / Criterio de Aceptación Real | Componente Afectado | Evidencia Requerida | Estado |
 | :--- | :--- | :--- | :--- | :--- | :---: |
+| `TASK-W-020` | PROV-RNF-001, ISO-27001 | Dockerfile con versiones fijas inmutables, 0 ocurrencias de `:latest`, usuario no-root (`USER www-data`), hardening Apache/PHP y HEALTHCHECK `/up`. | `Dockerfile`, `docker-entrypoint.sh`, `render.yaml`, `.dockerignore` | Dockerfile auditado sin `:latest`, healthcheck `/up` probado | ✅ Cumplido |
 | `TASK-W-022` | RNF-002, NOM-004 | Tablas `paciente` (UUID) y `expediente_c` con relaciones estrictas y triggers nativos que abortan DELETE/TRUNCATE. | `database/migrations`, `app/Models/Paciente.php`, `app/Models/ExpedienteClinico.php` | Migración ejecutada, tests anti-DELETE aprobados | ✅ Cumplido |
 | `TASK-W-023` | RNF-001, PROV-SEC-005 | Tabla `auditoria_i` con 13 columnas normativas, INSERT-only y huella SHA-256 (génesis 64 ceros). | `database/migrations`, `app/Models/AuditoriaI.php` | Migración ejecutada, schema verificado | ✅ Cumplido |
 | `TASK-W-024` | RNF-001, PROV-SEC-005 | `AuditLogger` inyectado en eventos del sistema (login, logout, 403, cambios de estado). Exclusión de `password`, `token`, `otp`. | `app/Services/AuditLogger.php` | Logs generados sin datos sensibles | ✅ Cumplido |

@@ -1,6 +1,16 @@
 /vendor
 /node_modules
 /.git
+/.github
 /.env
+/.env.*
+!.env.example
 /.phpunit.result.cache
 /storage/*.key
+/storage/logs/*.log
+/tests
+.editorconfig
+.gitattributes
+npm-debug.log
+yarn-error.log
+
