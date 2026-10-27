@@ -57,6 +57,41 @@ Route::prefix('v1')->group(function () {
     // Auth pública
     Route::post('/auth/login', [AuthController::class, 'login']);
 
+    // Endpoint normativo de alta disponibilidad y salud global de la API (RNF-004 / ISO/IEC-25010)
+    Route::get('/salud', function () {
+        $dbStatus = 'DISCONNECTED';
+        try {
+            \Illuminate\Support\Facades\DB::connection()->getPdo();
+            $dbStatus = 'CONNECTED';
+        } catch (\Throwable $e) {
+            $dbStatus = 'ERROR';
+        }
+
+        $storageStatus = 'UNAVAILABLE';
+        try {
+            $testFile = 'healthcheck_probe_' . time() . '.tmp';
+            \Illuminate\Support\Facades\Storage::disk('local')->put($testFile, 'probe');
+            \Illuminate\Support\Facades\Storage::disk('local')->delete($testFile);
+            $storageStatus = 'WRITABLE';
+        } catch (\Throwable $e) {
+            $storageStatus = 'ERROR';
+        }
+
+        $isHealthy = $dbStatus === 'CONNECTED' && $storageStatus === 'WRITABLE';
+
+        return response()->json([
+            'status' => $isHealthy ? 'UP' : 'DEGRADED',
+            'database' => $dbStatus,
+            'storage' => $storageStatus,
+            'service' => 'hospital-vitae-api',
+            'timestamp_utc' => now('UTC')->toIso8601String(),
+            'alta_disponibilidad' => [
+                'aislamiento_fallos' => true,
+                'rto_objetivo_segundos' => 300,
+            ],
+        ], $isHealthy ? 200 : 503);
+    });
+
     // TODO: [BORRADO / REMOVER TRAS AUDITORÍA FINAL] Endpoint temporal para verificación de sincronización horaria CENAM/NTP con Bruno (PROV-SEC-007)
     Route::get('/sistema/tiempo', function (\App\Services\NtpService $ntpService) {
         $diagnostico = $ntpService->medirDerivaHoraria();
