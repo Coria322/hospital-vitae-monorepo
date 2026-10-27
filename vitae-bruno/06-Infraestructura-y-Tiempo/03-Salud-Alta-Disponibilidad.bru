@@ -1,0 +1,26 @@
+meta {
+  name: 03 - Salud y Alta Disponibilidad (RNF-004)
+  type: http
+  seq: 3
+}
+
+# Verificación de salud y resiliencia de la API (RNF-004 / MC-06 / ISO/IEC-25010)
+
+get {
+  url: {{base_url}}/salud
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+tests {
+  test("Servicio responde con código 200 y status UP", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("UP");
+    expect(res.getBody().database).to.equal("CONNECTED");
+    expect(res.getBody().storage).to.equal("WRITABLE");
+  });
+}

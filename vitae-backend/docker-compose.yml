@@ -1,0 +1,45 @@
+services:
+  # Servicio API REST de Hospital Vitae (Alta Disponibilidad y Resiliencia RNF-004)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: hospital-vitae-backend:2.0.0
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_NAME=HospitalVitaeAPI
+      - APP_TIMEZONE=UTC
+      - DB_CONNECTION=pgsql
+      - DB_SSLMODE=require
+      - RUN_MIGRATIONS=true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/salud"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+        window: 120s
+    networks:
+      - hospital-internal-net
+
+networks:
+  hospital-internal-net:
+    driver: bridge
+    internal: false
