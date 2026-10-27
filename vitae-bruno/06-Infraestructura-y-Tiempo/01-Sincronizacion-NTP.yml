@@ -1,0 +1,32 @@
+info:
+  name: 01 - Sincronizacion Horaria NTP (PROV-SEC-007)
+  type: http
+  seq: 1
+
+# TODO: [BORRADO TRAS AUDITORÍA FINAL] Petición de prueba temporal para validar PROV-SEC-007
+
+http:
+  method: GET
+  url: "{{base_url}}/sistema/tiempo"
+  headers:
+    - name: Accept
+      value: application/json
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Servidor responde con diagnostico de tiempo y zona horaria UTC", function() {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().status).to.equal("success");
+          expect(res.getBody().timezone).to.equal("UTC");
+          expect(res.getBody().data.sincronizado).to.equal(true);
+          expect(res.getBody().data.deriva_conforme).to.be.a("boolean");
+          expect(res.getBody().data.hora_local_utc).to.be.a("string");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

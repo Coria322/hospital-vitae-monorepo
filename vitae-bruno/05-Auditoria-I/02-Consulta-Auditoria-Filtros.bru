@@ -1,0 +1,29 @@
+meta {
+  name: 02 - Consulta con Filtros (200 OK)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/auditoria?resultado=EXITOSO&per_page=10
+  body: none
+  auth: none
+}
+
+params:query {
+  resultado: EXITOSO
+  per_page: 10
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer {{admin_token}}
+}
+
+tests {
+  test("Filtros de consulta de auditoría retornan 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.per_page).to.equal(10);
+  });
+}

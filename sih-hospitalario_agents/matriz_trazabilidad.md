@@ -11,7 +11,7 @@
 | Sprint | Épica | Punto de Auditoría | Enfoque | Total Reqs | Estado del Sprint |
 | :---: | :---: | :---: | :--- | :---: | :---: |
 | **Sprint 1** | E1 | **AI-01** | Gobernanza Ágil, Seguridad Base y Control de Accesos | 10 | **✅ CUMPLIDO (Tachado)** |
-| **Sprint 2** | E2 | **AI-02** | Infraestructura Docker, Base de Datos y Trazabilidad | 10 | ⏳ Pendiente |
+| **Sprint 2** | E2 | **AI-02** | Infraestructura Docker, Base de Datos y Trazabilidad | 10 | 🔄 En progreso (5/10 cumplidos) |
 | **Sprint 3** | E3 | **AI-03** | Triage Manchester, Urgencias y Admisión | 13 | ⏳ Pendiente |
 | **Sprint 4** | E4 | **AI-04** | ECE, Recetas Médicas Controladas e Interoperabilidad | 11 | ⏳ Pendiente |
 | **Sprint 5** | E5/E6 | **AI-05** | Portal Móvil del Paciente, Estadística y QA Integral | 7 | ⏳ Pendiente |
@@ -40,19 +40,20 @@
 ---
 
 ### Sprint 2: Infraestructura Docker, Base de Datos y Trazabilidad (Auditoría AI-02)
+> *Estado: En progreso. Implementada bitácora inalterable AUDITORIA_I, esquema clínico PACIENTE y EXPEDIENTE_C con triggers anti-DELETE, servicio AuditLogger con SHA-256 encadenado, reporte de retención legal NOM-004 (1,825 días), seeders sintéticos no-PII y 35 pruebas automatizadas.*
 
 | ID | Tipo | Prioridad | Requerimiento / Descripción | Módulo | Normas Asociadas | Estado |
 | :--- | :---: | :---: | :--- | :--- | :--- | :---: |
-| **RNF-001** | No Funcional | P0 | Trazabilidad y auditoría de eventos clínicos y de seguridad (tabla `AUDITORIA_I` inalterable). | `auditoria` | NOM-024-SSA3-2012 | ⏳ Pendiente (Sprint 2) |
-| **RNF-002** | No Funcional | P0 | Retención documental y persistencia legal (retención mínima de 5 años desde última atención). | `expediente` | NOM-004-SSA3-2012 | ⏳ Pendiente (Sprint 2) |
-| **RNF-003** | No Funcional | P0 | Seguridad de la información en red y reposo (TLS >= 1.2 en tránsito, AES-256 en reposo). | `infraestructura` | ISO/IEC-27001 | ⏳ Pendiente (Sprint 2) |
-| **RNF-004** | No Funcional | P0 | Alta disponibilidad y aislamiento de fallos (aislamiento por contenedor, reinicio automático). | `infraestructura` | ISO/IEC-25010 | ⏳ Pendiente (Sprint 2) |
-| **PROV-RNF-001** | No Funcional | P0 | Infraestructura Docker endurecida y paridad de entornos (servicios aislados, sin usuarios root). | `devops` | ISO/IEC-27001 | ⏳ Pendiente (Sprint 2) |
-| **PROV-SEC-005** | No Funcional | P0 | Garantías de inalterabilidad de AUDITORIA_I (encadenamiento criptográfico SHA-256 estilo blockchain). | `auditoria` | NOM-024-SSA3-2012 | ⏳ Pendiente (Sprint 2) |
-| **PROV-RN-003** | Regla Negocio | P1 | Ciclo de retención documental y bloqueo tras 5 años (bloqueo automático para fines médico-legales). | `expediente` | NOM-004-SSA3-2012 | ⏳ Pendiente (Sprint 2) |
-| **PROV-SEC-006** | No Funcional | P1 | Estrategia de respaldos 3-2-1 y archivado continuo WAL (Point-in-Time Recovery). | `base_datos` | ISO/IEC-27001 | ⏳ Pendiente (Sprint 2) |
-| **PROV-SEC-007** | No Funcional | P1 | Sincronización horaria estricta (NTP con deriva <= 1 s y marcas en UTC). | `infraestructura` | CENAM / NTP | ⏳ Pendiente (Sprint 2) |
-| **PROV-SEC-010** | No Funcional | P1 | Entornos y datos de prueba sintéticos (prohibición de datos reales de pacientes en dev). | `seguridad`, `qa` | LFPDPPP | ⏳ Pendiente (Sprint 2) |
+| ~~**RNF-001**~~ | No Funcional | P0 | ~~Trazabilidad y auditoría de eventos clínicos y de seguridad (tabla `AUDITORIA_I` inalterable con 13 columnas normativas, INSERT-only y servicio `AuditLogger`).~~ | `auditoria` | NOM-024-SSA3-2012 | ✅ **~~Cumplido (Sprint 2)~~** |
+| ~~**RNF-002**~~ | No Funcional | P0 | ~~Retención documental y persistencia legal (retención mínima de 5 años desde última atención, triggers anti-DELETE en `paciente` y `expediente_c`).~~ | `expediente` | NOM-004-SSA3-2012 | ✅ **~~Cumplido (Sprint 2)~~** |
+| ~~**RNF-003**~~ | No Funcional | P0 | ~~Seguridad de la información en red y reposo (TLS >= 1.2 forzado en BD con sslmode=require, HSTS >= 1 año, headers de seguridad y cifrado AES-256-GCM para adjuntos clínicos).~~ | `infraestructura` | ISO/IEC-27001 | ✅ **~~Cumplido (Sprint 2)~~** |
+| ~~**RNF-004**~~ | No Funcional | P0 | ~~Alta disponibilidad y aislamiento de fallos (docker-compose con réplicas >= 2, reinicio automático unless-stopped, endpoint `/api/v1/salud` y RTO <= 300 s).~~ | `infraestructura` | ISO/IEC-25010 | ✅ **~~Cumplido (Sprint 2)~~** |
+| ~~**PROV-RNF-001**~~ | No Funcional | P0 | ~~Infraestructura Docker endurecida y paridad de entornos (versión fija inmutable php:8.2.26-apache-bookworm, composer:2.8.2, 0 ':latest', usuario www-data no-root, hardening Apache/PHP y healthcheck /up).~~ | `devops` | ISO/IEC-27001 | ✅ **~~Cumplido (Sprint 2)~~** |
+| ~~**PROV-SEC-005**~~ | No Funcional | P0 | ~~Garantías de inalterabilidad de `AUDITORIA_I` (encadenamiento criptográfico SHA-256 estilo blockchain, génesis 64 ceros y comando `auditoria:verificar-cadena`).~~ | `auditoria` | NOM-024-SSA3-2012, ISO/IEC-27001 | ✅ **~~Cumplido (Sprint 2)~~** |
+| ~~**PROV-RN-003**~~ | Regla Negocio | P1 | ~~Ciclo de retención documental y bloqueo tras 5 años (actualización de `fecha_ultimo_acto_medico` y comando `expedientes:reporte-retencion`).~~ | `expediente` | NOM-004-SSA3-2012 | ✅ **~~Cumplido (Sprint 2)~~** |
+| ~~**PROV-SEC-006**~~ | No Funcional | P1 | ~~Estrategia de respaldos 3-2-1 cifrados AES-256 (retención 30 d / 12 m), archivado WAL y monitor de lag <= 600 s (`db:backup-seguro` y `db:verificar-lag-wal`).~~ | `base_datos` | ISO/IEC-27001 | ✅ **~~Cumplido (Sprint 2)~~** |
+| ~~**PROV-SEC-007**~~ | No Funcional | P1 | ~~Sincronización horaria estricta (NTP con CENAM/pool.ntp.org deriva <= 1 s, marcas en UTC y comando `ntp:verificar-sincronizacion`).~~ | `infraestructura` | CENAM / NTP | ✅ **~~Cumplido (Sprint 2)~~** |
+| ~~**PROV-SEC-010**~~ | No Funcional | P1 | ~~Entornos y datos de prueba sintéticos (prohibición de datos reales de pacientes en dev, `ClinicoSinteticoSeeder`).~~ | `seguridad`, `qa` | LFPDPPP | ✅ **~~Cumplido (Sprint 2)~~** |
 
 ---
 
@@ -128,11 +129,11 @@
 | **NOM-024-SSA3-2012** | Sistemas de información en salud: control de acceso RBAC, auditoría de accesos inalterable `AUDITORIA_I`, integridad. | ~~RF-001~~, ~~RF-002~~, ~~PROV-SEC-003~~, RNF-001, PROV-SEC-005 | 🟡 **Parcialmente Cumplida** (Base Sprint 1 ✅ / Trazabilidad Sprint 2 ⏳) |
 | **NOM-206-SSA1-2002** | Urgencias médicas: Sistema de Triage Manchester (5 niveles de prioridad), monitoreo de SLAs de espera. | RF-005, RF-006, RF-007, PROV-RN-004, PROV-RN-005 | ⏳ Pendiente (Sprint 3) |
 | **NOM-035-STPS-2018** | Factores de riesgo psicosocial en el trabajo: reportes estadísticos agregados sin datos personales. | PROV-RF-001 | ⏳ Pendiente (Sprint 5) |
-| **ISO/IEC 27001** | Seguridad de la información: cifrado fuerte (Bcrypt >= 12, TLS >= 1.2, AES-256), sesiones de 15 min, respaldo 3-2-1. | ~~RF-001~~, ~~RF-002~~, ~~RNF-008~~, ~~PROV-SEC-001~~, ~~PROV-SEC-004~~, RNF-003, PROV-SEC-006, PROV-RNF-001, PROV-RNF-004 | 🟡 **Parcialmente Cumplida** (Auth/Credenciales ✅ / Cifrado reposo Sprint 2 ⏳) |
-| **ISO/IEC 25010** | Calidad del producto software: rendimiento (P95 <= 2s), alta disponibilidad (99.9%), cobertura de pruebas >= 80%. | ~~PROV-RN-001~~, RNF-004, RNF-005, PROV-RNF-002, PROV-RN-011 | 🟡 **Parcialmente Cumplida** (Pruebas 100% Sprint 1 ✅) |
+| **ISO/IEC 27001** | Seguridad de la información: cifrado fuerte (Bcrypt >= 12, TLS >= 1.2, AES-256), sesiones de 15 min, respaldo 3-2-1. | ~~RF-001~~, ~~RF-002~~, ~~RNF-008~~, ~~PROV-SEC-001~~, ~~PROV-SEC-004~~, ~~PROV-RNF-001~~, ~~RNF-003~~, ~~PROV-SEC-006~~, PROV-RNF-004 | 🟡 **Parcialmente Cumplida** (Auth/Docker/TLS/Cifrado Reposo/Respaldos 3-2-1 ✅) |
+| **ISO/IEC 25010** | Calidad del producto software: rendimiento (P95 <= 2s), alta disponibilidad (99.9%), cobertura de pruebas >= 80%. | ~~PROV-RN-001~~, ~~RNF-004~~, RNF-005, PROV-RNF-002, PROV-RN-011 | 🟡 **Parcialmente Cumplida** (Pruebas 100% Sprint 1 ✅ / HA y Resiliencia Sprint 2 ✅) |
 | **OWASP ASVS L2** | Verificación de seguridad en aplicaciones: 401 vs 403, prevención de fuerza bruta, manejo de tokens seguro. | ~~RF-002~~, ~~RF-003~~, ~~PROV-SEC-001~~, ~~PROV-SEC-002~~, PROV-SEC-009 | 🟡 **Parcialmente Cumplida** (Auth & RBAC ✅ / DAST Sprint 5 ⏳) |
 | **HL7 FHIR R4** | Estándar de interoperabilidad en salud: intercambio clínico semántico (`Patient`, `Encounter`, etc.). | RNF-007 | ⏳ Pendiente (Sprint 4) |
 | **LFPDPPP** | Protección de datos personales: consentimiento informado con hash, derechos ARCO, disociación en salas públicas. | PROV-RN-008, PROV-RN-009, PROV-SEC-008, PROV-UX-002, PROV-SEC-010 | ⏳ Pendiente (Sprint 3/4) |
 | **COFEPRIS / SAT** | Receta médica electrónica controlada: cédula profesional verificada, e.firma digital avanzada y código QR único. | ~~RF-001~~ (Cédula médica ✅), RF-009 (e.firma/QR ⏳) | 🟡 **Parcialmente Cumplida** |
 | **WCAG 2.1 AA** | Accesibilidad web: contraste 4.5:1, accesibilidad por teclado y soporte para daltonismo en urgencias. | PROV-BR-001, PROV-UX-003 | ⏳ Pendiente (Sprint 3) |
-| **CENAM / NTP** | Metrología y hora legal: sincronización horaria con deriva <= 1 segundo y almacenamiento en UTC. | PROV-SEC-007 | ⏳ Pendiente (Sprint 2) |
+| **CENAM / NTP** | Metrología y hora legal: sincronización horaria con deriva <= 1 segundo y almacenamiento en UTC. | ~~PROV-SEC-007~~ | ✅ **Cumplida (100%)** |

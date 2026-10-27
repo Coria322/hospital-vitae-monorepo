@@ -1,0 +1,30 @@
+meta {
+  name: 04 - Rechazo de Escritura Directa (405 Method Not Allowed)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/auditoria
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{admin_token}}
+}
+
+body:json {
+  {
+    "motivo": "Intento fraudulento de inserción directa"
+  }
+}
+
+tests {
+  test("Escritura directa en endpoint de auditoría retorna 405 Method Not Allowed", function() {
+    expect(res.getStatus()).to.equal(405);
+    expect(res.getBody().status).to.equal("error");
+  });
+}

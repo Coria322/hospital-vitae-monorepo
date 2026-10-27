@@ -1,0 +1,23 @@
+meta {
+  name: 03 - Acceso Medico a Auditoria (403 Forbidden)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/auditoria
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer {{medico_token}}
+}
+
+tests {
+  test("Médico no autorizado a consultar bitácora retorna 403 Forbidden", function() {
+    expect(res.getStatus()).to.equal(403);
+    expect(res.getBody().status).to.equal("error");
+  });
+}

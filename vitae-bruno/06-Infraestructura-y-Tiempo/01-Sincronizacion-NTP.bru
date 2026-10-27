@@ -1,0 +1,28 @@
+meta {
+  name: 01 - Sincronizacion Horaria NTP (PROV-SEC-007)
+  type: http
+  seq: 1
+}
+
+# TODO: [BORRADO TRAS AUDITORÍA FINAL] Endpoint temporal de diagnóstico para validar PROV-SEC-007
+
+get {
+  url: {{base_url}}/sistema/tiempo
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+tests {
+  test("Servidor responde con diagnostico de tiempo y zona horaria UTC", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().timezone).to.equal("UTC");
+    expect(res.getBody().data.sincronizado).to.equal(true);
+    expect(res.getBody().data.deriva_conforme).to.be.a("boolean");
+    expect(res.getBody().data.hora_local_utc).to.be.a("string");
+  });
+}
