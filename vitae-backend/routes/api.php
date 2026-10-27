@@ -57,6 +57,16 @@ Route::prefix('v1')->group(function () {
     // Auth pública
     Route::post('/auth/login', [AuthController::class, 'login']);
 
+    // TODO: [BORRADO / REMOVER TRAS AUDITORÍA FINAL] Endpoint temporal para verificación de sincronización horaria CENAM/NTP con Bruno (PROV-SEC-007)
+    Route::get('/sistema/tiempo', function (\App\Services\NtpService $ntpService) {
+        $diagnostico = $ntpService->medirDerivaHoraria();
+        return response()->json([
+            'status' => 'success',
+            'timezone' => config('app.timezone'),
+            'data' => $diagnostico,
+        ]);
+    });
+
     // Auth protegida con Sanctum + verificación de cuenta activa
     Route::middleware(['auth:sanctum', 'account.active'])->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);

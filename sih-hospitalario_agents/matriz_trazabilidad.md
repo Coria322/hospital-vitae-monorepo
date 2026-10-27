@@ -52,7 +52,7 @@
 | ~~**PROV-SEC-005**~~ | No Funcional | P0 | ~~Garantías de inalterabilidad de `AUDITORIA_I` (encadenamiento criptográfico SHA-256 estilo blockchain, génesis 64 ceros y comando `auditoria:verificar-cadena`).~~ | `auditoria` | NOM-024-SSA3-2012, ISO/IEC-27001 | ✅ **~~Cumplido (Sprint 2)~~** |
 | ~~**PROV-RN-003**~~ | Regla Negocio | P1 | ~~Ciclo de retención documental y bloqueo tras 5 años (actualización de `fecha_ultimo_acto_medico` y comando `expedientes:reporte-retencion`).~~ | `expediente` | NOM-004-SSA3-2012 | ✅ **~~Cumplido (Sprint 2)~~** |
 | **PROV-SEC-006** | No Funcional | P1 | Estrategia de respaldos 3-2-1 y archivado continuo WAL (Point-in-Time Recovery). | `base_datos` | ISO/IEC-27001 | ⏳ Pendiente (Sprint 2) |
-| **PROV-SEC-007** | No Funcional | P1 | Sincronización horaria estricta (NTP con deriva <= 1 s y marcas en UTC). | `infraestructura` | CENAM / NTP | ⏳ Pendiente (Sprint 2) |
+| ~~**PROV-SEC-007**~~ | No Funcional | P1 | ~~Sincronización horaria estricta (NTP con CENAM/pool.ntp.org deriva <= 1 s, marcas en UTC y comando `ntp:verificar-sincronizacion`).~~ | `infraestructura` | CENAM / NTP | ✅ **~~Cumplido (Sprint 2)~~** |
 | ~~**PROV-SEC-010**~~ | No Funcional | P1 | ~~Entornos y datos de prueba sintéticos (prohibición de datos reales de pacientes en dev, `ClinicoSinteticoSeeder`).~~ | `seguridad`, `qa` | LFPDPPP | ✅ **~~Cumplido (Sprint 2)~~** |
 
 ---
@@ -136,4 +136,4 @@
 | **LFPDPPP** | Protección de datos personales: consentimiento informado con hash, derechos ARCO, disociación en salas públicas. | PROV-RN-008, PROV-RN-009, PROV-SEC-008, PROV-UX-002, PROV-SEC-010 | ⏳ Pendiente (Sprint 3/4) |
 | **COFEPRIS / SAT** | Receta médica electrónica controlada: cédula profesional verificada, e.firma digital avanzada y código QR único. | ~~RF-001~~ (Cédula médica ✅), RF-009 (e.firma/QR ⏳) | 🟡 **Parcialmente Cumplida** |
 | **WCAG 2.1 AA** | Accesibilidad web: contraste 4.5:1, accesibilidad por teclado y soporte para daltonismo en urgencias. | PROV-BR-001, PROV-UX-003 | ⏳ Pendiente (Sprint 3) |
-| **CENAM / NTP** | Metrología y hora legal: sincronización horaria con deriva <= 1 segundo y almacenamiento en UTC. | PROV-SEC-007 | ⏳ Pendiente (Sprint 2) |
+| **CENAM / NTP** | Metrología y hora legal: sincronización horaria con deriva <= 1 segundo y almacenamiento en UTC. | ~~PROV-SEC-007~~ | ✅ **Cumplida (100%)** |

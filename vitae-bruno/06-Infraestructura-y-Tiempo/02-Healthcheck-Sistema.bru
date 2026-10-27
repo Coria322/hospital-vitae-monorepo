@@ -1,0 +1,23 @@
+meta {
+  name: 02 - Healthcheck de Infraestructura (/up)
+  type: http
+  seq: 2
+}
+
+# TODO: [BORRADO TRAS AUDITORÍA FINAL] Petición de validación del endpoint de monitoreo Docker / Render (PROV-RNF-001)
+
+get {
+  url: {{base_url}}/../../up
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+}
+
+tests {
+  test("Health check responde con código 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+}
