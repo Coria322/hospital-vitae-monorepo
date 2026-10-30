@@ -160,7 +160,7 @@ const descartarReceta = () => {
 
       <div class="banner-tags-row">
         <span class="pill-vad"><span class="dot-vad">●</span> Vademécum Hospitalario En Línea</span>
-        <span class="pill-vad"><span class="shield-vad">🛡️</span> e.firma SAT/SSA Habilitada</span>
+        <span class="pill-vad"><span class="shield-vad"><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> e.firma SAT/SSA Habilitada</span>
       </div>
     </div>
 
@@ -190,14 +190,14 @@ const descartarReceta = () => {
                   <span>ECE {{ pacienteSeleccionado.ece }} ({{ pacienteSeleccionado.folio }}) · {{ pacienteSeleccionado.edad }} años · {{ pacienteSeleccionado.box }}</span>
                 </div>
               </div>
-              <button class="btn-change-patient-mini" @click="$emit('deseleccionarPaciente')" title="Cambiar paciente">✕</button>
+              <button class="btn-change-patient-mini" @click="$emit('deseleccionarPaciente')" title="Cambiar paciente"><svg viewBox="0 0 24 24" class="svg-inline-x" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             <div v-else class="field-group">
               <label class="field-label">Vincular Paciente al Encuentro Clínico *</label>
               <div class="input-action-row">
                 <div class="input-with-icon">
-                  <span class="icon-input">👤</span>
+                  <span class="icon-input"><svg viewBox="0 0 24 24" class="svg-inline-user" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
                   <input
                     v-model="pacienteInput"
                     type="text"
@@ -206,7 +206,7 @@ const descartarReceta = () => {
                   />
                 </div>
                 <button class="btn-primary-action" type="button">
-                  🔗 Vincular
+                  <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Vincular
                 </button>
               </div>
             </div>
@@ -215,7 +215,7 @@ const descartarReceta = () => {
             <div class="field-group">
               <label class="field-label">Diagnóstico Principal que Motiva la Prescripción (CIE-10 / CIE-11) *</label>
               <div class="input-with-icon">
-                <span class="icon-input">📋</span>
+                <span class="icon-input"><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
                 <input
                   v-model="diagnosticoCie"
                   type="text"
@@ -228,7 +228,7 @@ const descartarReceta = () => {
             <!-- ALERTA DE ALERGIAS FARMACOLÓGICAS -->
             <div class="allergy-shield-box">
               <div class="allergy-left">
-                <span class="shield-badge-icon">🛡️</span>
+                <span class="shield-badge-icon"><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
                 <div>
                   <strong>Verificación de Alergias Farmacológicas</strong>
                   <p>Sin paciente vinculado. Al vincular paciente se verificará automáticamente el historial de alergias farmacológicas (Análisis cruzado en tiempo real con expediente único).</p>
@@ -257,7 +257,7 @@ const descartarReceta = () => {
                 <small class="tip-text">Presiona [Tab] para autocompletar</small>
               </div>
               <div class="input-with-icon">
-                <span class="icon-input">💊</span>
+                <span class="icon-input"><svg viewBox="0 0 24 24" class="svg-inline-pill" fill="none" stroke="currentColor" stroke-width="2"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></span>
                 <input
                   v-model="medicamento"
                   type="text"
@@ -376,7 +376,7 @@ const descartarReceta = () => {
               <h3>Renglones de Medicamentos Prescritos</h3>
               <span class="badge-count-pill">{{ medicamentosAgregados.length }} fármacos activos</span>
             </div>
-            <span class="tip-text-green">✓ Verificación de interacciones farmacológicas activada</span>
+            <span class="tip-text-green"><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Verificación de interacciones farmacológicas activada</span>
           </div>
 
           <!-- LISTA SI HAY FARMACOS -->
@@ -389,7 +389,7 @@ const descartarReceta = () => {
               </div>
               <div class="item-actions">
                 <span class="item-qty">{{ item.cantidad }}</span>
-                <button class="btn-remove-item" @click="removerMedicamento(item.id)" title="Eliminar renglón">✕</button>
+                <button class="btn-remove-item" @click="removerMedicamento(item.id)" title="Eliminar renglón"><svg viewBox="0 0 24 24" class="svg-inline-x" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
               </div>
             </div>
           </div>
@@ -410,7 +410,7 @@ const descartarReceta = () => {
         <section class="rx-card">
           <div class="card-top-header">
             <div class="title-with-badge">
-              <span class="shield-blue">🛡️</span>
+              <span class="shield-blue"><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
               <h3>Recomendaciones y Medidas No Farmacológicas</h3>
             </div>
             <span class="badge-disclaimer">Documento de egreso / Cuidados en domicilio</span>
@@ -529,7 +529,7 @@ const descartarReceta = () => {
         <div class="side-card">
           <div class="side-card-header">
             <div class="sign-title-group">
-              <span class="sign-pen-icon">✍️</span>
+              <span class="sign-pen-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg></span>
               <h4>Firma Digital e.firma</h4>
             </div>
             <span class="badge-cert-green">Certificado Válido</span>
@@ -542,21 +542,21 @@ const descartarReceta = () => {
 
           <div class="action-buttons-group">
             <button class="btn-firmar-receta" @click="firmarYEmitir">
-              ✓ Firmar y Emitir Receta [Ctrl+Enter]
+              <svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Firmar y Emitir Receta [Ctrl+Enter]
             </button>
 
             <div class="row-2-btn">
               <button class="btn-draft" @click="guardarBorrador">
-                💾 Guardar Borrador
+                <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Guardar Borrador
               </button>
               <button class="btn-discard" @click="descartarReceta">
-                🗑️ Descartar
+                <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Descartar
               </button>
             </div>
           </div>
 
           <div class="legal-footnote-compact">
-            <span>🛡️ NOM-004-SSA3 · COFEPRIS Receta Electrónica</span>
+            <span><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> NOM-004-SSA3 · COFEPRIS Receta Electrónica</span>
           </div>
         </div>
 

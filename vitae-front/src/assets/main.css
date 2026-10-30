@@ -51,3 +51,45 @@ body {
   padding: 0;
   max-width: none;
 }
+
+/* Iconos SVG vectoriales que sustituyen emojis */
+.svg-inline-icon,
+.svg-inline-alert,
+.svg-inline-check,
+.svg-inline-shield,
+.svg-inline-lock,
+.svg-inline-edit,
+.svg-inline-clip,
+.svg-inline-lab,
+.svg-inline-users,
+.svg-inline-user,
+.svg-inline-speaker,
+.svg-inline-search,
+.svg-inline-sync,
+.svg-inline-print,
+.svg-inline-bed,
+.svg-inline-siren,
+.svg-inline-folder,
+.svg-inline-chart,
+.svg-inline-doc,
+.svg-inline-eye,
+.svg-inline-arrow,
+.svg-inline-screen,
+.svg-inline-hospital,
+.svg-inline-ambulance,
+.svg-inline-ban,
+.svg-inline-bell,
+.svg-inline-inbox,
+.svg-inline-syringe,
+.svg-inline-pill,
+.svg-inline-steth,
+.svg-inline-activity,
+.svg-inline-x,
+.svg-inline-cross,
+.svg-inline-fullscreen {
+  display: inline-block;
+  vertical-align: -0.15em;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}

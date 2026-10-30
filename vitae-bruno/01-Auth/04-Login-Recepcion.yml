@@ -1,0 +1,47 @@
+info:
+  name: 04 - Login Recepcion
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{base_url}}/auth/login"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "id_usuario": "REC-001",
+        "password": "password123"
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Login recepcion exitoso con 200 OK", function() {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("Rol asignado es RECEPCION", function() {
+          expect(res.getBody().data.usuario.rol).to.equal('RECEPCION');
+        });
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.data.token
+        method: jsonq
+      variable:
+        name: recepcion_token
+        scope: runtime
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

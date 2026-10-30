@@ -66,12 +66,12 @@ onUnmounted(() => {
       </div>
 
       <div class="service-pill">
-        <span class="service-icon">📋</span>
+        <span class="service-icon"><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
         <strong>Módulo de Admisión y Registro</strong>
       </div>
 
       <div class="clock-badge">
-        <span class="clock-icon">🕒</span>
+        <span class="clock-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
         <span>{{ currentDateTimeStr || 'Cargando reloj...' }}</span>
       </div>
 
@@ -84,7 +84,7 @@ onUnmounted(() => {
     <div class="header-right">
       <!-- Indicador rápido de capacidad hospitalaria -->
       <div class="kpi-tag">
-        <span class="kpi-icon">🛏️</span>
+        <span class="kpi-icon"><svg viewBox="0 0 24 24" class="svg-inline-bed" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10" /><path d="M2 17h20"/><path d="M6 8v9"/></svg></span>
         <div>
           <small>CAMAS</small>
           <strong>24 Disp. <span class="subtle">/ 82 Ocup.</span></strong>
@@ -122,8 +122,8 @@ onUnmounted(() => {
             <div class="dropdown-divider"></div>
 
             <div class="dropdown-context-info">
-              <span>📍 {{ recepcionista.sede }}</span>
-              <span>🔒 Sesión segura SSL</span>
+              <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> {{ recepcionista.sede }}</span>
+              <span><svg viewBox="0 0 24 24" class="svg-inline-lock" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Sesión segura SSL</span>
             </div>
 
             <div class="dropdown-divider"></div>
@@ -308,20 +308,25 @@ onUnmounted(() => {
 }
 
 .btn-profile-menu {
-  background: none;
-  border: none;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   font-size: 1.1rem;
+  line-height: 1;
   color: #64748B;
   cursor: pointer;
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  transition: all 0.15s;
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-profile-menu:hover,
 .btn-profile-menu.active {
   color: #0F4C81;
   background-color: #F1F5F9;
+  border-color: #CBD5E1;
 }
 
 /* MENÚ FLOTANTE DE USUARIO Y CIERRE DE SESIÓN */

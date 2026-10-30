@@ -136,7 +136,7 @@ const completarRegistroExpediente = () => {
     alert('Debe marcar la casilla de Aceptación de Consentimiento Informado Administrativo.')
     return
   }
-  alert('✓ Paciente registrado exitosamente. Se ha generado la Clave Única de Expediente (CUPE) con Folio ADM-2026-10492.')
+  alert('<svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Paciente registrado exitosamente. Se ha generado la Clave Única de Expediente (CUPE) con Folio ADM-2026-10492.')
 }
 
 // Datos de la cola de espera de admisión
@@ -148,7 +148,7 @@ const colaEsperaAdmision = ref([
 ])
 
 const llamarSiguienteTurno = () => {
-  alert('📢 Llamando siguiente turno al altavoz de sala y pantalla pública de admisión.')
+  alert('<svg viewBox="0 0 24 24" class="svg-inline-speaker" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Llamando siguiente turno al altavoz de sala y pantalla pública de admisión.')
 }
 </script>
 
@@ -171,7 +171,7 @@ const llamarSiguienteTurno = () => {
                 <span>INTERCONEXIÓN RENAPO: <strong>En línea · Ping 24ms</strong></span>
               </div>
               <div class="ingress-folio-badge">
-                <span>📋 FOLIO DE INGRESO: <strong>ADM-2026-10492</strong></span>
+                <span><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> FOLIO DE INGRESO: <strong>ADM-2026-10492</strong></span>
               </div>
             </div>
           </div>
@@ -198,7 +198,7 @@ const llamarSiguienteTurno = () => {
                 <div class="step-body">
                   <div class="curp-validation-input-row">
                     <div class="input-with-icon">
-                      <span class="id-icon">🪪</span>
+                      <span class="id-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><line x1="15" y1="8" x2="17" y2="8"/><line x1="15" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg></span>
                       <input 
                         type="text" 
                         v-model="nuevoRegistroForm.curpIngresada" 
@@ -212,16 +212,16 @@ const llamarSiguienteTurno = () => {
                       class="btn-validate-renapo"
                       @click="validarCurpEnRenapo"
                     >
-                      🔍 Validar en RENAPO / Base Local
+                      <svg viewBox="0 0 24 24" class="svg-inline-search" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Validar en RENAPO / Base Local
                     </button>
                   </div>
 
                   <!-- Fila de advertencia y lectores alternativos -->
                   <div class="step1-footer-options">
                     <div class="step1-hint">
-                      <span class="info-circle">ℹ️</span>
+                      <span class="info-circle"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
                       <span v-if="nuevoRegistroForm.curpValidada" class="text-green-bold">
-                        ✓ CURP validada sin duplicidad. Puede continuar con el Paso 2.
+                        <svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> CURP validada sin duplicidad. Puede continuar con el Paso 2.
                       </span>
                       <span v-else>
                         Sin consulta ejecutada. Escribe la CURP del paciente o escanea el código de barras de su identificación.
@@ -230,10 +230,10 @@ const llamarSiguienteTurno = () => {
 
                     <div class="optical-readers-row">
                       <button type="button" class="btn-subtle-reader" @click="mostrarAlerta('Iniciando lector óptico 2D para Credencial INE / Cédula...')">
-                        🔲 Lector Óptico INE
+                        <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Lector Óptico INE
                       </button>
                       <button type="button" class="btn-subtle-reader" @click="mostrarAlerta('Habilitando protocolo de recién nacido sin CURP / Paciente extranjero con pasaporte...')">
-                        👶 Paciente Recién Nacido / Extranjero
+                        <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/><path d="M9 15a3 3 0 0 0 6 0"/></svg> Paciente Recién Nacido / Extranjero
                       </button>
                     </div>
                   </div>
@@ -320,7 +320,7 @@ const llamarSiguienteTurno = () => {
 
                   <!-- Subsección: Domicilio de Residencia Habitual -->
                   <div class="form-subsection-title">
-                    <span>📍</span>
+                    <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></span>
                     <strong>DOMICILIO DE RESIDENCIA HABITUAL</strong>
                   </div>
 
@@ -392,11 +392,11 @@ const llamarSiguienteTurno = () => {
                   <!-- Subsección: Aseguramiento y Cobertura Activa -->
                   <div class="form-subsection-title justify-between">
                     <div class="title-with-icon-sm">
-                      <span>🛡️</span>
+                      <span><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
                       <strong>ASEGURAMIENTO Y COBERTURA ACTIVA</strong>
                     </div>
                     <button type="button" class="btn-check-rights" @click="mostrarAlerta('Consultando vigencia en pasarela IMSS / ISSSTE / Privados...')">
-                      🔄 Consulta Automática de Derechos
+                      <svg viewBox="0 0 24 24" class="svg-inline-sync" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Consulta Automática de Derechos
                     </button>
                   </div>
 
@@ -428,7 +428,7 @@ const llamarSiguienteTurno = () => {
                       <label>Estatus de Vigencia</label>
                       <div class="vigencia-status-box">
                         <span>{{ nuevoRegistroForm.estatusVigencia }}</span>
-                        <span class="status-hourglass">⏳</span>
+                        <span class="status-hourglass"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg></span>
                       </div>
                     </div>
                   </div>
@@ -455,7 +455,7 @@ const llamarSiguienteTurno = () => {
                         class="btn-legal-consent-nav" 
                         @click="cambiarSeccion('consentimiento')"
                       >
-                        📋 Proceder a Consentimiento Legal (NOM-004) →
+                        <svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> Proceder a Consentimiento Legal (NOM-004) <svg viewBox="0 0 24 24" class="svg-inline-arrow" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                       </button>
                     </div>
                   </div>
@@ -466,10 +466,10 @@ const llamarSiguienteTurno = () => {
                 <div class="form-bottom-actions">
                   <div class="actions-left">
                     <button type="button" class="btn-clear-form" @click="limpiarFormularioRegistro">
-                      🔄 Limpiar Formulario
+                      <svg viewBox="0 0 24 24" class="svg-inline-sync" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Limpiar Formulario
                     </button>
                     <button type="button" class="btn-print-cred" @click="mostrarAlerta('Imprimiendo credencial temporal del paciente y carátula de expediente...')">
-                      🖨️ Imprimir Credencial / Formato
+                      <svg viewBox="0 0 24 24" class="svg-inline-print" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Imprimir Credencial / Formato
                     </button>
                   </div>
 
@@ -478,7 +478,7 @@ const llamarSiguienteTurno = () => {
                     class="btn-complete-register"
                     @click="completarRegistroExpediente"
                   >
-                    ✓ Completar Registro y Abrir Expediente [Enter]
+                    <svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Completar Registro y Abrir Expediente [Enter]
                   </button>
                 </div>
               </div>
@@ -492,7 +492,7 @@ const llamarSiguienteTurno = () => {
               <div class="side-widget-card">
                 <div class="widget-header">
                   <div class="title-row-sm">
-                    <span>🛏️</span>
+                    <span><svg viewBox="0 0 24 24" class="svg-inline-bed" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10" /><path d="M2 17h20"/><path d="M6 8v9"/></svg></span>
                     <div>
                       <strong>Censo de Capacidad Inmediata</strong>
                       <small class="block-sub">Sede Principal Norte · Admisión</small>
@@ -542,7 +542,7 @@ const llamarSiguienteTurno = () => {
                 </div>
 
                 <button type="button" class="btn-open-census-board" @click="cambiarSeccion('censo')">
-                  🗂️ Abrir Tablero de Camas y Censos Completo
+                  <svg viewBox="0 0 24 24" class="svg-inline-folder" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Abrir Tablero de Camas y Censos Completo
                 </button>
               </div>
 
@@ -550,7 +550,7 @@ const llamarSiguienteTurno = () => {
               <div class="side-widget-card">
                 <div class="widget-header">
                   <div class="title-row-sm">
-                    <span>🖥️</span>
+                    <span><svg viewBox="0 0 24 24" class="svg-inline-screen" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
                     <div>
                       <strong>Monitor de Sala de Espera</strong>
                       <small class="block-sub">Turnos en Atención Presencial</small>
@@ -560,7 +560,7 @@ const llamarSiguienteTurno = () => {
                 </div>
 
                 <div class="privacy-notice-mini">
-                  <span>🛡️</span>
+                  <span><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
                   <small>Protección de Privacidad: La sala pública sólo proyecta Folio e Iniciales. Prohibido mostrar diagnósticos clínicos.</small>
                 </div>
 
@@ -590,10 +590,10 @@ const llamarSiguienteTurno = () => {
 
                 <div class="queue-actions-row">
                   <button type="button" class="btn-call-next" @click="llamarSiguienteTurno">
-                    📢 Llamar Siguiente Turno
+                    <svg viewBox="0 0 24 24" class="svg-inline-speaker" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Llamar Siguiente Turno
                   </button>
                   <button type="button" class="btn-popout-screen" title="Abrir pantalla pública en monitor secundario">
-                    ↗
+                    <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
                   </button>
                 </div>
               </div>

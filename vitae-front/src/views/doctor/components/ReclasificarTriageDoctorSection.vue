@@ -59,7 +59,7 @@ const signosIngreso = computed(() => {
 const escalaraChoque = () => {
   nuevoNivel.value = 1
   discriminadores.value.viaAerea = true
-  alert('🚨 ALERTA CRÍTICA: Paciente escalado inmediatamente a Nivel I (Choque / Resucitación). Alerta enviada a sala de estabilización.')
+  alert('<svg viewBox="0 0 24 24" class="svg-inline-siren" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> ALERTA CRÍTICA: Paciente escalado inmediatamente a Nivel I (Choque / Resucitación). Alerta enviada a sala de estabilización.')
 }
 
 const confirmarReclasificacion = () => {
@@ -103,13 +103,13 @@ const cancelar = () => {
           <span class="badge-active-triage" :style="{ backgroundColor: pacienteSeleccionado.triageColor }">
             {{ pacienteSeleccionado.triage }}
           </span>
-          <button class="btn-change-patient-mini" @click="$emit('deseleccionarPaciente')" title="Cambiar paciente">✕</button>
+          <button class="btn-change-patient-mini" @click="$emit('deseleccionarPaciente')" title="Cambiar paciente"><svg viewBox="0 0 24 24" class="svg-inline-x" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
         </div>
       </div>
 
       <template v-else>
         <div class="banner-left">
-          <span class="icon-link-user">👤</span>
+          <span class="icon-link-user"><svg viewBox="0 0 24 24" class="svg-inline-user" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
           <div class="patient-search-col">
             <label class="banner-label">VINCULAR PACIENTE PARA RE-EVALUACIÓN CLÍNICA</label>
             <input
@@ -121,7 +121,7 @@ const cancelar = () => {
           </div>
         </div>
         <div class="banner-right">
-          <span class="hourglass-icon">⏳</span>
+          <span class="hourglass-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg></span>
           <span>Esperando selección de paciente para desplegar signos iniciales y parámetros de reclasificación</span>
         </div>
       </template>
@@ -140,7 +140,7 @@ const cancelar = () => {
           <div class="triage-card">
             <div class="card-header-bar">
               <div class="card-title-icon">
-                <span class="clock-icon">🕒</span>
+                <span class="clock-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
                 <h4>Signos Vitales al Ingreso</h4>
               </div>
               <span class="badge-triage-init">Triage Inicial</span>
@@ -198,7 +198,7 @@ const cancelar = () => {
           <div class="triage-card active-card">
             <div class="card-header-bar">
               <div class="card-title-icon">
-                <span class="monitor-icon">📊</span>
+                <span class="monitor-icon"><svg viewBox="0 0 24 24" class="svg-inline-chart" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
                 <h4>Re-evaluación Médica Actual</h4>
               </div>
               <span class="badge-capture-active">Captura Activa</span>
@@ -274,7 +274,7 @@ const cancelar = () => {
         <section class="triage-card">
           <div class="card-header-bar">
             <div class="card-title-icon">
-              <span class="tree-icon">🔀</span>
+              <span class="tree-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg></span>
               <div>
                 <h4>Árbol Discriminador Manchester Médico</h4>
                 <p class="sub-tree">Criterios de descarte de riesgo vital inmediato y discriminadores específicos de urgencia</p>
@@ -288,7 +288,7 @@ const cancelar = () => {
             <!-- DISCRIMINADOR 1 -->
             <div class="disc-block">
               <div class="disc-header">
-                <span class="disc-icon red-icon">🫁</span>
+                <span class="disc-icon red-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v9"/><path d="M9 13a4 4 0 0 1-5-4V6a3 3 0 0 1 5-2c2 0 2 2 2 4v5"/><path d="M15 13a4 4 0 0 0 5-4V6a3 3 0 0 0-5-2c-2 0-2 2-2 4v5"/><path d="M6 13c0 4.4 2.7 8 6 8s6-3.6 6-8"/></svg></span>
                 <div class="disc-text">
                   <strong>¿Compromiso agudo de vía aérea o estridor?</strong>
                   <p>Obstrucción, cianosis central o tiraje intercostal severo.</p>
@@ -313,7 +313,7 @@ const cancelar = () => {
             <!-- DISCRIMINADOR 2 -->
             <div class="disc-block">
               <div class="disc-header">
-                <span class="disc-icon red-icon">📈</span>
+                <span class="disc-icon red-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
                 <div class="disc-text">
                   <strong>¿Signos de shock o mala perfusión?</strong>
                   <p>Hipotensión refractaria, llenado capilar &gt;3s, diaforesis fría.</p>
@@ -338,7 +338,7 @@ const cancelar = () => {
             <!-- DISCRIMINADOR 3 -->
             <div class="disc-block">
               <div class="disc-header">
-                <span class="disc-icon blue-icon">🫀</span>
+                <span class="disc-icon blue-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5v4"/></svg></span>
                 <div class="disc-text">
                   <strong>¿Dolor precordial opresivo / Sospecha SCA?</strong>
                   <p>Dolor típico irradiado a mandíbula/brazo izquierdo o equivalente.</p>
@@ -363,7 +363,7 @@ const cancelar = () => {
             <!-- DISCRIMINADOR 4 -->
             <div class="disc-block">
               <div class="disc-header">
-                <span class="disc-icon blue-icon">🧠</span>
+                <span class="disc-icon blue-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-5.04z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-5.04z"/></svg></span>
                 <div class="disc-text">
                   <strong>¿Deterioro neurológico o convulsión?</strong>
                   <p>Déficit focal súbito, crisis activa o estado postictal prolongado.</p>
@@ -400,7 +400,7 @@ const cancelar = () => {
               placeholder="Describa el motivo clínico y la evolución hemodinámica que justifica el cambio de prioridad según el protocolo Manchester..."
             ></textarea>
             <div class="just-footer-row">
-              <span class="signature-tag">✓ Firma digital de médico en turno enlazada a Cédula Profesional al confirmar</span>
+              <span class="signature-tag"><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Firma digital de médico en turno enlazada a Cédula Profesional al confirmar</span>
               <span class="char-count">{{ justificacionClinica.length }} / 600 caracteres</span>
             </div>
           </div>
@@ -504,15 +504,15 @@ const cancelar = () => {
           <!-- BOTONES DE ACCIÓN -->
           <div class="action-buttons-flow">
             <button class="btn-escalate-shock" type="button" @click="escalaraChoque">
-              🚨 Escalar Inmediato a Choque [Alt+C]
+              <svg viewBox="0 0 24 24" class="svg-inline-siren" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Escalar Inmediato a Choque [Alt+C]
             </button>
 
             <button class="btn-confirm-reclass" type="button" @click="confirmarReclasificacion">
-              ✓ Confirmar Reclasificación [Enter]
+              <svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Confirmar Reclasificación [Enter]
             </button>
 
             <button class="btn-cancel" type="button" @click="cancelar">
-              ✕ Cancelar y Volver a Expediente
+              <svg viewBox="0 0 24 24" class="svg-inline-x" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Cancelar y Volver a Expediente
             </button>
           </div>
         </div>
@@ -520,7 +520,7 @@ const cancelar = () => {
         <!-- TRAZABILIDAD Y AUDITORÍA -->
         <div class="side-card audit-card">
           <div class="audit-header">
-            <span>〽️</span>
+            <span><svg viewBox="0 0 24 24" class="svg-inline-activity" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
             <strong>Trazabilidad y Auditoría Médica</strong>
           </div>
           <p>Cada modificación en el triage queda registrada en la bitácora criptográfica hospitalaria conforme a la <strong>NOM-024-SSA3</strong> y <strong>NOM-027-SSA3</strong>. Toda re-estratificación a un nivel inferior exige justificación explícita.</p>

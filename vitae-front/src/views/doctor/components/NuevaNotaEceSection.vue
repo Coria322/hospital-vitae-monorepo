@@ -156,7 +156,7 @@ const descartarNota = () => {
       </div>
       <div class="subnav-right">
         <span class="tag-legal">Marco Jurídico: NOM-004-SSA3-2012</span>
-        <span class="tag-clock">🕒 19 oct 2026 · 19:55 h</span>
+        <span class="tag-clock"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 19 oct 2026 · 19:55 h</span>
       </div>
     </div>
 
@@ -172,7 +172,7 @@ const descartarNota = () => {
         <span class="badge-active-triage" :style="{ backgroundColor: pacienteSeleccionado.triageColor }">
           {{ pacienteSeleccionado.triage.split('·')[0]?.trim() || pacienteSeleccionado.triage }}
         </span>
-        <button class="btn-change-patient-mini" @click="$emit('deseleccionarPaciente')" title="Cambiar paciente">✕</button>
+        <button class="btn-change-patient-mini" @click="$emit('deseleccionarPaciente')" title="Cambiar paciente"><svg viewBox="0 0 24 24" class="svg-inline-x" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
 
       <div v-else class="patient-selector-group">
@@ -258,7 +258,7 @@ const descartarNota = () => {
             <div class="vitals-header-row">
               <span class="vitals-title">CAPTURA LIMPIA DE SIGNOS VITALES</span>
               <button class="btn-link-telemetry" @click="vincularMonitor" type="button">
-                📡 Vincular monitor de cabecera
+                <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg> Vincular monitor de cabecera
               </button>
             </div>
 
@@ -336,7 +336,7 @@ const descartarNota = () => {
               <div class="cie-search-group">
                 <label class="field-label">Búsqueda de Catálogo CIE-10 / CIE-11:</label>
                 <div class="input-with-icon">
-                  <span class="icon-search">🔍</span>
+                  <span class="icon-search"><svg viewBox="0 0 24 24" class="svg-inline-search" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
                   <input
                     v-model="busquedaCie"
                     type="text"
@@ -507,29 +507,29 @@ const descartarNota = () => {
           <!-- FIRMA ELECTRÓNICA AVANZADA COMPACTA -->
           <div class="efirma-box-compact">
             <div class="badge-cert">
-              <span>🔒 e.firma Activa · Cédula {{ doctor.cedula }}</span>
+              <span><svg viewBox="0 0 24 24" class="svg-inline-lock" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> e.firma Activa · Cédula {{ doctor.cedula }}</span>
             </div>
           </div>
 
           <!-- BOTONES DE ACCIÓN -->
           <div class="action-buttons-group">
             <button class="btn-firmar-nota" @click="onGuardarFirmar">
-              <span class="btn-icon">✍️</span>
+              <span class="btn-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg></span>
               <span>Guardar y Firmar Nota ECE [Ctrl+Enter]</span>
             </button>
 
             <div class="row-2-btn">
               <button class="btn-draft" @click="onGuardarBorrador">
-                💾 Guardar Borrador
+                <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Guardar Borrador
               </button>
               <button class="btn-discard" @click="descartarNota">
-                🗑️ Descartar
+                <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> Descartar
               </button>
             </div>
           </div>
 
           <div class="legal-footnote-compact">
-            <span>🛡️ NOM-004-SSA3-2012 · Trazabilidad Inalterable</span>
+            <span><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> NOM-004-SSA3-2012 · Trazabilidad Inalterable</span>
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 info:
-  name: 04 - Consultar Perfil Me
+  name: 07 - Consultar Perfil Me
   type: http
-  seq: 4
+  seq: 7
 
 http:
   method: GET
@@ -10,7 +10,7 @@ http:
     - name: Accept
       value: application/json
     - name: Authorization
-      value: Bearer {{admin_token}}
+      value: "Bearer {{admin_token}}"
 
 runtime:
   scripts:

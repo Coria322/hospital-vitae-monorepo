@@ -158,21 +158,21 @@ const confirmarAsignacionCama = () => {
     cama.pacienteInfo = `Asignada a ${preasignacionCamaForm.value.solicitudSeleccionada}`
   }
   solicitudesCamaPendientes.value = solicitudesCamaPendientes.value.filter(s => s.folio !== preasignacionCamaForm.value.solicitudSeleccionada)
-  mostrarAlerta(`✓ Cama ${preasignacionCamaForm.value.camaSeleccionada} asignada con éxito al paciente ${preasignacionCamaForm.value.solicitudSeleccionada}. Notificación enviada a la estación de enfermería de ${preasignacionCamaForm.value.servicio || 'Hospitalización'}.`)
+  mostrarAlerta(`<svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Cama ${preasignacionCamaForm.value.camaSeleccionada} asignada con éxito al paciente ${preasignacionCamaForm.value.solicitudSeleccionada}. Notificación enviada a la estación de enfermería de ${preasignacionCamaForm.value.servicio || 'Hospitalización'}.`)
 }
 
 const reportarLimpiezaCama = () => {
   if (!fichaCamaSeleccionada.value) return
   fichaCamaSeleccionada.value.estatus = 'higienizacion'
   fichaCamaSeleccionada.value.pacienteInfo = 'Solicitud de sanitización enviada a Intendencia'
-  mostrarAlerta(`🧹 Alerta de intendencia despachada para ${fichaCamaSeleccionada.value.nombre}. Prioridad: Higienización estándar.`)
+  mostrarAlerta(`[INTENDENCIA] Alerta de intendencia despachada para ${fichaCamaSeleccionada.value.nombre}. Prioridad: Higienización estándar.`)
 }
 
 const bloquearCama = () => {
   if (!fichaCamaSeleccionada.value) return
   fichaCamaSeleccionada.value.estatus = 'higienizacion'
   fichaCamaSeleccionada.value.pacienteInfo = 'Bloqueada por mantenimiento preventivo'
-  mostrarAlerta(`🚫 Cama ${fichaCamaSeleccionada.value.nombre} bloqueada temporalmente en censo hospitalario.`)
+  mostrarAlerta(`� Cama ${fichaCamaSeleccionada.value.nombre} bloqueada temporalmente en censo hospitalario.`)
 }
 </script>
 
@@ -198,13 +198,13 @@ const bloquearCama = () => {
                 @click="alternarDemoCenso"
                 title="Cargar datos de pre-asignación demo"
               >
-                {{ preasignacionCamaForm.solicitudSeleccionada ? '🧹 Vaciar Datos' : '🧪 Cargar Demo' }}
+                {{ preasignacionCamaForm.solicitudSeleccionada ? 'Vaciar Datos' : 'Cargar Demo' }}
               </button>
               <button type="button" class="btn-export-censo" @click="mostrarAlerta('Generando censo hospitalario consolidado en formato Excel / PDF...')">
-                📊 Exportar Censo Diario
+                <svg viewBox="0 0 24 24" class="svg-inline-chart" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Exportar Censo Diario
               </button>
               <button type="button" class="btn-alert-janitor" @click="mostrarAlerta('Alerta general despachada a personal de intendencia y camilleros de guardia.')">
-                🚨 Alerta Intendencia
+                <svg viewBox="0 0 24 24" class="svg-inline-siren" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Alerta Intendencia
               </button>
             </div>
           </div>
@@ -431,7 +431,7 @@ const bloquearCama = () => {
               <div class="side-widget-card">
                 <div class="widget-header">
                   <div class="title-row-sm">
-                    <span>🛏️</span>
+                    <span><svg viewBox="0 0 24 24" class="svg-inline-bed" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10" /><path d="M2 17h20"/><path d="M6 8v9"/></svg></span>
                     <strong>Pre-asignación Rápida de Cama</strong>
                   </div>
                   <span class="badge-confirm-pending">NOM-024</span>
@@ -456,7 +456,7 @@ const bloquearCama = () => {
                   <div class="form-group-item">
                     <label class="field-label-sm">Cama Seleccionada en Tablero</label>
                     <div class="curp-field-wrapper">
-                      <span class="field-prefix">🛏️</span>
+                      <span class="field-prefix"><svg viewBox="0 0 24 24" class="svg-inline-bed" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10" /><path d="M2 17h20"/><path d="M6 8v9"/></svg></span>
                       <input 
                         type="text" 
                         v-model="preasignacionCamaForm.camaSeleccionada" 
@@ -522,7 +522,7 @@ const bloquearCama = () => {
               <div class="side-widget-card">
                 <div class="widget-header">
                   <div class="title-row-sm">
-                    <span>📋</span>
+                    <span><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
                     <strong>Solicitudes Pendientes ({{ solicitudesCamaPendientes.length }})</strong>
                   </div>
                   <span class="badge-queue-count">En Cola</span>
@@ -563,7 +563,7 @@ const bloquearCama = () => {
               <div v-if="fichaCamaSeleccionada" class="side-widget-card bed-spec-card">
                 <div class="widget-header">
                   <div class="title-row-sm">
-                    <span>🔍</span>
+                    <span><svg viewBox="0 0 24 24" class="svg-inline-search" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
                     <strong>Ficha de Cama: {{ fichaCamaSeleccionada.nombre }}</strong>
                   </div>
                   <span class="bed-status-chip" :class="fichaCamaSeleccionada.estatus">
@@ -582,7 +582,7 @@ const bloquearCama = () => {
                   </div>
                   <div class="spec-row">
                     <span>Tomas de Gases:</span>
-                    <span class="text-green">✓ Oxígeno, Aire y Vacío Operativos</span>
+                    <span class="text-green"><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Oxígeno, Aire y Vacío Operativos</span>
                   </div>
                   <div class="spec-row">
                     <span>Seguridad Eléctrica:</span>
@@ -591,10 +591,10 @@ const bloquearCama = () => {
 
                   <div class="bed-spec-actions-row">
                     <button type="button" class="btn-subtle-clean" @click="reportarLimpiezaCama">
-                      🧹 Solicitar Higienización Especial
+                      <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 3-6.5 6.5"/><path d="M14.5 12.5 11 16l-3-1-3 3 5 5 3-3-1-3 3.5-3.5"/></svg> Solicitar Higienización Especial
                     </button>
                     <button type="button" class="btn-subtle-block" @click="bloquearCama">
-                      🚫 Bloquear Cama
+                      <svg viewBox="0 0 24 24" class="svg-inline-ban" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Bloquear Cama
                     </button>
                   </div>
                 </div>

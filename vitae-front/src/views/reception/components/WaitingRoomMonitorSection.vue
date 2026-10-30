@@ -160,7 +160,7 @@ const llamarSiguienteTurnoFila = () => {
     turnoActualLlamado.value = enEspera
     const next = turnosPresenciales.value.find(t => t !== enEspera && t.estatus === 'En Espera')
     siguienteTurno.value = next || null
-    mostrarAlerta(`📢 Llamando turno ${enEspera.folio} (${enEspera.iniciales}) a ${enEspera.destino}. Altavoz activado en sala.`)
+    mostrarAlerta(`� Llamando turno ${enEspera.folio} (${enEspera.iniciales}) a ${enEspera.destino}. Altavoz activado en sala.`)
   } else {
     mostrarAlerta('No hay más turnos en espera para llamar.')
   }
@@ -171,7 +171,7 @@ const reemitirAltavoz = () => {
     mostrarAlerta('No hay turno actual en pantalla para re-emitir.')
     return
   }
-  mostrarAlerta(`🔊 Re-emitiendo por altavoz HDMI-01: "Turno ${turnoActualLlamado.value.folio}, iniciales ${turnoActualLlamado.value.iniciales}, favor de pasar a ${turnoActualLlamado.value.destino}".`)
+  mostrarAlerta(`� Re-emitiendo por altavoz HDMI-01: "Turno ${turnoActualLlamado.value.folio}, iniciales ${turnoActualLlamado.value.iniciales}, favor de pasar a ${turnoActualLlamado.value.destino}".`)
 }
 
 const marcarAusenteTurnoActual = () => {
@@ -187,7 +187,7 @@ const marcarAusenteTurnoActual = () => {
   }
   const next = turnosPresenciales.value.find(t => t.estatus === 'En Espera')
   siguienteTurno.value = next || null
-  mostrarAlerta(`🚫 Turno ${folio} marcado como ausente y retirado de la fila de atención.`)
+  mostrarAlerta(`� Turno ${folio} marcado como ausente y retirado de la fila de atención.`)
 }
 
 const llamarTurnoEspecifico = (turno: TurnoPresencial) => {
@@ -196,19 +196,19 @@ const llamarTurnoEspecifico = (turno: TurnoPresencial) => {
   })
   turno.estatus = 'En Ventanilla'
   turnoActualLlamado.value = turno
-  mostrarAlerta(`📢 Proyectando turno ${turno.folio} (${turno.iniciales}) en simulador TV y altavoz principal.`)
+  mostrarAlerta(`� Proyectando turno ${turno.folio} (${turno.iniciales}) en simulador TV y altavoz principal.`)
 }
 
 const transferirTurno = (turno: TurnoPresencial) => {
-  mostrarAlerta(`➡️ Seleccione módulo destino para transferir el turno ${turno.folio} (${turno.iniciales}): Admisión, Triage o Trabajo Social.`)
+  mostrarAlerta(`[TRANSFERIR] Seleccione módulo destino para transferir el turno ${turno.folio} (${turno.iniciales}): Admisión, Triage o Trabajo Social.`)
 }
 
 const imprimirTicketTurno = (turno: TurnoPresencial) => {
-  mostrarAlerta(`🖨️ Imprimiendo ticket térmico de turno ${turno.folio} con código QR y estimado de espera.`)
+  mostrarAlerta(`[TICKET] Imprimiendo ticket térmico de turno ${turno.folio} con código QR y estimado de espera.`)
 }
 
 const probarCampanilla = () => {
-  mostrarAlerta('🔔 Ding-dong! Prueba de audio del altavoz de sala ejecutada en canal HDMI-01.')
+  mostrarAlerta('[AUDIO] Ding-dong: Prueba de audio del altavoz de sala ejecutada en canal HDMI-01.')
 }
 </script>
 
@@ -229,7 +229,7 @@ const probarCampanilla = () => {
             <span class="pill-turnador">TURNADOR DIGITAL V4.2</span>
           </div>
           <div class="banner-privacy-notice">
-            <span class="shield-icon">🛡️</span>
+            <span class="shield-icon"><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
             <p>Protección de Privacidad: La pantalla pública y los monitores proyectan únicamente Folio e Iniciales. Prohibido mostrar diagnósticos clínicos o motivos de consulta (NOM-024 / Ley de Privacidad).</p>
           </div>
         </div>
@@ -241,7 +241,7 @@ const probarCampanilla = () => {
           <span>Sincronización HDMI-01 Activa</span>
         </div>
         <div class="speaker-status-box">
-          <span>📢 Altavoz de Sala: <strong>Conectado</strong></span>
+          <span><svg viewBox="0 0 24 24" class="svg-inline-speaker" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Altavoz de Sala: <strong>Conectado</strong></span>
         </div>
       </div>
     </div>
@@ -260,7 +260,7 @@ const probarCampanilla = () => {
           <small class="kpi-foot-sub">Aforo: 23% ocupación</small>
         </div>
         <div class="kpi-icon-square blue">
-          👥
+          <svg viewBox="0 0 24 24" class="svg-inline-users" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
       </div>
 
@@ -275,7 +275,7 @@ const probarCampanilla = () => {
           <small class="kpi-foot-sub text-blue">Meta de servicio &lt; 20 min</small>
         </div>
         <div class="kpi-icon-square cyan">
-          ⏱️
+          <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M10 2h4"/><path d="m17 5 1.5-1.5"/></svg>
         </div>
       </div>
 
@@ -290,7 +290,7 @@ const probarCampanilla = () => {
           <small class="kpi-foot-sub">En Módulo 01 · Lic. Morales</small>
         </div>
         <div class="kpi-icon-square blue-solid">
-          👤
+          <svg viewBox="0 0 24 24" class="svg-inline-user" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
       </div>
 
@@ -305,7 +305,7 @@ const probarCampanilla = () => {
           <small class="kpi-foot-sub">Esperando llamado [Alt+S]</small>
         </div>
         <div class="kpi-icon-square gray">
-          ↪
+          <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
         </div>
       </div>
 
@@ -315,14 +315,14 @@ const probarCampanilla = () => {
     <div class="queue-control-bar">
       <div class="queue-action-buttons">
         <button type="button" class="btn-call-next-hero" @click="llamarSiguienteTurnoFila">
-          <span>📢 Llamar Siguiente Turno</span>
+          <span><svg viewBox="0 0 24 24" class="svg-inline-speaker" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Llamar Siguiente Turno</span>
           <kbd class="kbd-space">Espacio</kbd>
         </button>
         <button type="button" class="btn-action-outline" @click="reemitirAltavoz">
-          <span>🔊 Re-emitir por Altavoz</span>
+          <span><svg viewBox="0 0 24 24" class="svg-inline-speaker" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Re-emitir por Altavoz</span>
         </button>
         <button type="button" class="btn-action-outline" @click="marcarAusenteTurnoActual">
-          <span>🚫 Marcar Ausente</span>
+          <span><svg viewBox="0 0 24 24" class="svg-inline-ban" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> Marcar Ausente</span>
         </button>
       </div>
 
@@ -367,7 +367,7 @@ const probarCampanilla = () => {
         <div class="step-card">
           <div class="step-card-header">
             <div class="header-title-flex">
-              <span class="icon-menu-list">📑</span>
+              <span class="icon-menu-list"><svg viewBox="0 0 24 24" class="svg-inline-doc" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
               <h4>Turnos Presenciales en Proceso</h4>
               <span class="badge-count-patients">{{ turnosFiltrados.length }} pacientes</span>
             </div>
@@ -424,7 +424,7 @@ const probarCampanilla = () => {
                     <!-- Espera -->
                     <td class="col-espera">
                       <span v-if="turno.alertaEspera" class="wait-alert-pill">
-                        ⚠️ {{ turno.espera }}
+                        <svg viewBox="0 0 24 24" class="svg-inline-alert" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> {{ turno.espera }}
                       </span>
                       <span v-else-if="turno.estatus === 'En Ventanilla'" class="wait-text-blue">
                         {{ turno.espera }}
@@ -445,13 +445,13 @@ const probarCampanilla = () => {
                         v-if="turno.estatus === 'En Ventanilla'" 
                         class="status-pill-blue"
                       >
-                        👥 En Ventanilla
+                        <svg viewBox="0 0 24 24" class="svg-inline-users" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> En Ventanilla
                       </span>
                       <span 
                         v-else 
                         class="status-pill-gray"
                       >
-                        ⏳ En Espera
+                        <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg> En Espera
                       </span>
                     </td>
 
@@ -466,7 +466,7 @@ const probarCampanilla = () => {
                           @click="reemitirAltavoz"
                           title="Re-llamar por altavoz"
                         >
-                          📢
+                          <svg viewBox="0 0 24 24" class="svg-inline-speaker" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
                         </button>
                         <button 
                           v-else
@@ -475,7 +475,7 @@ const probarCampanilla = () => {
                           @click="llamarTurnoEspecifico(turno)"
                           title="Proyectar turno en pantalla y altavoz"
                         >
-                          📢 Llamar
+                          <svg viewBox="0 0 24 24" class="svg-inline-speaker" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Llamar
                         </button>
 
                         <!-- Botón Transferir -->
@@ -485,8 +485,8 @@ const probarCampanilla = () => {
                           @click="transferirTurno(turno)"
                           title="Transferir a otro módulo"
                         >
-                          <span v-if="idx < 2">📥</span>
-                          <span v-else>↔️</span>
+                          <span v-if="idx < 2"><svg viewBox="0 0 24 24" class="svg-inline-inbox" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span>
+                          <span v-else><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 5 21 10 16 15"/><polyline points="8 19 3 14 8 9"/><line x1="21" y1="10" x2="9" y2="10"/><line x1="3" y1="14" x2="15" y2="14"/></svg></span>
                         </button>
 
                         <!-- Botón Reimprimir Ticket -->
@@ -496,7 +496,7 @@ const probarCampanilla = () => {
                           @click="imprimirTicketTurno(turno)"
                           title="Reimprimir ticket térmico"
                         >
-                          🖨️
+                          <svg viewBox="0 0 24 24" class="svg-inline-print" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                         </button>
                       </div>
                     </td>
@@ -510,12 +510,12 @@ const probarCampanilla = () => {
         <!-- Pie Informativo de Telemetría -->
         <div class="monitor-footer-bar">
           <div class="footer-left-sync">
-            <span class="sync-icon">🔄</span>
+            <span class="sync-icon"><svg viewBox="0 0 24 24" class="svg-inline-sync" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span>
             <span>Actualización automática cada 15 segundos con servidor de llamadas.</span>
           </div>
           <div class="footer-right-f11">
             <span>Modo de pantalla completa:</span>
-            <kbd class="kbd-f11">⛶ F11 TV</kbd>
+            <kbd class="kbd-f11"><svg viewBox="0 0 24 24" class="svg-inline-fullscreen" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> F11 TV</kbd>
           </div>
         </div>
 
@@ -528,7 +528,7 @@ const probarCampanilla = () => {
         <div class="tv-simulator-frame">
           <div class="tv-bezel-header">
             <div class="tv-title-row">
-              <span class="tv-screen-icon">📺</span>
+              <span class="tv-screen-icon"><svg viewBox="0 0 24 24" class="svg-inline-screen" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg></span>
               <strong>SIMULADOR TV SALA (HDMI-01)</strong>
             </div>
             <span class="tv-res-badge">● 1080p @ 60Hz</span>
@@ -539,7 +539,7 @@ const probarCampanilla = () => {
             <div class="tv-screen-inner">
               <div class="tv-brand-row">
                 <div class="tv-vitae-brand">
-                  <div class="vitae-mini-box">✚</div>
+                  <div class="vitae-mini-box"><svg viewBox="0 0 24 24" class="svg-inline-cross" fill="currentColor"><path d="M19 10.5h-5.5V5h-3v5.5H5v3h5.5V19h3v-5.5H19z"/></svg></div>
                   <span>HOSPITAL VITAE</span>
                 </div>
                 <div class="tv-live-clock">{{ horaActual }}</div>
@@ -561,7 +561,7 @@ const probarCampanilla = () => {
 
           <div class="tv-bezel-footer">
             <div class="tv-device-label">
-              <span>🖥️</span>
+              <span><svg viewBox="0 0 24 24" class="svg-inline-screen" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
               <span>Monitor Sony Bravia 65" Sala Principal</span>
             </div>
             <button type="button" class="btn-test-chime" @click="probarCampanilla">
@@ -574,7 +574,7 @@ const probarCampanilla = () => {
         <div class="side-widget-card aforo-card">
           <div class="widget-header">
             <div class="title-row-sm">
-              <span class="widget-icon-chair">🪑</span>
+              <span class="widget-icon-chair"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19v3M18 19v3M5 11h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2zM6 11V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6"/></svg></span>
               <strong>Censo y Aforo de Sala</strong>
             </div>
             <span class="badge-aforo-blue">23% Aforo</span>
@@ -598,11 +598,11 @@ const probarCampanilla = () => {
             <small class="aforo-actions-title">ACCIONES DE TURNO Y OPERACIÓN</small>
             <div class="aforo-buttons-grid">
               <button type="button" class="btn-aforo-action" @click="mostrarAlerta('Descargando reporte de aforo y tiempos de espera en formato CSV/Excel...')">
-                <span>📥</span>
+                <span><svg viewBox="0 0 24 24" class="svg-inline-inbox" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span>
                 <span>Descargar Reporte</span>
               </button>
               <button type="button" class="btn-aforo-action danger" @click="mostrarAlerta('Enviando alerta preventiva a jefatura de seguridad de accesos...')">
-                <span>🚨</span>
+                <span><svg viewBox="0 0 24 24" class="svg-inline-siren" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
                 <span>Llamar Seguridad</span>
               </button>
             </div>

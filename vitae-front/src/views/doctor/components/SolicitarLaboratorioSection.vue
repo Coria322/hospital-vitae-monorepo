@@ -217,9 +217,9 @@ const enviarSolicitud = () => {
         </div>
       </div>
       <div class="subnav-right">
-        <span class="tag-shortcut">⚡ Atajo directo: <kbd>Alt + L</kbd></span>
+        <span class="tag-shortcut"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Atajo directo: <kbd>Alt + L</kbd></span>
         <button class="btn-clear" type="button" @click="limpiarFormulario">
-          🔄 Limpiar Formulario
+          <svg viewBox="0 0 24 24" class="svg-inline-sync" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Limpiar Formulario
         </button>
       </div>
     </div>
@@ -250,7 +250,7 @@ const enviarSolicitud = () => {
                   <span>ECE {{ pacienteSeleccionado.ece }} ({{ pacienteSeleccionado.folio }}) · {{ pacienteSeleccionado.edad }} años · {{ pacienteSeleccionado.box }}</span>
                 </div>
               </div>
-              <button class="btn-change-patient-mini" @click="$emit('deseleccionarPaciente')" title="Cambiar paciente">✕</button>
+              <button class="btn-change-patient-mini" @click="$emit('deseleccionarPaciente')" title="Cambiar paciente"><svg viewBox="0 0 24 24" class="svg-inline-x" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
 
             <div v-else class="field-group">
@@ -260,7 +260,7 @@ const enviarSolicitud = () => {
               </div>
               <div class="input-with-button">
                 <div class="input-wrapper">
-                  <span class="input-icon">👤</span>
+                  <span class="input-icon"><svg viewBox="0 0 24 24" class="svg-inline-user" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
                   <input
                     v-model="pacienteInput"
                     type="text"
@@ -283,7 +283,7 @@ const enviarSolicitud = () => {
                     :class="{ active: prioridadOperativa === 'ordinaria' }"
                     @click="prioridadOperativa = 'ordinaria'"
                   >
-                    <div class="priority-title">Ordinaria 🕒</div>
+                    <div class="priority-title">Ordinaria <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
                     <small>Consulta Externa</small>
                   </div>
 
@@ -292,7 +292,7 @@ const enviarSolicitud = () => {
                     :class="{ active: prioridadOperativa === 'urgente' }"
                     @click="prioridadOperativa = 'urgente'"
                   >
-                    <div class="priority-title">Urgente ⏱️</div>
+                    <div class="priority-title">Urgente <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M10 2h4"/><path d="m17 5 1.5-1.5"/></svg></div>
                     <small>Box Urgencias</small>
                   </div>
 
@@ -301,7 +301,7 @@ const enviarSolicitud = () => {
                     :class="{ active: prioridadOperativa === 'critica' }"
                     @click="prioridadOperativa = 'critica'"
                   >
-                    <div class="priority-title">Crítica ⚠️</div>
+                    <div class="priority-title">Crítica <svg viewBox="0 0 24 24" class="svg-inline-alert" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
                     <small>Choque / Reanim.</small>
                   </div>
                 </div>
@@ -310,7 +310,7 @@ const enviarSolicitud = () => {
               <div class="field-group">
                 <label class="field-label">Diagnóstico Presuntivo Orientativo (CIE-10)</label>
                 <div class="input-wrapper">
-                  <span class="input-icon">📋</span>
+                  <span class="input-icon"><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
                   <input
                     v-model="diagnosticoCie"
                     type="text"
@@ -332,7 +332,7 @@ const enviarSolicitud = () => {
               <h3>Catálogo de Estudios Clínicos</h3>
             </div>
             <div class="search-box">
-              <span class="search-icon">🔍</span>
+              <span class="search-icon"><svg viewBox="0 0 24 24" class="svg-inline-search" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
               <input
                 v-model="busquedaFiltro"
                 type="text"
@@ -350,7 +350,7 @@ const enviarSolicitud = () => {
               @click="pestanaActiva = 'lab'"
               type="button"
             >
-              <span class="tab-icon">🧪</span>
+              <span class="tab-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 3h15M6 3v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V3M6 14h12"/></svg></span>
               <span>Laboratorio Clínico</span>
               <span class="tab-badge">{{ totalEstudiosCat('lab') }}</span>
             </button>
@@ -361,7 +361,7 @@ const enviarSolicitud = () => {
               @click="pestanaActiva = 'imagen'"
               type="button"
             >
-              <span class="tab-icon">📅</span>
+              <span class="tab-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
               <span>Imagenología y Rayos X</span>
               <span class="tab-badge">{{ totalEstudiosCat('imagen') }}</span>
             </button>
@@ -372,7 +372,7 @@ const enviarSolicitud = () => {
               @click="pestanaActiva = 'gabinete'"
               type="button"
             >
-              <span class="tab-icon">〽️</span>
+              <span class="tab-icon"><svg viewBox="0 0 24 24" class="svg-inline-activity" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
               <span>Gabinete y Fisiología</span>
               <span class="tab-badge">{{ totalEstudiosCat('gabinete') }}</span>
             </button>
@@ -394,7 +394,7 @@ const enviarSolicitud = () => {
             >
               <div class="check-box-wrapper">
                 <span class="custom-checkbox" :class="{ checked: seleccionadosIds.includes(estudio.id) }">
-                  <span v-if="seleccionadosIds.includes(estudio.id)">✓</span>
+                  <span v-if="seleccionadosIds.includes(estudio.id)"><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
                 </span>
               </div>
               <div class="study-info">
@@ -424,7 +424,7 @@ const enviarSolicitud = () => {
             ></textarea>
             <div class="textarea-footer">
               <small>Máximo 500 caracteres para impresión de marbete en contenedor de muestra.</small>
-              <span class="legal-badge">🛡️ Confidencialidad bajo NOM-024-SSA3-2012</span>
+              <span class="legal-badge"><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Confidencialidad bajo NOM-024-SSA3-2012</span>
             </div>
           </div>
         </section>
@@ -438,20 +438,20 @@ const enviarSolicitud = () => {
         <div class="side-card">
           <div class="side-card-header">
             <div class="header-title-row">
-              <span class="icon-summary">📋</span>
+              <span class="icon-summary"><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
               <h4>Resumen de Orden</h4>
             </div>
             <span class="count-pill">{{ seleccionadosIds.length }} pruebas</span>
           </div>
 
           <div class="order-metric-strip">
-            <span>📄 {{ seleccionadosIds.length }} estudios seleccionados en esta orden</span>
+            <span><svg viewBox="0 0 24 24" class="svg-inline-doc" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> {{ seleccionadosIds.length }} estudios seleccionados en esta orden</span>
             <span class="order-time">-- min</span>
           </div>
 
           <!-- ESTADO VACÍO -->
           <div v-if="seleccionadosIds.length === 0" class="empty-studies-box">
-            <div class="empty-flask-icon">⚗️</div>
+            <div class="empty-flask-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.31L4.69 18.2A2 2 0 0 0 6.4 21h11.2a2 2 0 0 0 1.71-2.8L14 9.31V2"/><line x1="8.5" y1="2" x2="15.5" y2="2"/></svg></div>
             <strong>Sin estudios agregados</strong>
             <p>No hay estudios agregados a la solicitud. Seleccione las pruebas requeridas del catálogo para confeccionar la orden clínica.</p>
           </div>
@@ -464,7 +464,7 @@ const enviarSolicitud = () => {
               class="selected-item-row"
             >
               <span>{{ catalogoEstudios.find(e => e.id === id)?.nombre }}</span>
-              <button class="btn-remove" @click.stop="toggleEstudio(id)">✕</button>
+              <button class="btn-remove" @click.stop="toggleEstudio(id)"><svg viewBox="0 0 24 24" class="svg-inline-x" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
             </div>
           </div>
         </div>
@@ -496,19 +496,19 @@ const enviarSolicitud = () => {
         <!-- FIRMA Y ENVÍO COMPACTO -->
         <div class="side-card">
           <div class="doctor-signature-badge-compact">
-            <span>🔒 e.firma Activa · Cédula {{ doctor.cedula }}</span>
+            <span><svg viewBox="0 0 24 24" class="svg-inline-lock" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> e.firma Activa · Cédula {{ doctor.cedula }}</span>
           </div>
 
           <button class="btn-send-order" @click="enviarSolicitud">
-            ➤ Enviar Solicitud a Laboratorio / Imagen
+            <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar Solicitud a Laboratorio / Imagen
           </button>
 
           <button class="btn-print-voucher" type="button">
-            🖨️ Imprimir Volante Foleado para el Paciente
+            <svg viewBox="0 0 24 24" class="svg-inline-print" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Imprimir Volante Foleado para el Paciente
           </button>
 
           <div class="hl7-cert-row">
-            <span>🔒 Sincronización HL7 / FHIR v4 certificada</span>
+            <span><svg viewBox="0 0 24 24" class="svg-inline-lock" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Sincronización HL7 / FHIR v4 certificada</span>
           </div>
         </div>
 

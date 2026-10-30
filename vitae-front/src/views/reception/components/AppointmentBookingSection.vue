@@ -166,7 +166,7 @@ const confirmarCitaExpedirComprobante = () => {
     mostrarAlerta('Seleccione o valide un paciente antes de confirmar la cita médica.')
     return
   }
-  mostrarAlerta('✓ Cita ' + agendamientoForm.value.folioTurno + ' confirmada con éxito a las ' + agendamientoForm.value.horaSeleccionada + ' hrs para ' + agendamientoForm.value.pacienteValidado.nombre + '.')
+  mostrarAlerta('<svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Cita ' + agendamientoForm.value.folioTurno + ' confirmada con éxito a las ' + agendamientoForm.value.horaSeleccionada + ' hrs para ' + agendamientoForm.value.pacienteValidado.nombre + '.')
 }
 </script>
 
@@ -177,7 +177,7 @@ const confirmarCitaExpedirComprobante = () => {
           <div class="section-top-banner">
             <div class="banner-with-icon-col">
               <div class="blue-icon-square">
-                <span>📅</span>
+                <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
               </div>
               <div class="banner-text-col">
                 <div class="badges-row">
@@ -190,7 +190,7 @@ const confirmarCitaExpedirComprobante = () => {
 
             <div class="banner-right-kpis-row">
               <div class="mini-kpi-white">
-                <span class="kpi-symbol">🩺</span>
+                <span class="kpi-symbol"><svg viewBox="0 0 24 24" class="svg-inline-steth" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg></span>
                 <div>
                   <small>ESPECIALIDADES ACTIVAS</small>
                   <strong>5 Servicios · 14 Consultorios</strong>
@@ -198,7 +198,7 @@ const confirmarCitaExpedirComprobante = () => {
               </div>
 
               <div class="mini-kpi-white">
-                <span class="kpi-symbol blue">📅</span>
+                <span class="kpi-symbol blue"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
                 <div>
                   <small>DISPONIBILIDAD HOY</small>
                   <strong class="text-blue">38 Cupos Libres</strong>
@@ -206,7 +206,7 @@ const confirmarCitaExpedirComprobante = () => {
               </div>
 
               <button type="button" class="btn-sync-catalogs" @click="mostrarAlerta('Sincronizando agendas médicas y disponibilidad con PostgreSQL...')">
-                🔄 Sincronizar Catálogos
+                <svg viewBox="0 0 24 24" class="svg-inline-sync" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Sincronizar Catálogos
               </button>
             </div>
           </div>
@@ -232,7 +232,7 @@ const confirmarCitaExpedirComprobante = () => {
                   <div class="grid-2-cols">
                     <div class="field-subcard">
                       <div class="subcard-header-icon">
-                        <span>🏥</span>
+                        <span><svg viewBox="0 0 24 24" class="svg-inline-hospital" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><line x1="12" y1="6" x2="12" y2="10"/><line x1="10" y1="8" x2="14" y2="8"/></svg></span>
                         <strong>Paso 1: Especialidad y Consultorio</strong>
                       </div>
                       <select v-model="agendamientoForm.especialidad" class="select-clean full">
@@ -247,7 +247,7 @@ const confirmarCitaExpedirComprobante = () => {
 
                     <div class="field-subcard">
                       <div class="subcard-header-icon">
-                        <span>👨‍⚕️</span>
+                        <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
                         <strong>Paso 2: Médico Tratante Asignado</strong>
                       </div>
                       <select v-model="agendamientoForm.medico" class="select-clean full">
@@ -265,7 +265,7 @@ const confirmarCitaExpedirComprobante = () => {
                     <div class="field-subcard">
                       <div class="subcard-header-row">
                         <div class="subcard-header-icon">
-                          <span>👤</span>
+                          <span><svg viewBox="0 0 24 24" class="svg-inline-user" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
                           <strong>Paso 3: Paciente (CURP o Folio Único)</strong>
                         </div>
                         <span class="nom-micro">Validación NOM-024</span>
@@ -280,19 +280,19 @@ const confirmarCitaExpedirComprobante = () => {
                           @keyup.enter="buscarPacienteParaCita"
                         />
                         <button type="button" class="btn-search-slot" @click="buscarPacienteParaCita">
-                          🔍 Buscar
+                          <svg viewBox="0 0 24 24" class="svg-inline-search" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Buscar
                         </button>
                         <button 
                           type="button" 
                           class="btn-demo-slot"
                           @click="cargarDemoCita"
                         >
-                          {{ agendamientoForm.pacienteValidado ? '🧹' : '🧪' }}
+                          {{ agendamientoForm.pacienteValidado ? 'Limpiar' : 'Demo' }}
                         </button>
                       </div>
 
                       <div v-if="agendamientoForm.pacienteValidado" class="patient-validated-pill">
-                        <span class="check-blue">✓</span>
+                        <span class="check-blue"><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
                         <span>Paciente validado: <strong>{{ agendamientoForm.pacienteValidado.nombre }} ({{ agendamientoForm.pacienteValidado.edad }} años)</strong> · Folio {{ agendamientoForm.pacienteValidado.folio }}</span>
                       </div>
                       <div v-else class="patient-validated-pill empty">
@@ -303,7 +303,7 @@ const confirmarCitaExpedirComprobante = () => {
                     <!-- Paso 4: Tipo de Intervención -->
                     <div class="field-subcard">
                       <div class="subcard-header-icon">
-                        <span>🩺</span>
+                        <span><svg viewBox="0 0 24 24" class="svg-inline-steth" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg></span>
                         <strong>Tipo de Intervención / Consulta</strong>
                       </div>
 
@@ -407,7 +407,7 @@ const confirmarCitaExpedirComprobante = () => {
               <div class="step-card">
                 <div class="step-card-header">
                   <div class="title-with-icon-sm">
-                    <span>📋</span>
+                    <span><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
                     <div>
                       <h4>Agenda del Día · Consultorio 104</h4>
                       <small class="text-subtle">Pacientes asignados al Dr. Guillermo Ramírez Vega para hoy</small>
@@ -442,11 +442,11 @@ const confirmarCitaExpedirComprobante = () => {
                             </span>
                           </td>
                           <td class="text-right">
-                            <span v-if="cita.confirmacion === 'Entregado'" class="text-green-check">✓ Entregado</span>
+                            <span v-if="cita.confirmacion === 'Entregado'" class="text-green-check"><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Entregado</span>
                             <button v-else-if="cita.confirmacion === 'Reenviar Aviso'" class="btn-resend" @click="mostrarAlerta('Aviso reenviado a sala de espera.')">
                               ▷ Reenviar Aviso
                             </button>
-                            <span v-else class="text-whatsapp">💬 WhatsApp</span>
+                            <span v-else class="text-whatsapp"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> WhatsApp</span>
                           </td>
                         </tr>
                       </tbody>
@@ -464,7 +464,7 @@ const confirmarCitaExpedirComprobante = () => {
               <div class="side-widget-card appointment-summary-card">
                 <div class="widget-header">
                   <div class="title-row-sm">
-                    <span>☑️</span>
+                    <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
                     <strong>Resumen de Cita</strong>
                   </div>
                   <span class="badge-confirm-pending">POR CONFIRMAR</span>
@@ -486,7 +486,7 @@ const confirmarCitaExpedirComprobante = () => {
                 <!-- Desglose de Parámetros -->
                 <div class="appointment-details-stack">
                   <div class="detail-row-item">
-                    <span class="detail-icon">👤</span>
+                    <span class="detail-icon"><svg viewBox="0 0 24 24" class="svg-inline-user" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
                     <div>
                       <small>PACIENTE REGISTRADO</small>
                       <strong>{{ agendamientoForm.pacienteValidado?.nombre || 'Sin paciente seleccionado' }}</strong>
@@ -495,7 +495,7 @@ const confirmarCitaExpedirComprobante = () => {
                   </div>
 
                   <div class="detail-row-item">
-                    <span class="detail-icon">🏥</span>
+                    <span class="detail-icon"><svg viewBox="0 0 24 24" class="svg-inline-hospital" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><line x1="12" y1="6" x2="12" y2="10"/><line x1="10" y1="8" x2="14" y2="8"/></svg></span>
                     <div>
                       <small>ESPECIALIDAD & MÉDICO</small>
                       <strong>Medicina Interna</strong>
@@ -504,7 +504,7 @@ const confirmarCitaExpedirComprobante = () => {
                   </div>
 
                   <div class="detail-row-item">
-                    <span class="detail-icon">📍</span>
+                    <span class="detail-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></span>
                     <div>
                       <small>UBICACIÓN FÍSICA</small>
                       <strong>Consultorio 104 · Planta Baja</strong>
@@ -513,7 +513,7 @@ const confirmarCitaExpedirComprobante = () => {
                   </div>
 
                   <div class="detail-row-item">
-                    <span class="detail-icon">📋</span>
+                    <span class="detail-icon"><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
                     <div>
                       <small>TIPO DE CITA</small>
                       <strong class="text-blue">Control Subsecuente</strong>
@@ -526,9 +526,9 @@ const confirmarCitaExpedirComprobante = () => {
                 <div class="requirements-box">
                   <strong>REQUERIMIENTOS DE PRESENTACIÓN</strong>
                   <ul>
-                    <li>✓ Presentarse 15 min antes con identificación oficial</li>
-                    <li>✓ Traer carnet de citas y receta anterior</li>
-                    <li>✓ Estudios de química sanguínea recientes</li>
+                    <li><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Presentarse 15 min antes con identificación oficial</li>
+                    <li><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Traer carnet de citas y receta anterior</li>
+                    <li><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Estudios de química sanguínea recientes</li>
                   </ul>
                 </div>
 
@@ -538,21 +538,21 @@ const confirmarCitaExpedirComprobante = () => {
                     Confirmar y Expedir Comprobante [Enter]
                   </button>
                   <button type="button" class="btn-action-secondary" @click="mostrarAlerta('Imprimiendo comprobante térmico con código QR...')">
-                    🖨️ Imprimir Recordatorio Térmico
+                    <svg viewBox="0 0 24 24" class="svg-inline-print" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Imprimir Recordatorio Térmico
                   </button>
                   <div class="grid-2-cols">
                     <button type="button" class="btn-subtle-msg" @click="mostrarAlerta('SMS enviado al teléfono móvil del paciente.')">
-                      💬 SMS Paciente
+                      <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> SMS Paciente
                     </button>
                     <button type="button" class="btn-subtle-msg" @click="mostrarAlerta('Notificación enviada a WhatsApp con enlace de confirmación.')">
-                      💬 WhatsApp
+                      <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> WhatsApp
                     </button>
                   </div>
                 </div>
 
                 <!-- Nota NOM-024 -->
                 <div class="summary-audit-foot">
-                  <span>🛡️</span>
+                  <span><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
                   <small>Registro auditado de acuerdo con la <strong>NOM-024-SSA3-2012</strong> de Sistemas de Información de Registro Electrónico para la Salud.</small>
                 </div>
               </div>
@@ -560,7 +560,7 @@ const confirmarCitaExpedirComprobante = () => {
               <!-- Widget de SLA de Espera -->
               <div class="side-widget-card sla-widget-card">
                 <div class="sla-row">
-                  <span class="sla-clock-icon">⏱️</span>
+                  <span class="sla-clock-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M10 2h4"/><path d="m17 5 1.5-1.5"/></svg></span>
                   <div>
                     <small>TIEMPO PROMEDIO ESPERA</small>
                     <strong>08 min · Óptimo Clínico</strong>

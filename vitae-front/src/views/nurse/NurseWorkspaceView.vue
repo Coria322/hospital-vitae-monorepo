@@ -188,11 +188,11 @@ const actualizarReclasificacion = (datosReval: any) => {
 }
 
 const activarChoqueInmediato = () => {
-  alert('🚨 ALERTA ROJA: Protocolo de Reanimación / Choque activado. Sala 01 notificada en tiempo real.')
+  alert('<svg viewBox="0 0 24 24" class="svg-inline-siren" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> ALERTA ROJA: Protocolo de Reanimación / Choque activado. Sala 01 notificada en tiempo real.')
 }
 
 const activarCodigoAzul = () => {
-  alert('🚨 CÓDIGO AZUL ACTIVADO: Alarma general de paro cardiorrespiratorio en Sala de Espera.')
+  alert('<svg viewBox="0 0 24 24" class="svg-inline-siren" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> CÓDIGO AZUL ACTIVADO: Alarma general de paro cardiorrespiratorio en Sala de Espera.')
 }
 
 // Atajos de teclado del módulo
