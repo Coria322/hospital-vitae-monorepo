@@ -13,7 +13,7 @@
 | **Sprint 1** | E1 | **AI-01** | Gobernanza Ágil, Seguridad Base y Control de Accesos | 10 | **✅ CUMPLIDO (Tachado)** |
 | **Sprint 2** | E2 | **AI-02** | Infraestructura Docker, Base de Datos y Trazabilidad | 10 | **✅ CUMPLIDO (Tachado)** |
 | **Sprint 3** | E3 | **AI-03** | Triage Manchester, Urgencias y Admisión | 13 | **✅ CUMPLIDO (Tachado)** |
-| **Sprint 4** | E4 | **AI-04** | ECE, Recetas Médicas Controladas e Interoperabilidad | 11 | ⏳ Pendiente |
+| **Sprint 4** | E4 | **AI-04** | ECE, Recetas Médicas Controladas e Interoperabilidad | 11 | 🟡 **En Progreso (Sprint Activo)** |
 | **Sprint 5** | E5/E6 | **AI-05** | Portal Móvil del Paciente, Estadística y QA Integral | 7 | ⏳ Pendiente |
 | **Sprint Final**| E6 | **AI-06** | Quality Gate, Despliegue Inmutable y BCP/DRP | 6 | ⏳ Pendiente |
 

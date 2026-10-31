@@ -891,11 +891,11 @@
       <div class="kpi-card warning">
         <span class="kpi-label">
           <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Sprint 3 (Triage y Urgencias)
+          Sprint 4 (ECE, Recetas y FHIR)
         </span>
         <div class="kpi-value-row">
-          <span class="kpi-value">13 / 13 Reqs</span>
-          <span class="kpi-sub">100% Concluido y Auditado</span>
+          <span class="kpi-value">0 / 11 Reqs</span>
+          <span class="kpi-sub">🟡 Sprint Activo en Desarrollo (AI-04)</span>
         </div>
       </div>
       <div class="kpi-card info">
@@ -980,21 +980,21 @@
                 <td>10</td>
                 <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> CUMPLIDO (Mergeado)</span></td>
               </tr>
-              <tr class="filterable-row" data-status="progreso">
+              <tr class="filterable-row" data-status="cumplido">
                 <td><strong>Sprint 3</strong></td>
                 <td><span class="code-tag">E3</span></td>
                 <td><span class="code-tag">AI-03</span></td>
                 <td>Triage Manchester (5 niveles), Gestión de Urgencias y Admisión Desconocidos N.N.</td>
                 <td>13</td>
-                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> CUMPLIDO (Certificado)</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> CUMPLIDO (Mergeado dev)</span></td>
               </tr>
-              <tr class="filterable-row" data-status="pendiente">
+              <tr class="filterable-row" data-status="progreso">
                 <td><strong>Sprint 4</strong></td>
                 <td><span class="code-tag">E4</span></td>
                 <td><span class="code-tag">AI-04</span></td>
                 <td>ECE (NOM-004), Recetas Controladas (COFEPRIS/SAT) e Interoperabilidad HL7 FHIR R4</td>
                 <td>11</td>
-                <td><span class="status-badge pending"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> PENDIENTE</span></td>
+                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> EN PROGRESO</span></td>
               </tr>
               <tr class="filterable-row" data-status="pendiente">
                 <td><strong>Sprint 5</strong></td>
@@ -1282,16 +1282,179 @@
       </div>
 
       <!-- Detalle Sprint 3 -->
+      <!-- Detalle Sprint 3 Cumplido -->
+      <div class="section-card">
+        <div class="section-header">
+          <div>
+            <h2>
+              <svg class="icon-lg" viewBox="0 0 24 24" style="color:var(--status-success-icon);"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Sprint 3: Triage Manchester, Urgencias y Admisión (AI-03)
+            </h2>
+            <div class="section-desc">Certificado con 14 pruebas PHPUnit (68/68 suite total), 12 peticiones Bruno CLI y mergeado a dev (PR #2).</div>
+          </div>
+          <span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 13/13 Certificados</span>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Prioridad</th>
+                <th>Descripción Requerimiento</th>
+                <th>Módulo</th>
+                <th>Normas Asociadas</th>
+                <th>Estado</th>
+                <th>Evidencia</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="strike-row filterable-row" data-status="cumplido">
+                <td><span class="code-tag">RF-004</span></td>
+                <td>Funcional</td>
+                <td>P0</td>
+                <td><span class="strike-title">Captura obligatoria de signos vitales (presión arterial sistólica/diastólica, FC, FR, temp, EVA 0-10, AVDI).</span></td>
+                <td>triage</td>
+                <td><span class="norm-tag">NOM-004</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="strike-row filterable-row" data-status="cumplido">
+                <td><span class="code-tag">RF-005</span></td>
+                <td>Funcional</td>
+                <td>P0</td>
+                <td><span class="strike-title">Asignación automática de nivel de gravedad (Algoritmo Manchester de 5 niveles: Rojo a Azul con regla de inconsciente).</span></td>
+                <td>triage</td>
+                <td><span class="norm-tag">NOM-206</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="strike-row filterable-row" data-status="cumplido">
+                <td><span class="code-tag">RF-006</span></td>
+                <td>Funcional</td>
+                <td>P0</td>
+                <td><span class="strike-title">Gestión y distribución dinámica de colas de espera según prioridad clínica y tiempo transcurrido (SLA ponderado).</span></td>
+                <td>urgencias</td>
+                <td><span class="norm-tag">NOM-206</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="strike-row filterable-row" data-status="cumplido">
+                <td><span class="code-tag">RF-007</span></td>
+                <td>Funcional</td>
+                <td>P0</td>
+                <td><span class="strike-title">Reclasificación manual de triage con justificación clínica obligatoria firmada por médico y auto-auditoría.</span></td>
+                <td>triage</td>
+                <td><span class="norm-tag">NOM-206</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="strike-row filterable-row" data-status="cumplido">
+                <td><span class="code-tag">PROV-RN-004</span></td>
+                <td>Regla Negocio</td>
+                <td>P0</td>
+                <td><span class="strike-title">Matriz Manchester y SLAs de atención (Rojo: 0m, Naranja: 15m, Amarillo: 60m, Verde: 120m, Azul: 240m).</span></td>
+                <td>triage</td>
+                <td><span class="norm-tag">NOM-206</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="strike-row filterable-row" data-status="cumplido">
+                <td><span class="code-tag">PROV-RN-005</span></td>
+                <td>Regla Negocio</td>
+                <td>P0</td>
+                <td><span class="strike-title">Gestión de tiempos excedidos y alertas escalables a jefatura de guardia cuando el SLA se supere (triage:verificar-sla).</span></td>
+                <td>urgencias</td>
+                <td><span class="norm-tag">NOM-206</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="strike-row filterable-row" data-status="cumplido">
+                <td><span class="code-tag">PROV-UX-001</span></td>
+                <td>No Funcional</td>
+                <td>P0</td>
+                <td><span class="strike-title">Actualización de colas de triage en tiempo real mediante WebSockets / SSE (/api/v1/triage/stream).</span></td>
+                <td>urgencias</td>
+                <td><span class="norm-tag">ISO-25010</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="strike-row filterable-row" data-status="cumplido">
+                <td><span class="code-tag">PROV-BR-001</span></td>
+                <td>Regla Negocio</td>
+                <td>P0</td>
+                <td><span class="strike-title">Codificación semántica universal de colores de triage y soporte para daltonismo (iconografía + texto).</span></td>
+                <td>ui_ux</td>
+                <td><span class="norm-tag">WCAG 2.1 AA</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="strike-row filterable-row" data-status="cumplido">
+                <td><span class="code-tag">PROV-RN-006</span></td>
+                <td>Regla Negocio</td>
+                <td>P1</td>
+                <td><span class="strike-title">Tolerancia a fallos de red en admisión y captura retroactiva de folios offline.</span></td>
+                <td>admision</td>
+                <td><span class="norm-tag">ISO-25010</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="strike-row filterable-row" data-status="cumplido">
+                <td><span class="code-tag">PROV-RN-007</span></td>
+                <td>Regla Negocio</td>
+                <td>P1</td>
+                <td><span class="strike-title">Admisión de paciente no identificado (desconocido/N.N.) y posterior proceso de fusión de expediente.</span></td>
+                <td>admision</td>
+                <td><span class="norm-tag">NOM-004</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="strike-row filterable-row" data-status="cumplido">
+                <td><span class="code-tag">PROV-UX-002</span></td>
+                <td>No Funcional</td>
+                <td>P1</td>
+                <td><span class="strike-title">Pantalla pública de sala de espera disociada (solo iniciales y turno, sin PII).</span></td>
+                <td>sala_espera</td>
+                <td><span class="norm-tag">LFPDPPP</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="strike-row filterable-row" data-status="cumplido">
+                <td><span class="code-tag">PROV-UX-003</span></td>
+                <td>No Funcional</td>
+                <td>P1</td>
+                <td><span class="strike-title">Accesibilidad web y ergonomía clínica WCAG 2.1 AA (operable 100% por teclado).</span></td>
+                <td>ui_ux</td>
+                <td><span class="norm-tag">WCAG 2.1 AA</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="strike-row filterable-row" data-status="cumplido">
+                <td><span class="code-tag">PROV-UI-001</span></td>
+                <td>No Funcional</td>
+                <td>P2</td>
+                <td><span class="strike-title">Implementación de pantallas de captura de triage según especificación de UI/UX.</span></td>
+                <td>frontend</td>
+                <td><span class="norm-tag">ERS Anexo G.1</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Detalle Sprint 4 En Progreso -->
       <div class="section-card">
         <div class="section-header">
           <div>
             <h2>
               <svg class="icon-lg" viewBox="0 0 24 24" style="color:var(--status-warning-icon);"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-              Sprint 3: Triage Manchester, Urgencias y Admisión (AI-03)
+              Sprint 4: ECE, Recetas Médicas Controladas e Interoperabilidad (AI-04)
             </h2>
-            <div class="section-desc">Alcance activo en la rama feature/sprint-3-triage-urgencias.</div>
+            <div class="section-desc">Alcance activo en la rama feature/sprint-4-ece-recetas-fhir.</div>
           </div>
-          <span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 13 Requerimientos Certificados</span>
+          <span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> 11 Requerimientos en Desarrollo</span>
         </div>
         <div class="table-responsive">
           <table class="data-table">
@@ -1309,134 +1472,114 @@
             </thead>
             <tbody>
               <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">RF-004</span></td>
+                <td><span class="code-tag">RF-008</span></td>
                 <td>Funcional</td>
                 <td>P0</td>
-                <td>Captura obligatoria de signos vitales (presión arterial sistólica/diastólica, FC, FR, temp, EVA 0-10, Glasgow 3-15).</td>
-                <td>triage</td>
+                <td>Gestión integral del Expediente Clínico Electrónico (ECE) conforme a normatividad nacional.</td>
+                <td>expediente</td>
                 <td><span class="norm-tag">NOM-004</span></td>
                 <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
               </tr>
               <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">RF-005</span></td>
+                <td><span class="code-tag">RF-008.1</span></td>
                 <td>Funcional</td>
                 <td>P0</td>
-                <td>Asignación automática de nivel de gravedad (Algoritmo Manchester de 5 niveles: Rojo a Azul).</td>
-                <td>triage</td>
-                <td><span class="norm-tag">NOM-206</span></td>
-                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
-              </tr>
-              <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">RF-006</span></td>
-                <td>Funcional</td>
-                <td>P0</td>
-                <td>Gestión y distribución dinámica de colas de espera según prioridad clínica y tiempo transcurrido (SLA ponderado).</td>
-                <td>urgencias</td>
-                <td><span class="norm-tag">NOM-206</span></td>
-                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
-              </tr>
-              <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">RF-007</span></td>
-                <td>Funcional</td>
-                <td>P0</td>
-                <td>Reclasificación manual de triage con justificación clínica obligatoria firmada por médico y auto-auditoría.</td>
-                <td>triage</td>
-                <td><span class="norm-tag">NOM-206</span></td>
-                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
-              </tr>
-              <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">PROV-RN-004</span></td>
-                <td>Regla Negocio</td>
-                <td>P0</td>
-                <td>Matriz Manchester y SLAs de atención (Rojo: 0m, Naranja: 10m, Amarillo: 60m, Verde: 120m, Azul: 240m).</td>
-                <td>triage</td>
-                <td><span class="norm-tag">NOM-206</span></td>
-                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
-              </tr>
-              <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">PROV-RN-005</span></td>
-                <td>Regla Negocio</td>
-                <td>P0</td>
-                <td>Gestión de tiempos excedidos y alertas escalables a jefatura de guardia cuando el SLA se supere.</td>
-                <td>urgencias</td>
-                <td><span class="norm-tag">NOM-206</span></td>
-                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
-              </tr>
-              <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">PROV-UX-001</span></td>
-                <td>No Funcional</td>
-                <td>P0</td>
-                <td>Actualización de colas de triage en tiempo real mediante WebSockets / SSE.</td>
-                <td>urgencias</td>
-                <td><span class="norm-tag">ISO-25010</span></td>
-                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
-              </tr>
-              <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">PROV-BR-001</span></td>
-                <td>Regla Negocio</td>
-                <td>P0</td>
-                <td>Codificación semántica universal de colores de triage y soporte para daltonismo (iconografía + texto).</td>
-                <td>ui_ux</td>
-                <td><span class="norm-tag">WCAG 2.1 AA</span></td>
-                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
-              </tr>
-              <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">PROV-RN-006</span></td>
-                <td>Regla Negocio</td>
-                <td>P1</td>
-                <td>Tolerancia a fallos de red en admisión y captura retroactiva de folios offline.</td>
-                <td>admision</td>
-                <td><span class="norm-tag">ISO-25010</span></td>
-                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
-              </tr>
-              <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">PROV-RN-007</span></td>
-                <td>Regla Negocio</td>
-                <td>P1</td>
-                <td>Admisión de paciente no identificado (desconocido/N.N.) y posterior proceso de fusión de expediente.</td>
-                <td>admision</td>
+                <td>Creación y datos de identificación del expediente, antecedentes y ficha técnica.</td>
+                <td>expediente</td>
                 <td><span class="norm-tag">NOM-004</span></td>
                 <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
               </tr>
               <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">PROV-UX-002</span></td>
+                <td><span class="code-tag">RF-008.2</span></td>
+                <td>Funcional</td>
+                <td>P0</td>
+                <td>Historia clínica, notas de evolución, interconsultas e inmutabilidad de notas cerradas.</td>
+                <td>expediente</td>
+                <td><span class="norm-tag">NOM-004</span></td>
+                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
+              </tr>
+              <tr class="filterable-row" data-status="progreso">
+                <td><span class="code-tag">RF-009</span></td>
+                <td>Funcional</td>
+                <td>P0</td>
+                <td>Generación y emisión de recetas médicas para medicamentos controlados (Fracc. I, II, III).</td>
+                <td>recetas</td>
+                <td><span class="norm-tag">COFEPRIS, SAT</span></td>
+                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
+              </tr>
+              <tr class="filterable-row" data-status="progreso">
+                <td><span class="code-tag">RF-010</span></td>
+                <td>Funcional</td>
+                <td>P0</td>
+                <td>Solicitud y consulta de resultados de laboratorio e imagenología médica en el ECE.</td>
+                <td>laboratorio</td>
+                <td><span class="norm-tag">NOM-004</span></td>
+                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
+              </tr>
+              <tr class="filterable-row" data-status="progreso">
+                <td><span class="code-tag">RNF-007</span></td>
                 <td>No Funcional</td>
+                <td>P0</td>
+                <td>Interoperabilidad semántica en salud basada en el estándar HL7 FHIR R4.</td>
+                <td>interoperabilidad</td>
+                <td><span class="norm-tag">HL7 FHIR R4</span></td>
+                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
+              </tr>
+              <tr class="filterable-row" data-status="progreso">
+                <td><span class="code-tag">PROV-RN-008</span></td>
+                <td>Regla Negocio</td>
                 <td>P1</td>
-                <td>Pantalla pública de sala de espera disociada (solo iniciales y turno, sin PII).</td>
-                <td>sala_espera</td>
+                <td>Gestión del consentimiento informado del paciente con hash inmutable.</td>
+                <td>expediente</td>
                 <td><span class="norm-tag">LFPDPPP</span></td>
                 <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
               </tr>
               <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">PROV-UX-003</span></td>
+                <td><span class="code-tag">PROV-RN-009</span></td>
+                <td>Regla Negocio</td>
+                <td>P1</td>
+                <td>Atención y trazabilidad de derechos ARCO (Acceso, Rectificación, Cancelación, Oposición).</td>
+                <td>privacidad</td>
+                <td><span class="norm-tag">LFPDPPP</span></td>
+                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
+              </tr>
+              <tr class="filterable-row" data-status="progreso">
+                <td><span class="code-tag">PROV-RN-010</span></td>
+                <td>Regla Negocio</td>
+                <td>P1</td>
+                <td>Protocolo de acceso de emergencia "Break-the-Glass" al expediente con auditoría reforzada.</td>
+                <td>seguridad</td>
+                <td><span class="norm-tag">NOM-004</span></td>
+                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
+              </tr>
+              <tr class="filterable-row" data-status="progreso">
+                <td><span class="code-tag">PROV-SEC-008</span></td>
                 <td>No Funcional</td>
                 <td>P1</td>
-                <td>Accesibilidad web y ergonomía clínica WCAG 2.1 AA (operable 100% por teclado).</td>
-                <td>ui_ux</td>
-                <td><span class="norm-tag">WCAG 2.1 AA</span></td>
+                <td>Privacidad desde el diseño en exportaciones clínicas (marcas de agua y datos anonimizados).</td>
+                <td>seguridad</td>
+                <td><span class="norm-tag">LFPDPPP</span></td>
                 <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
               </tr>
               <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">PROV-UI-001</span></td>
+                <td><span class="code-tag">PROV-UI-002</span></td>
                 <td>No Funcional</td>
                 <td>P2</td>
-                <td>Implementación de pantallas de captura de triage según especificación de UI/UX.</td>
+                <td>Pantallas de consulta de ECE y emisión de recetas médicas.</td>
                 <td>frontend</td>
-                <td><span class="norm-tag">ERS Anexo G.1</span></td>
+                <td><span class="norm-tag">ERS Anexo G.2</span></td>
                 <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
               </tr>
             </tbody>
           </table>
@@ -1614,17 +1757,120 @@
         </div>
       </div>
 
-      <!-- Sprint 3 En Progreso -->
+      <!-- Sprint 3 Cumplido -->
+      <div class="section-card">
+        <div class="section-header">
+          <div>
+            <h2>
+              <svg class="icon-lg" viewBox="0 0 24 24" style="color:var(--status-success-icon);"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              Tareas Técnicas Certificadas — Sprint 3 (Auditoría AI-03)
+            </h2>
+            <div class="section-desc">Triage Manchester, signos vitales, algoritmo determinista 5 niveles, colas dinámicas y admisión N.N.</div>
+          </div>
+          <span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 8/8 Tareas Certificadas</span>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID Tarea</th>
+                <th>Requisito</th>
+                <th>Constraint / Criterio Real</th>
+                <th>Componente Afectado</th>
+                <th>Evidencia Requerida</th>
+                <th>Estado</th>
+                <th>Inspección</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="filterable-row" data-status="cumplido">
+                <td><span class="code-tag">TASK-W-035</span></td>
+                <td>RF-004, NOM-004</td>
+                <td>Migración y modelo para Signos Vitales y Triage con triggers anti-DELETE.</td>
+                <td>database/migrations, Triage.php</td>
+                <td>Migración ejecutada, constraints biológicos validados</td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="filterable-row" data-status="cumplido">
+                <td><span class="code-tag">TASK-W-036</span></td>
+                <td>RF-005, NOM-206</td>
+                <td>Servicio de clasificación Manchester (algoritmo determinista 5 niveles y regla crítico/inconsciente).</td>
+                <td>TriageManchesterService.php</td>
+                <td>Tests unitarios con casos clínicos de prueba aprobados</td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="filterable-row" data-status="cumplido">
+                <td><span class="code-tag">TASK-W-037</span></td>
+                <td>RF-006, NOM-206</td>
+                <td>Cola de urgencias viva con algoritmo de priorización FIFO ponderado por SLA y 3 salas shock.</td>
+                <td>ColaUrgenciasService, TriageController</td>
+                <td>Tests de asignación automática y liberación de consultorios</td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="filterable-row" data-status="cumplido">
+                <td><span class="code-tag">TASK-W-038</span></td>
+                <td>RF-007, NOM-206</td>
+                <td>Reclasificación médica manual con justificación clínica obligatoria en AUDITORIA_I.</td>
+                <td>TriageController, AuditLogger</td>
+                <td>Tests de denegación sin motivo y bloqueo degradar ROJO</td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="filterable-row" data-status="cumplido">
+                <td><span class="code-tag">TASK-W-039</span></td>
+                <td>PROV-RN-007, NOM-004</td>
+                <td>Registro de paciente desconocido N.N. y endpoint seguro de fusión transaccional.</td>
+                <td>AdmisionService, PacienteController</td>
+                <td>Tests de fusión y no duplicidad de expedientes aprobados</td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="filterable-row" data-status="cumplido">
+                <td><span class="code-tag">TASK-W-040</span></td>
+                <td>PROV-UX-001, ISO-25010</td>
+                <td>Streaming de eventos en tiempo real (SSE) y pantalla pública disociada (cero PII).</td>
+                <td>routes/api.php, SalaEsperaController</td>
+                <td>Pruebas de streaming continuo y verificación 0 PII</td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="filterable-row" data-status="cumplido">
+                <td><span class="code-tag">TASK-W-041</span></td>
+                <td>Certificación Bruno</td>
+                <td>Colección de peticiones Bruno (07-Triage-Manchester) para pruebas E2E.</td>
+                <td>vitae-bruno/07-Triage-Manchester</td>
+                <td>12/12 peticiones exitosas (100% PASS) en CLI de Bruno</td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+              <tr class="filterable-row" data-status="cumplido">
+                <td><span class="code-tag">TASK-W-042</span></td>
+                <td>Certificación PHPUnit</td>
+                <td>Suite completa de pruebas automatizadas Sprint 3 para Triage y Urgencias.</td>
+                <td>tests/Feature/Sprint3TriageTest.php</td>
+                <td>14/14 tests aprobados (68/68 suite global, 313 aserciones)</td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 3</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sprint 4 Planificado -->
       <div class="section-card">
         <div class="section-header">
           <div>
             <h2>
               <svg class="icon-lg" viewBox="0 0 24 24" style="color:var(--status-warning-icon);"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-              Tareas Técnicas Certificadas — Sprint 3 (Auditoría AI-03)
+              Tareas Técnicas Planificadas — Sprint 4 (Auditoría AI-04)
             </h2>
-            <div class="section-desc">Planificación de tareas para Triage Manchester, signos vitales y colas vivas.</div>
+            <div class="section-desc">ECE, notas médicas inmutables, recetas controladas con QR, interoperabilidad HL7 FHIR R4 y Break-the-Glass.</div>
           </div>
-          <span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> En Planificación Activa</span>
+          <span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 10 Tareas en Desarrollo</span>
         </div>
         <div class="table-responsive">
           <table class="data-table">
@@ -1641,80 +1887,99 @@
             </thead>
             <tbody>
               <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">TASK-W-035</span></td>
-                <td>RF-004, NOM-004</td>
-                <td>Migración y modelo para Signos Vitales (TA, FC, FR, temp, EVA 0-10, Glasgow 3-15).</td>
-                <td>database/migrations, SignoVital.php</td>
-                <td>Migración ejecutada, constraints biológicos validados</td>
+                <td><span class="code-tag">TASK-W-043</span></td>
+                <td>RF-008.1, NOM-004</td>
+                <td>Migración y modelo para antecedentes clínicos (heredofamiliares, patológicos, no patológicos, alergias).</td>
+                <td>database/migrations, AntecedenteClinico.php</td>
+                <td>Migración ejecutada y relaciones con expediente_c</td>
                 <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">En cola</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
               </tr>
               <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">TASK-W-036</span></td>
-                <td>RF-005, NOM-206</td>
-                <td>Servicio de clasificación Manchester (cálculo determinista de nivel 1 a 5 y SLA en minutos).</td>
-                <td>app/Services/TriageManchesterService.php</td>
-                <td>Tests unitarios con casos clínicos de prueba</td>
+                <td><span class="code-tag">TASK-W-044</span></td>
+                <td>RF-008.2, NOM-004</td>
+                <td>Migración de notas médicas (nota_medica) con triggers anti-UPDATE/DELETE tras estado FIRMADA.</td>
+                <td>database/migrations, NotaMedica.php</td>
+                <td>Tests de inmutabilidad física y eloquent de notas cerradas</td>
                 <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">En cola</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
               </tr>
               <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">TASK-W-037</span></td>
-                <td>RF-006, NOM-206</td>
-                <td>Cola de urgencias viva con algoritmo de priorización ponderado por SLA.</td>
-                <td>ColaUrgenciasService, TriageController</td>
-                <td>Tests de ordenamiento FIFO ponderado por severidad</td>
+                <td><span class="code-tag">TASK-W-045</span></td>
+                <td>RF-009, COFEPRIS</td>
+                <td>Servicio de recetas médicas controladas con validación de cédula, hash SHA-256 y payload QR.</td>
+                <td>RecetaMedicaService, RecetaController</td>
+                <td>Tests de emisión, validación de fracción y generación de QR</td>
                 <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">En cola</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
               </tr>
               <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">TASK-W-038</span></td>
-                <td>RF-007, NOM-206</td>
-                <td>Reclasificación médica manual con justificación clínica obligatoria en AUDITORIA_I.</td>
-                <td>TriageController, AuditLogger</td>
-                <td>Tests de denegación sin justificación y auto-registro</td>
+                <td><span class="code-tag">TASK-W-046</span></td>
+                <td>RF-010, NOM-004</td>
+                <td>Endpoints para solicitud y consulta de resultados de laboratorio e imagenología médica en el ECE.</td>
+                <td>LaboratorioController, OrdenEstudio.php</td>
+                <td>Tests de vinculación de resultados clínicos al expediente</td>
                 <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">En cola</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
               </tr>
               <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">TASK-W-039</span></td>
-                <td>PROV-RN-007, NOM-004</td>
-                <td>Registro de paciente desconocido N.N. y endpoint seguro de fusión de expedientes.</td>
-                <td>AdmisionService, Paciente.php</td>
-                <td>Tests de fusión y no duplicidad de expedientes</td>
+                <td><span class="code-tag">TASK-W-047</span></td>
+                <td>RNF-007, FHIR R4</td>
+                <td>Controlador de interoperabilidad HL7 FHIR R4 (Patient, Encounter, MedicationRequest).</td>
+                <td>FhirController.php, FhirSerializerService.php</td>
+                <td>Validación semántica contra schemas JSON oficiales FHIR R4</td>
                 <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">En cola</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
               </tr>
               <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">TASK-W-040</span></td>
-                <td>PROV-UX-001, ISO-25010</td>
-                <td>Streaming de eventos en tiempo real (SSE / WebSockets) para actualización de sala.</td>
-                <td>routes/api.php, TriageStreamController</td>
-                <td>Pruebas de streaming continuo de arribos y cambios</td>
+                <td><span class="code-tag">TASK-W-048</span></td>
+                <td>PROV-RN-008, LFPDPPP</td>
+                <td>Registro de consentimiento informado con cálculo de hash SHA-256 inmutable de la voluntad del paciente.</td>
+                <td>ConsentimientoInformado.php, ConsentimientoService</td>
+                <td>Tests de inmutabilidad y verificación de hash</td>
                 <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">En cola</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
               </tr>
               <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">TASK-W-041</span></td>
+                <td><span class="code-tag">TASK-W-049</span></td>
+                <td>PROV-RN-010, NOM-004</td>
+                <td>Protocolo de emergencia "Break-the-Glass" para consulta de expediente con auto-auditoría en AUDITORIA_I.</td>
+                <td>BreakTheGlassMiddleware.php, BreakTheGlassService</td>
+                <td>Test de auto-auditoría reforzada con justificación obligatoria</td>
+                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> En Progreso</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
+              </tr>
+              <tr class="filterable-row" data-status="progreso">
+                <td><span class="code-tag">TASK-W-050</span></td>
+                <td>PROV-SEC-008, LFPDPPP</td>
+                <td>Generación de PDF de expediente clínico con marca de agua disociada ("COPIA CLÍNICA AUDITADA").</td>
+                <td>PdfExpedienteService.php</td>
+                <td>Tests de generación de PDF con trazabilidad de usuario solicitante</td>
+                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> En Progreso</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
+              </tr>
+              <tr class="filterable-row" data-status="progreso">
+                <td><span class="code-tag">TASK-W-051</span></td>
                 <td>Certificación Bruno</td>
-                <td>Colección de peticiones Bruno (06-Triage-Manchester) para pruebas E2E.</td>
-                <td>vitae-bruno/06-Triage-Manchester</td>
-                <td>Ejecución exitosa en CLI de Bruno</td>
+                <td>Colección de peticiones Bruno (08-ECE-Recetas-FHIR) cubriendo notas, recetas, FHIR y Break-the-Glass.</td>
+                <td>vitae-bruno/08-ECE-Recetas-FHIR</td>
+                <td>Certificación de endpoints con Bruno CLI</td>
                 <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">En cola</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
               </tr>
               <tr class="filterable-row" data-status="progreso">
-                <td><span class="code-tag">TASK-W-042</span></td>
+                <td><span class="code-tag">TASK-W-052</span></td>
                 <td>Certificación PHPUnit</td>
-                <td>Suite completa de pruebas automatizadas Sprint 3 para Triage y Urgencias.</td>
-                <td>tests/Feature/Sprint3TriageTest.php</td>
+                <td>Suite completa de pruebas automatizadas Sprint 4 para ECE, notas inmutables, recetas y FHIR.</td>
+                <td>tests/Feature/Sprint4EceRecetasTest.php</td>
                 <td>100% de pruebas aprobadas sin regresiones</td>
                 <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> En Progreso</span></td>
-                <td><span style="color:var(--text-soft); font-size:0.75rem;">En cola</span></td>
+                <td><span style="color:var(--text-soft); font-size:0.75rem;">Sprint 4</span></td>
               </tr>
             </tbody>
           </table>
         </div>
+      </div>
       </div>
 
     </div>
