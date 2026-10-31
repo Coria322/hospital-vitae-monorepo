@@ -131,13 +131,13 @@ const llamarSiguiente = () => {
   const primero = listaCola.value[0]
   if (primero) {
     pacienteLlamadoEnMonitor.value = primero.nombre
-    alert(`📢 LLAMANDO EN ALTAVOZ Y MONITOR: ${primero.nombre} a Box 04 · Urgencia Adultos`)
+    alert(`[SISTEMA VITAE] � LLAMANDO EN ALTAVOZ Y MONITOR: ${primero.nombre} a Box 04 · Urgencia Adultos`)
   }
 }
 
 const reLlamarAltavoz = (p: PacienteColaItem) => {
   pacienteLlamadoEnMonitor.value = p.nombre
-  alert(`📢 Re-llamando en pantalla y altavoz a ${p.nombre} a Box 04`)
+  alert(`[SISTEMA VITAE] � Re-llamando en pantalla y altavoz a ${p.nombre} a Box 04`)
 }
 
 const ingresarConsulta = (p: PacienteColaItem) => {
@@ -183,7 +183,7 @@ const ingresarConsulta = (p: PacienteColaItem) => {
 
       <div class="subnav-right">
         <button class="btn-call-next" type="button" @click="llamarSiguiente">
-          <span class="btn-speaker-icon">📢</span>
+          <span class="btn-speaker-icon"><svg viewBox="0 0 24 24" class="svg-inline-speaker" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg></span>
           <span>Llamar Siguiente Turno [Espacio]</span>
         </button>
 
@@ -193,7 +193,7 @@ const ingresarConsulta = (p: PacienteColaItem) => {
           type="button"
           @click="recepcionPausada = !recepcionPausada"
         >
-          <span>⏸</span>
+          <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg></span>
           <span>{{ recepcionPausada ? 'Reanudar' : 'Pausar Recepción' }}</span>
         </button>
       </div>
@@ -212,7 +212,7 @@ const ingresarConsulta = (p: PacienteColaItem) => {
           <span class="kpi-unit">en sala física</span>
         </div>
         <div class="kpi-footer text-green">
-          <span>✓ Aforo controlado (Box 01 a 06)</span>
+          <span><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Aforo controlado (Box 01 a 06)</span>
         </div>
       </div>
 
@@ -220,7 +220,7 @@ const ingresarConsulta = (p: PacienteColaItem) => {
       <div class="kpi-card">
         <div class="kpi-header">
           <span class="kpi-label">TIEMPO PROMEDIO ESPERA</span>
-          <span class="kpi-icon">⏱️</span>
+          <span class="kpi-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M10 2h4"/><path d="m17 5 1.5-1.5"/></svg></span>
         </div>
         <div class="kpi-body">
           <strong class="kpi-number">22</strong>
@@ -242,7 +242,7 @@ const ingresarConsulta = (p: PacienteColaItem) => {
           <span class="kpi-unit">urgencia superada</span>
         </div>
         <div class="kpi-footer text-red">
-          <span>⚠️ Manchester Nivel II en espera</span>
+          <span><svg viewBox="0 0 24 24" class="svg-inline-alert" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Manchester Nivel II en espera</span>
         </div>
       </div>
 
@@ -257,7 +257,7 @@ const ingresarConsulta = (p: PacienteColaItem) => {
           <span class="kpi-unit">para recepción</span>
         </div>
         <div class="kpi-footer text-gray">
-          <span>📄 En espera de ingreso de turno</span>
+          <span><svg viewBox="0 0 24 24" class="svg-inline-doc" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> En espera de ingreso de turno</span>
         </div>
       </div>
     </div>
@@ -306,7 +306,7 @@ const ingresarConsulta = (p: PacienteColaItem) => {
       </div>
 
       <div class="search-queue-box">
-        <span class="search-icon">🔍</span>
+        <span class="search-icon"><svg viewBox="0 0 24 24" class="svg-inline-search" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
         <input
           v-model="busquedaTexto"
           type="text"
@@ -339,7 +339,7 @@ const ingresarConsulta = (p: PacienteColaItem) => {
             </div>
 
             <div class="sla-timer-badge" :class="{ 'sla-exceeded': paciente.excedidoMin }">
-              <span class="timer-icon">⏱️</span>
+              <span class="timer-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M10 2h4"/><path d="m17 5 1.5-1.5"/></svg></span>
               <span v-if="paciente.excedidoMin">
                 Espera: {{ paciente.esperaMin }} min / Meta: {{ paciente.metaMin }} min <strong>(+{{ paciente.excedidoMin }} min excedido)</strong>
               </span>
@@ -394,14 +394,14 @@ const ingresarConsulta = (p: PacienteColaItem) => {
             <template v-if="paciente.triageNivel === 'II'">
               <div class="sub-actions-row">
                 <button class="btn-subtle-action" @click="reLlamarAltavoz(paciente)" type="button">
-                  📢 Re-llamar Altavoz
+                  <svg viewBox="0 0 24 24" class="svg-inline-speaker" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Re-llamar Altavoz
                 </button>
                 <button class="btn-subtle-action" type="button">
-                  📄 Ver Expediente Previo
+                  <svg viewBox="0 0 24 24" class="svg-inline-doc" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Ver Expediente Previo
                 </button>
               </div>
               <button class="btn-primary-enter-box" @click="ingresarConsulta(paciente)" type="button">
-                ➔ Ingresar a Consulta / {{ doctor.box }} [Enter]
+                <svg viewBox="0 0 24 24" class="svg-inline-arrow" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> Ingresar a Consulta / {{ doctor.box }} [Enter]
               </button>
             </template>
 
@@ -409,10 +409,10 @@ const ingresarConsulta = (p: PacienteColaItem) => {
             <template v-else-if="paciente.triageNivel === 'III'">
               <div class="actions-right-aligned">
                 <button class="btn-subtle-action" type="button">
-                  👁️ Ver Triage Completo
+                  <svg viewBox="0 0 24 24" class="svg-inline-eye" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Ver Triage Completo
                 </button>
                 <button class="btn-dark-call" @click="ingresarConsulta(paciente)" type="button">
-                  ➔ Llamar a Consulta
+                  <svg viewBox="0 0 24 24" class="svg-inline-arrow" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> Llamar a Consulta
                 </button>
               </div>
             </template>
@@ -421,7 +421,7 @@ const ingresarConsulta = (p: PacienteColaItem) => {
             <template v-else>
               <div class="actions-right-aligned">
                 <button class="btn-dark-call" @click="ingresarConsulta(paciente)" type="button">
-                  ➔ Llamar a Consulta
+                  <svg viewBox="0 0 24 24" class="svg-inline-arrow" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> Llamar a Consulta
                 </button>
               </div>
             </template>
@@ -436,7 +436,7 @@ const ingresarConsulta = (p: PacienteColaItem) => {
         <!-- MONITOR PÚBLICO DE PASILLO -->
         <div class="hallway-monitor-card">
           <div class="monitor-header">
-            <span class="monitor-screen-icon">📺</span>
+            <span class="monitor-screen-icon"><svg viewBox="0 0 24 24" class="svg-inline-screen" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg></span>
             <h4>MONITOR PÚBLICO DE PASILLO</h4>
             <span class="badge-live">● En vivo</span>
           </div>
@@ -445,7 +445,7 @@ const ingresarConsulta = (p: PacienteColaItem) => {
             <span class="screen-calling-tag">LLAMANDO A CONSULTA</span>
             <strong class="screen-patient-name">{{ pacienteLlamadoEnMonitor }}</strong>
             <div class="screen-box-route">
-              ➔ {{ doctor.box.toUpperCase() }} · URGENCIA ADULTOS
+              <svg viewBox="0 0 24 24" class="svg-inline-arrow" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> {{ doctor.box.toUpperCase() }} · URGENCIA ADULTOS
             </div>
           </div>
 
@@ -458,7 +458,7 @@ const ingresarConsulta = (p: PacienteColaItem) => {
         <div class="side-card">
           <div class="side-card-header">
             <div class="header-with-icon">
-              <span>🏥</span>
+              <span><svg viewBox="0 0 24 24" class="svg-inline-hospital" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><line x1="12" y1="6" x2="12" y2="10"/><line x1="10" y1="8" x2="14" y2="8"/></svg></span>
               <h4>Estado Operativo {{ doctor.box }}</h4>
             </div>
             <span class="badge-operativo">100% Operativo</span>
@@ -466,24 +466,24 @@ const ingresarConsulta = (p: PacienteColaItem) => {
 
           <ul class="equipment-checklist">
             <li class="equipment-item">
-              <span class="eq-icon">🫀</span>
+              <span class="eq-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5v4"/></svg></span>
               <span class="eq-name">Electrocardiógrafo 12 derivaciones</span>
               <span class="eq-status tag-blue">Listo</span>
             </li>
             <li class="equipment-item">
-              <span class="eq-icon">🚑</span>
+              <span class="eq-icon"><svg viewBox="0 0 24 24" class="svg-inline-ambulance" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></span>
               <span class="eq-name">Carro de Paro / Reanimación</span>
               <span class="eq-status tag-blue">Verificado</span>
             </li>
             <li class="equipment-item">
-              <span class="eq-icon">🛏️</span>
+              <span class="eq-icon"><svg viewBox="0 0 24 24" class="svg-inline-bed" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10" /><path d="M2 17h20"/><path d="M6 8v9"/></svg></span>
               <span class="eq-name">Camilla de exploración clínica</span>
               <span class="eq-status tag-blue">Desinfectada</span>
             </li>
           </ul>
 
           <button class="btn-block-box" type="button">
-            🔒 Bloquear Box por Desinfección / Procedimiento
+            <svg viewBox="0 0 24 24" class="svg-inline-lock" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Bloquear Box por Desinfección / Procedimiento
           </button>
         </div>
 

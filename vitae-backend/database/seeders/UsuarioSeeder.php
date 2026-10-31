@@ -13,13 +13,14 @@ class UsuarioSeeder extends Seeder
      */
     public function run(): void
     {
+        // 1. Administrador de Sistemas
         Usuario::updateOrCreate(
             ['id_usuario' => 'ADM-001'],
             [
-                'nombre_completo' => 'Administrador Sistema Vitae',
+                'nombre_completo' => 'Ing. Roberto Silva',
                 'rol' => 'ADMINISTRADOR',
                 'password_hash' => Hash::make('password123', ['rounds' => 12]),
-                'cedula' => null,
+                'cedula' => 'ADM-0014',
                 'estado_cuenta' => 'ACTIVA',
                 'intentos_fallidos' => 0,
                 'mfa_habilitado' => false,
@@ -27,6 +28,7 @@ class UsuarioSeeder extends Seeder
             ]
         );
 
+        // 2. Médico Urgenciólogo / Consulta
         Usuario::updateOrCreate(
             ['id_usuario' => 'MED-001'],
             [
@@ -41,13 +43,14 @@ class UsuarioSeeder extends Seeder
             ]
         );
 
+        // 3. Enfermería y Triage
         Usuario::updateOrCreate(
             ['id_usuario' => 'ENF-001'],
             [
-                'nombre_completo' => 'Enf. Laura Gómez',
+                'nombre_completo' => 'Lic. Enf. Carlos Ramos Nava',
                 'rol' => 'ENFERMERIA',
                 'password_hash' => Hash::make('password123', ['rounds' => 12]),
-                'cedula' => 'ENF-849201',
+                'cedula' => '8921102',
                 'estado_cuenta' => 'ACTIVA',
                 'intentos_fallidos' => 0,
                 'mfa_habilitado' => false,
@@ -55,13 +58,29 @@ class UsuarioSeeder extends Seeder
             ]
         );
 
+        // 4. Recepción y Admisión
         Usuario::updateOrCreate(
             ['id_usuario' => 'REC-001'],
             [
-                'nombre_completo' => 'Recepcionista Ana Torres',
+                'nombre_completo' => 'Lorena Soto Delgado',
                 'rol' => 'RECEPCION',
                 'password_hash' => Hash::make('password123', ['rounds' => 12]),
-                'cedula' => null,
+                'cedula' => 'ADM-882',
+                'estado_cuenta' => 'ACTIVA',
+                'intentos_fallidos' => 0,
+                'mfa_habilitado' => false,
+                'debe_cambiar_password' => false,
+            ]
+        );
+
+        // 5. Laboratorio Clínico y Gabinete
+        Usuario::updateOrCreate(
+            ['id_usuario' => 'LAB-001'],
+            [
+                'nombre_completo' => 'Q.F.B. Mariana Téllez Morales',
+                'rol' => 'LABORATORISTA',
+                'password_hash' => Hash::make('password123', ['rounds' => 12]),
+                'cedula' => 'LAB-449102',
                 'estado_cuenta' => 'ACTIVA',
                 'intentos_fallidos' => 0,
                 'mfa_habilitado' => false,

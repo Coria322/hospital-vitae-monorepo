@@ -112,7 +112,7 @@ const heredarSignosTriage = () => {
     notaEnfermeriaForm.value.temp = s.temp || '36.8'
     notaEnfermeriaForm.value.spo2 = s.spo2 || '97'
     notaEnfermeriaForm.value.evaDolor = String(s.evaDolor || '4')
-    alert('✓ Constantes vitales importadas desde el registro de Triage.')
+    alert('<svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Constantes vitales importadas desde el registro de Triage.')
   } else {
     alert('No hay signos capturados en Triage para heredar. Utilice el Monitor Philips o ingréselos manualmente.')
   }
@@ -125,7 +125,7 @@ const importarMonitorPhilips = () => {
   notaEnfermeriaForm.value.temp = '36.8'
   notaEnfermeriaForm.value.spo2 = '97'
   notaEnfermeriaForm.value.evaDolor = '4'
-  alert('📡 Datos importados con éxito del Monitor Philips Box 03 (Telemetría sincronizada).')
+  alert('[TELEMETRÍA] Datos importados con éxito del Monitor Philips Box 03 (Telemetría sincronizada).')
 }
 
 // Kardex de Medicación prescrito por el médico
@@ -215,7 +215,7 @@ const imprimirHojaEnfermeria = () => {
 }
 
 const notificarDeterioro = () => {
-  alert('⚠️ Notificación prioritaria de deterioro clínico enviada de inmediato al Médico de Guardia.')
+  alert('<svg viewBox="0 0 24 24" class="svg-inline-alert" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Notificación prioritaria de deterioro clínico enviada de inmediato al Médico de Guardia.')
 }
 </script>
 
@@ -231,7 +231,7 @@ const notificarDeterioro = () => {
         </div>
       </div>
       <div class="prescription-lock-badge-compact">
-        <span>🛡️ Bloqueo Estricto NOM-004: Solo Lectura / Administración</span>
+        <span><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Bloqueo Estricto NOM-004: Solo Lectura / Administración</span>
       </div>
     </div>
 
@@ -259,10 +259,10 @@ const notificarDeterioro = () => {
             <span>Médico Tratante: <strong>{{ pacienteSeleccionadoNota.medicoTratante }}</strong></span>
             <span class="sep">•</span>
             <span class="allergy-warning" v-if="pacienteSeleccionadoNota.alergias">
-              ⚠️ Alergia: <strong>{{ pacienteSeleccionadoNota.alergias }}</strong>
+              <svg viewBox="0 0 24 24" class="svg-inline-alert" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Alergia: <strong>{{ pacienteSeleccionadoNota.alergias }}</strong>
             </span>
             <span class="allergy-warning" v-else>
-              ⚠️ Alergia: <em>Sin alergias registradas</em>
+              <svg viewBox="0 0 24 24" class="svg-inline-alert" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Alergia: <em>Sin alergias registradas</em>
             </span>
           </div>
         </div>
@@ -276,7 +276,7 @@ const notificarDeterioro = () => {
             class="patient-search-input" 
           />
           <button type="button" class="btn-history" @click="consultarHistorial">
-            🕒 Historial
+            <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Historial
           </button>
         </div>
       </div>
@@ -292,7 +292,7 @@ const notificarDeterioro = () => {
         <section class="clinical-box">
           <div class="box-header">
             <div class="box-title-row">
-              <span class="box-num-icon">📝</span>
+              <span class="box-num-icon"><svg viewBox="0 0 24 24" class="svg-inline-edit" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
               <h4>1. Parámetros de la Nota Institucional</h4>
             </div>
             <span class="nom-tag">NOM-004-SSA3 · Numeral 9.1</span>
@@ -355,15 +355,15 @@ const notificarDeterioro = () => {
         <section class="clinical-box">
           <div class="box-header">
             <div class="box-title-row">
-              <span class="box-num-icon">〽️</span>
+              <span class="box-num-icon"><svg viewBox="0 0 24 24" class="svg-inline-activity" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
               <h4>2. Signos Vitales de Control (Re-valoración)</h4>
             </div>
             <div class="vitals-import-buttons">
               <button type="button" class="btn-triage-import" @click="heredarSignosTriage" title="Heredar signos capturados en Triage">
-                📥 Heredar de Triage
+                <svg viewBox="0 0 24 24" class="svg-inline-inbox" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg> Heredar de Triage
               </button>
               <button type="button" class="btn-philips-import" @click="importarMonitorPhilips" title="Sincronizar telemetría de Box">
-                📡 Monitor Philips Box 03
+                <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg> Monitor Philips Box 03
               </button>
             </div>
           </div>
@@ -373,7 +373,7 @@ const notificarDeterioro = () => {
             <div class="vital-control-card">
               <div class="vital-label">
                 <span>PRESIÓN ART.</span>
-                <span class="icon-subtle">⏱️</span>
+                <span class="icon-subtle"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M10 2h4"/><path d="m17 5 1.5-1.5"/></svg></span>
               </div>
               <div class="vital-input-wrapper">
                 <input 
@@ -390,7 +390,7 @@ const notificarDeterioro = () => {
             <div class="vital-control-card">
               <div class="vital-label">
                 <span>FREC. CARD.</span>
-                <span class="icon-subtle red">❤️</span>
+                <span class="icon-subtle red"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
               </div>
               <div class="vital-input-wrapper">
                 <input 
@@ -407,7 +407,7 @@ const notificarDeterioro = () => {
             <div class="vital-control-card">
               <div class="vital-label">
                 <span>FREC. RESP.</span>
-                <span class="icon-subtle blue">🫁</span>
+                <span class="icon-subtle blue"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v9"/><path d="M9 13a4 4 0 0 1-5-4V6a3 3 0 0 1 5-2c2 0 2 2 2 4v5"/><path d="M15 13a4 4 0 0 0 5-4V6a3 3 0 0 0-5-2c-2 0-2 2-2 4v5"/><path d="M6 13c0 4.4 2.7 8 6 8s6-3.6 6-8"/></svg></span>
               </div>
               <div class="vital-input-wrapper">
                 <input 
@@ -424,7 +424,7 @@ const notificarDeterioro = () => {
             <div class="vital-control-card">
               <div class="vital-label">
                 <span>TEMPERATURA</span>
-                <span class="icon-subtle orange">🌡️</span>
+                <span class="icon-subtle orange"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg></span>
               </div>
               <div class="vital-input-wrapper">
                 <input 
@@ -441,7 +441,7 @@ const notificarDeterioro = () => {
             <div class="vital-control-card">
               <div class="vital-label">
                 <span>SATURACIÓN</span>
-                <span class="icon-subtle cyan">💧</span>
+                <span class="icon-subtle cyan"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></span>
               </div>
               <div class="vital-input-wrapper">
                 <input 
@@ -458,7 +458,7 @@ const notificarDeterioro = () => {
             <div class="vital-control-card">
               <div class="vital-label">
                 <span>DOLOR (EVA)</span>
-                <span class="icon-subtle purple">😣</span>
+                <span class="icon-subtle purple"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></span>
               </div>
               <div class="vital-input-wrapper">
                 <input 
@@ -477,7 +477,7 @@ const notificarDeterioro = () => {
         <section class="clinical-box">
           <div class="box-header">
             <div class="box-title-row">
-              <span class="box-num-icon">💧</span>
+              <span class="box-num-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg></span>
               <h4>3. Vías de Acceso y Balance Hídrico Parcial</h4>
             </div>
             <span class="infusion-tag">● Monitor de Infusión Activo</span>
@@ -488,7 +488,7 @@ const notificarDeterioro = () => {
             <div class="access-card">
               <div class="access-card-header">
                 <div class="card-title-mini">
-                  <span>🩺</span>
+                  <span><svg viewBox="0 0 24 24" class="svg-inline-steth" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg></span>
                   <strong>Acceso Venoso Periférico (AVP)</strong>
                 </div>
                 <span class="calibre-badge">Calibre {{ notaEnfermeriaForm.calibreVascular }}</span>
@@ -531,7 +531,7 @@ const notificarDeterioro = () => {
             <div class="balance-card">
               <div class="balance-card-header">
                 <div class="card-title-mini">
-                  <span>⚖️</span>
+                  <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h18"/></svg></span>
                   <strong>Balance de Líquidos (ml)</strong>
                 </div>
                 <span class="diff-badge">Dif: {{ balanceDiferencia }}</span>
@@ -572,7 +572,7 @@ const notificarDeterioro = () => {
         <section class="clinical-box">
           <div class="box-header">
             <div class="box-title-row">
-              <span class="box-num-icon">🩹</span>
+              <span class="box-num-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(-45 12 12)"/><path d="m10 10 4 4"/><path d="m14 10-4 4"/></svg></span>
               <h4>4. Procedimientos y Cuidados Ejecutados</h4>
             </div>
             <span class="subtle-note">Marcar intervenciones realizadas</span>
@@ -651,7 +651,7 @@ const notificarDeterioro = () => {
         <section class="clinical-box">
           <div class="box-header">
             <div class="box-title-row">
-              <span class="box-num-icon">📄</span>
+              <span class="box-num-icon"><svg viewBox="0 0 24 24" class="svg-inline-doc" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
               <h4>5. Narrativa de Enfermería (Estructura SOAPIE)</h4>
             </div>
           </div>
@@ -683,7 +683,7 @@ const notificarDeterioro = () => {
             ></textarea>
             
             <div class="soapie-footer-tip">
-              <span>💡 Formato SOAPIE obligatorio según guía clínica del expediente institucional.</span>
+              <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg> Formato SOAPIE obligatorio según guía clínica del expediente institucional.</span>
               <span class="char-counter">{{ notaEnfermeriaForm.narrativaSOAPIE ? notaEnfermeriaForm.narrativaSOAPIE.length : 0 }} caracteres</span>
             </div>
           </div>
@@ -698,7 +698,7 @@ const notificarDeterioro = () => {
         <section class="clinical-box kardex-card">
           <div class="box-header">
             <div class="box-title-row">
-              <span class="box-num-icon">💊</span>
+              <span class="box-num-icon"><svg viewBox="0 0 24 24" class="svg-inline-pill" fill="none" stroke="currentColor" stroke-width="2"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></span>
               <h4>KARDEX DE MEDICACIÓN</h4>
             </div>
             <span class="badge-lock-rx">SOLO LECTURA / APLICACIÓN</span>
@@ -727,7 +727,7 @@ const notificarDeterioro = () => {
                   class="btn-apply-med"
                   @click="aplicarMedicamento(medParacetamol.id)"
                 >
-                  ✓ Aplicar
+                  <svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Aplicar
                 </button>
                 <span v-else class="applied-timestamp">Aplicado {{ medParacetamol.horaAplicacion }}</span>
               </div>
@@ -782,7 +782,7 @@ const notificarDeterioro = () => {
                   disabled
                   title="Disponible a partir de las 20:00 hrs"
                 >
-                  ⏳ Programado
+                  <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg> Programado
                 </button>
               </div>
             </div>
@@ -793,7 +793,7 @@ const notificarDeterioro = () => {
         <section class="clinical-box">
           <div class="box-header">
             <div class="box-title-row">
-              <span class="box-num-icon">📋</span>
+              <span class="box-num-icon"><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
               <h4>Notas del Turno Previo</h4>
             </div>
             <button type="button" class="btn-text-link" @click="consultarNotasPrevias">Ver todas</button>
@@ -814,25 +814,25 @@ const notificarDeterioro = () => {
         <section class="clinical-box actions-sidebar-card">
           <div class="box-header">
             <div class="box-title-row">
-              <span class="box-num-icon">⚡</span>
+              <span class="box-num-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
               <h4>Acción Clínica Inmediata</h4>
             </div>
           </div>
 
           <div class="actions-stack">
             <button type="button" class="btn-action-primary" @click="guardarNotaEnfermeria">
-              💾 Firmar y Resguardar Nota [Enter]
+              <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Firmar y Resguardar Nota [Enter]
             </button>
             <button type="button" class="btn-action-secondary" @click="imprimirHojaEnfermeria">
-              🖨️ Imprimir Formato Oficial PDF
+              <svg viewBox="0 0 24 24" class="svg-inline-print" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Imprimir Formato Oficial PDF
             </button>
             <button type="button" class="btn-action-alert" @click="notificarDeterioro">
-              ⚠️ Notificar Deterioro a Médico
+              <svg viewBox="0 0 24 24" class="svg-inline-alert" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Notificar Deterioro a Médico
             </button>
           </div>
 
           <div class="crypto-seal-row">
-            <span>🔒</span>
+            <span><svg viewBox="0 0 24 24" class="svg-inline-lock" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
             <small>Firma digital criptográfica SHA-256 vinculada a ficha clínica</small>
           </div>
         </section>

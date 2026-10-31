@@ -1,24 +1,33 @@
 info:
-  name: 05 - Renovar Token (Refresh)
+  name: 05 - Login Laboratorio
   type: http
   seq: 5
 
 http:
   method: POST
-  url: "{{base_url}}/auth/refresh"
+  url: "{{base_url}}/auth/login"
   headers:
     - name: Accept
       value: application/json
-    - name: Authorization
-      value: Bearer {{admin_token}}
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "id_usuario": "LAB-001",
+        "password": "password123"
+      }
 
 runtime:
   scripts:
     - type: tests
       code: |-
-        test("Refresh token exitoso retorna 200", function() {
+        test("Login laboratorio exitoso con 200 OK", function() {
           expect(res.getStatus()).to.equal(200);
-          expect(res.getBody().data.token).to.be.a('string');
+        });
+        test("Rol asignado es LABORATORISTA", function() {
+          expect(res.getBody().data.usuario.rol).to.equal('LABORATORISTA');
         });
   actions:
     - type: set-variable
@@ -27,7 +36,7 @@ runtime:
         expression: res.body.data.token
         method: jsonq
       variable:
-        name: admin_token
+        name: laboratorio_token
         scope: runtime
 
 settings:

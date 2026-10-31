@@ -151,7 +151,7 @@ const ejecutarBusquedaPorCupe = () => {
 const simularEscaneoIne = () => {
   inputCurp.value = 'MORA880415MDFRRL03'
   ejecutarBusquedaCurp()
-  alert('🔲 Código bidimensional PDF417 de Credencial INE decodificado exitosamente con RENAPO.')
+  alert('[SCANNER] Código bidimensional PDF417 de Credencial INE decodificado exitosamente con RENAPO.')
 }
 
 const historialConsultas = ref([
@@ -202,7 +202,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
 
       <div class="banner-right-kpis-row">
         <div class="mini-kpi-white">
-          <span class="kpi-symbol">⚡</span>
+          <span class="kpi-symbol"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
           <div>
             <small>TIEMPO RESPUESTA</small>
             <strong>24 ms · RENAPO OK</strong>
@@ -210,7 +210,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
         </div>
 
         <div class="mini-kpi-white">
-          <span class="kpi-symbol">🛡️</span>
+          <span class="kpi-symbol"><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
           <div>
             <small>HOMONIMIAS</small>
             <strong class="text-green">0 Detectadas</strong>
@@ -234,7 +234,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
               :class="{ active: modoBusqueda === 'curp' }"
               @click="modoBusqueda = 'curp'"
             >
-              <span>🪪 Por CURP Oficial</span>
+              <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><line x1="15" y1="8" x2="17" y2="8"/><line x1="15" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg> Por CURP Oficial</span>
             </button>
             <button 
               type="button" 
@@ -242,7 +242,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
               :class="{ active: modoBusqueda === 'nombre' }"
               @click="modoBusqueda = 'nombre'"
             >
-              <span>👤 Nombre y Fecha Nac.</span>
+              <span><svg viewBox="0 0 24 24" class="svg-inline-user" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Nombre y Fecha Nac.</span>
             </button>
             <button 
               type="button" 
@@ -250,7 +250,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
               :class="{ active: modoBusqueda === 'expediente' }"
               @click="modoBusqueda = 'expediente'"
             >
-              <span>📋 Expediente (CUPE)</span>
+              <span><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> Expediente (CUPE)</span>
             </button>
             <button 
               type="button" 
@@ -258,7 +258,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
               :class="{ active: modoBusqueda === 'ine' }"
               @click="modoBusqueda = 'ine'"
             >
-              <span>🔲 Escaneo Óptico INE</span>
+              <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> Escaneo Óptico INE</span>
             </button>
           </div>
 
@@ -268,12 +268,12 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
             <div v-if="modoBusqueda === 'curp'" class="search-curp-input-block">
               <label class="field-label-sm">
                 Clave Única de Registro de Población (18 caracteres)
-                <span v-if="curpValidaSintaxis" class="sintaxis-ok">✓ Formato sintáctico válido</span>
+                <span v-if="curpValidaSintaxis" class="sintaxis-ok"><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Formato sintáctico válido</span>
               </label>
 
               <div class="search-input-action-row">
                 <div class="curp-field-wrapper">
-                  <span class="field-prefix">🔍</span>
+                  <span class="field-prefix"><svg viewBox="0 0 24 24" class="svg-inline-search" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
                   <input 
                     type="text" 
                     v-model="inputCurp" 
@@ -289,7 +289,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
                     @click="limpiarBusquedaCurp"
                     title="Limpiar campo"
                   >
-                    ✕
+                    <svg viewBox="0 0 24 24" class="svg-inline-x" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   </button>
                 </div>
 
@@ -298,13 +298,13 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
                   class="btn-search-renapo"
                   @click="ejecutarBusquedaCurp"
                 >
-                  🔍 Validar RENAPO [Enter]
+                  <svg viewBox="0 0 24 24" class="svg-inline-search" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Validar RENAPO [Enter]
                 </button>
               </div>
 
               <div class="search-helpers-row">
                 <div class="search-rule-tip">
-                  <span>ℹ️</span>
+                  <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>
                   <small>Si el paciente no cuenta con su CURP física, use la pestaña <strong>Nombre y Fecha Nac.</strong> para búsqueda fonética de RENAPO.</small>
                 </div>
 
@@ -340,7 +340,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
 
               <div class="search-actions-row-end mt-2">
                 <button type="button" class="btn-search-renapo" @click="ejecutarBusquedaPorNombre">
-                  🔍 Buscar en Base Hospitalaria y RENAPO
+                  <svg viewBox="0 0 24 24" class="svg-inline-search" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Buscar en Base Hospitalaria y RENAPO
                 </button>
               </div>
             </div>
@@ -351,7 +351,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
               
               <div class="search-input-action-row">
                 <div class="curp-field-wrapper">
-                  <span class="field-prefix">📋</span>
+                  <span class="field-prefix"><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
                   <input 
                     type="text" 
                     v-model="busquedaCupeInput" 
@@ -361,7 +361,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
                   />
                 </div>
                 <button type="button" class="btn-search-renapo" @click="ejecutarBusquedaPorCupe">
-                  🔍 Localizar Expediente
+                  <svg viewBox="0 0 24 24" class="svg-inline-search" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Localizar Expediente
                 </button>
               </div>
             </div>
@@ -369,11 +369,11 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
             <!-- Opción D: Escaneo Óptico INE -->
             <div v-else-if="modoBusqueda === 'ine'" class="search-ine-input-block">
               <div class="ine-scanner-box">
-                <div class="scanner-icon">🔲</div>
+                <div class="scanner-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
                 <h4>Lector Óptico de Credencial para Votar INE / Cédula</h4>
                 <p>Coloque la credencial oficial de elector frente al escáner óptico 2D para decodificar automáticamente el código PDF417.</p>
                 <button type="button" class="btn-search-renapo" @click="simularEscaneoIne">
-                  📸 Simular Captura Óptica de Código INE
+                  <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Simular Captura Óptica de Código INE
                 </button>
               </div>
             </div>
@@ -386,7 +386,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
           <div class="record-header">
             <div class="record-badge-left">
               <span class="exp-code-pill">{{ pacienteEncontrado.cupe }}</span>
-              <span class="renapo-verified-pill">✓ CURP Verificada RENAPO</span>
+              <span class="renapo-verified-pill"><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> CURP Verificada RENAPO</span>
             </div>
             <div class="record-badge-right">
               <span class="archive-module-tag">Módulo Archivo Clínico: <strong>{{ pacienteEncontrado.moduloArchivo }}</strong></span>
@@ -422,7 +422,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
               <!-- Subtarjeta 1: Domicilio -->
               <div class="subcard-info">
                 <div class="subcard-title">
-                  <span>📍</span>
+                  <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg></span>
                   <strong>Domicilio Particular</strong>
                 </div>
                 <p>{{ pacienteEncontrado.domicilio }}</p>
@@ -432,7 +432,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
               <!-- Subtarjeta 2: Contacto Familiar -->
               <div class="subcard-info">
                 <div class="subcard-title">
-                  <span>📞</span>
+                  <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></span>
                   <strong>Contacto Familiar / Notificación</strong>
                 </div>
                 <p><strong>{{ pacienteEncontrado.contactoFamiliar }}</strong> ({{ pacienteEncontrado.parentesco }})</p>
@@ -442,7 +442,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
               <!-- Subtarjeta 3: Aseguramiento -->
               <div class="subcard-info">
                 <div class="subcard-title">
-                  <span>🛡️</span>
+                  <span><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
                   <strong>Aseguramiento & Régimen</strong>
                 </div>
                 <p><strong>{{ pacienteEncontrado.regimen }}</strong></p>
@@ -454,19 +454,19 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
             <div class="record-actions-footer">
               <div class="actions-left-group">
                 <button type="button" class="btn-action-primary" @click="agendarCitaConPaciente">
-                  📅 Agendar Cita Médica <kbd>Alt + C</kbd>
+                  <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Agendar Cita Médica <kbd>Alt + C</kbd>
                 </button>
                 <button type="button" class="btn-action-secondary" @click="mostrarAlerta('Generando hoja oficial de admisión hospitalaria en formato PDF...')">
-                  📄 Expedir Hoja de Admisión
+                  <svg viewBox="0 0 24 24" class="svg-inline-doc" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Expedir Hoja de Admisión
                 </button>
                 <button type="button" class="btn-action-neutral" @click="actualizarDatosConPaciente">
-                  ✏️ Actualizar Datos Demográficos
+                  <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> Actualizar Datos Demográficos
                 </button>
               </div>
 
               <div class="history-quick-link">
                 <button type="button" class="btn-link-blue" @click="mostrarAlerta('Consultando bitácora de ingresos hospitalarios del paciente...')">
-                  🕒 Ver Expediente Completo (3 Ingresos)
+                  <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Ver Expediente Completo (3 Ingresos)
                 </button>
               </div>
             </div>
@@ -476,16 +476,16 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
 
         <!-- Estado Vacío Cuando no hay Paciente Buscado -->
         <div v-else class="step-card empty-search-placeholder">
-          <div class="empty-icon-row">🔍</div>
+          <div class="empty-icon-row"><svg viewBox="0 0 24 24" class="svg-inline-search" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
           <h4>Sin paciente seleccionado</h4>
-          <p>Ingrese una CURP de 18 caracteres y presione <strong>Validar RENAPO</strong>, o utilice el botón <strong>🧪 Cargar Demo</strong> para visualizar la ficha técnica con todos sus datos oficiales.</p>
+          <p>Ingrese una CURP de 18 caracteres y presione <strong>Validar RENAPO</strong>, o utilice el botón <strong>Cargar Demo</strong> para visualizar la ficha técnica con todos sus datos oficiales.</p>
         </div>
 
         <!-- Historial Reciente de Consultas del Turno (Tabla Inferior) -->
         <div class="step-card">
           <div class="step-card-header">
             <div class="step-num-title">
-              <span class="step-circle">📋</span>
+              <span class="step-circle"><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
               <div>
                 <h4>Historial Reciente de Consultas del Turno</h4>
                 <small>Últimas validaciones de CURP y derechohabiencia ejecutadas en este puesto de atención.</small>
@@ -548,7 +548,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
           <div class="census-items-list">
             <div class="census-item">
               <div class="census-item-left">
-                <span>👥</span>
+                <span><svg viewBox="0 0 24 24" class="svg-inline-users" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
                 <div>
                   <strong>Pacientes Registrados Hoy</strong>
                   <small>Corte matutino activo</small>
@@ -559,7 +559,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
 
             <div class="census-item">
               <div class="census-item-left">
-                <span>⏱️</span>
+                <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M10 2h4"/><path d="m17 5 1.5-1.5"/></svg></span>
                 <div>
                   <strong>En Sala de Espera</strong>
                   <small>Turnos en ventanilla</small>
@@ -570,7 +570,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
 
             <div class="census-item">
               <div class="census-item-left">
-                <span>🛡️</span>
+                <span><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
                 <div>
                   <strong>Homonimias Prevenidas</strong>
                   <small>NOM-024 RENAPO</small>
@@ -596,7 +596,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
         <div class="side-widget-card">
           <div class="widget-header">
             <div class="title-row-sm">
-              <span>⌨️</span>
+              <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="8" x2="6.01" y2="8"/><line x1="10" y1="8" x2="10.01" y2="8"/><line x1="14" y1="8" x2="14.01" y2="8"/><line x1="18" y1="8" x2="18.01" y2="8"/><line x1="6" y1="12" x2="6.01" y2="12"/><line x1="18" y1="12" x2="18.01" y2="12"/><line x1="10" y1="12" x2="14" y2="12"/><line x1="8" y1="16" x2="16" y2="16"/></svg></span>
               <strong>Atajos del Puesto de Admisión</strong>
             </div>
           </div>
@@ -624,7 +624,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
         <!-- 3. Criterios de Homonimia NOM-024 (Tarjeta Oscura) -->
         <div class="homonimia-card-dark">
           <div class="homonimia-header">
-            <span>🛡️ CRITERIOS DE HOMONIMIA NOM-024</span>
+            <span><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> CRITERIOS DE HOMONIMIA NOM-024</span>
           </div>
           <h4>Regla de Expediente Único Nacional</h4>
           <p>Queda estrictamente prohibida la apertura de un segundo folio hospitalario ante coincidencias en nombre completo y entidad federativa. Si RENAPO rechaza o devuelve homonimia, verifique acta de nacimiento física o notifique al Área de Trabajo Social y Archivo Clínico.</p>
@@ -635,7 +635,7 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
 
         <!-- 4. Confidencialidad Hospitalaria -->
         <div class="confidentiality-card-light">
-          <span class="lock-shield">🔒</span>
+          <span class="lock-shield"><svg viewBox="0 0 24 24" class="svg-inline-lock" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
           <div>
             <strong>Confidencialidad Hospitalaria</strong>
             <p>Los monitores de sala pública solo desplegarán iniciales y turno de llamada. No se transmiten padecimientos ni diagnósticos.</p>
