@@ -102,11 +102,35 @@ Route::prefix('v1')->group(function () {
         ]);
     });
 
+    // Sala de espera pública disociada (sin PII, LFPDPPP / PROV-UX-002) y canal en tiempo real SSE (PROV-UX-001)
+    Route::get('/sala-espera', [\App\Http\Controllers\Api\V1\SalaEsperaController::class, 'publica']);
+    Route::get('/triage/stream', [\App\Http\Controllers\Api\V1\SalaEsperaController::class, 'stream']);
+
     // Auth protegida con Sanctum + verificación de cuenta activa
     Route::middleware(['auth:sanctum', 'account.active'])->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
         Route::post('/auth/refresh', [AuthController::class, 'refresh']);
         Route::get('/auth/me', [AuthController::class, 'me']);
+
+        // Módulo de Pacientes y Admisión (NOM-004-SSA3-2012, PROV-RN-007)
+        Route::post('/pacientes', [\App\Http\Controllers\Api\V1\PacienteController::class, 'store']);
+        Route::get('/pacientes', [\App\Http\Controllers\Api\V1\PacienteController::class, 'index']);
+        Route::get('/pacientes/{id}', [\App\Http\Controllers\Api\V1\PacienteController::class, 'show']);
+        Route::post('/pacientes/{id}/fusiones', [\App\Http\Controllers\Api\V1\PacienteController::class, 'fusionar'])
+            ->middleware('role:MEDICO,ADMINISTRADOR');
+
+        // Módulo de Triage Manchester y Salas de Urgencias (NOM-206-SSA1-2002, RF-004, RF-005, RF-006, RF-007)
+        Route::post('/triages', [\App\Http\Controllers\Api\V1\TriageController::class, 'store'])
+            ->middleware('role:ENFERMERIA,ADMINISTRADOR');
+        Route::get('/triages/cola', [\App\Http\Controllers\Api\V1\TriageController::class, 'cola']);
+        Route::get('/triages/{id}', [\App\Http\Controllers\Api\V1\TriageController::class, 'show']);
+        Route::post('/triages/{id}/reclasificaciones', [\App\Http\Controllers\Api\V1\TriageController::class, 'reclasificar'])
+            ->middleware('role:MEDICO,ADMINISTRADOR');
+
+        // Gestión de Salas de Atención y Liberación de Consultorios
+        Route::get('/salas', [\App\Http\Controllers\Api\V1\TriageController::class, 'salas']);
+        Route::post('/salas/{id}/liberar', [\App\Http\Controllers\Api\V1\TriageController::class, 'liberarSala'])
+            ->middleware('role:MEDICO,ADMINISTRADOR,ENFERMERIA');
 
         // Endpoints administrativos protegidos por rol ADMINISTRADOR
         Route::middleware(['role:ADMINISTRADOR'])->group(function () {

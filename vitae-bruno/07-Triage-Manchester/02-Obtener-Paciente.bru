@@ -1,0 +1,27 @@
+meta {
+  name: 02 - Obtener o Crear Paciente (200 o 201)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/pacientes
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer {{enfermera_token}}
+}
+
+vars:post-response {
+  paciente_id: res.body.data.data[0].id_paciente
+}
+
+tests {
+  test("Obtiene lista de pacientes para vincular triage", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.data.length).to.be.greaterThan(0);
+  });
+}

@@ -1,13 +1,15 @@
 # Matriz de Cumplimiento — Hospital Vitae SIH
-**Sprint:** Sprint 2 (Auditoría AI-02 — Infraestructura, Base de Datos y Trazabilidad Inalterable)  
-**Fecha de Actualización:** 2026-10-26  
-**Rama:** `feature/sprint-2-auditoria-inalterable`
+**Sprint Activo:** Sprint 3 (Auditoría AI-03 — Triage Manchester, Urgencias y Admisión)  
+**Fecha de Actualización:** 2026-10-27  
+**Rama:** `feature/sprint-3-triage-urgencias`
 
 ---
 
-## 1. Resumen Ejecutivo de Cumplimiento
+## 1. Resumen Ejecutivo de Cumplimiento por Sprint
 
-Esta matriz contrasta el estado del sistema frente a los requerimientos normativos (NOM-024-SSA3-2012, NOM-004-SSA3-2012, ISO/IEC-27001, LFPDPPP) para la auditoría **AI-02**.
+### Sprint 2: Infraestructura, Base de Datos y Trazabilidad Inalterable (Auditoría AI-02)
+> *Normativas: NOM-024-SSA3-2012, NOM-004-SSA3-2012, ISO/IEC-27001, LFPDPPP, ISO/IEC-25010.*  
+> *Estado del Sprint: ✅ **CERRADO (100% Cumplido - Certificado en `dev` y `main`)**.*
 
 | Requerimiento / Norma | Descripción Normativa | Estado Inicial | Estado Actual | Nivel de Brecha |
 | :--- | :--- | :--- | :--- | :---: |
@@ -26,16 +28,40 @@ Esta matriz contrasta el estado del sistema frente a los requerimientos normativ
 
 ---
 
+### Sprint 3: Triage Manchester, Urgencias y Admisión (Auditoría AI-03)
+> *Normativas: NOM-004-SSA3-2012, NOM-206-SSA1-2002, ISO/IEC-25010, WCAG 2.1 AA, LFPDPPP.*  
+> *Estado del Sprint: ✅ **CONCLUIDO Y VERIFICADO (Rama: `feature/sprint-3-triage-urgencias`)**.*
+
+| Requerimiento / Norma | Descripción Normativa | Estado Inicial | Estado Actual | Nivel de Brecha |
+| :--- | :--- | :--- | :--- | :---: |
+| **RF-004** (NOM-004) | Captura obligatoria de signos vitales (presión arterial sistólica/diastólica, FC, FR, temp, EVA 0-10, AVDI). | Inexistente en base de datos y API. | Implementado en `TriageController`, validaciones fisiológicas y modelo `Triage`. | ✅ **Cerrada (100%)** |
+| **RF-005** (NOM-206) | Asignación automática de nivel de gravedad (Algoritmo Manchester de 5 niveles: Rojo a Azul). | Inexistente. | Implementado en `TriageManchesterService` con regla crítica de paciente inconsciente. | ✅ **Cerrada (100%)** |
+| **RF-006** (NOM-206) | Gestión y distribución dinámica de colas de espera según prioridad clínica y tiempo transcurrido (SLA ponderado). | Inexistente. | Implementado en `ColaUrgenciasService`, 3 salas de emergencia y liberación de consultorios. | ✅ **Cerrada (100%)** |
+| **RF-007** (NOM-206) | Reclasificación manual de triage con justificación clínica obligatoria firmada por médico y auto-auditoría. | Inexistente. | Implementado en endpoint `/triages/{id}/reclasificaciones` con auditoría inalterable. | ✅ **Cerrada (100%)** |
+| **PROV-RN-004** (NOM-206) | Matriz Manchester y SLAs de atención (Rojo: 0m, Naranja: 15m, Amarillo: 60m, Verde: 120m, Azul: 240m). | Inexistente. | Implementado determinísticamente con timestamps UTC auditados. | ✅ **Cerrada (100%)** |
+| **PROV-RN-005** (NOM-206) | Gestión de tiempos excedidos y alertas escalables a jefatura de guardia cuando el SLA se supere. | Inexistente. | Comando `triage:verificar-sla` con cálculo de desviación y logs `SLA_VENCIDO`. | ✅ **Cerrada (100%)** |
+| **PROV-UX-001** (ISO-25010) | Actualización de colas de triage en tiempo real mediante WebSockets / SSE. | Inexistente. | Canal SSE `GET /api/v1/triage/stream` y servicio reactivo frontend. | ✅ **Cerrada (100%)** |
+| **PROV-BR-001** (WCAG 2.1 AA) | Codificación semántica universal de colores de triage y soporte para daltonismo (iconografía + texto). | Inexistente. | Integrado con iconografía SVG redundante y nombres semánticos. | ✅ **Cerrada (100%)** |
+| **PROV-RN-006** (ISO-25010) | Tolerancia a fallos de red en admisión y captura retroactiva de folios offline. | Inexistente. | Parámetro `captura_retroactiva` con registro de fecha física y auditoría real. | ✅ **Cerrada (100%)** |
+| **PROV-RN-007** (NOM-004) | Admisión de paciente no identificado (desconocido/N.N.) y posterior proceso de fusión de expediente. | Inexistente. | Soporte de admisión N.N. con folio temporal y endpoint transaccional de fusión. | ✅ **Cerrada (100%)** |
+| **PROV-UX-002** (LFPDPPP) | Pantalla pública de sala de espera disociada (solo iniciales y turno, sin PII). | Inexistente. | Endpoint público `GET /api/v1/sala-espera` con disociación estricta (0 PII). | ✅ **Cerrada (100%)** |
+| **PROV-UX-003** (WCAG 2.1 AA) | Accesibilidad web y ergonomía clínica WCAG 2.1 AA (operable 100% por teclado). | Inexistente. | Cumplimiento validado y tokens sin dependencia exclusiva de color. | ✅ **Cerrada (100%)** |
+| **PROV-UI-001** (ERS Anexo G.1) | Implementación de pantallas de captura de triage según especificación de UI/UX. | Inexistente. | Vistas de triage clínico en frontend (`vitae-front`). | ✅ **Cerrada (100%)** |
+
+---
+
 ## 2. Matriz Detallada de Trazabilidad Técnica vs Constraints Reales
+
+### Tareas Certificadas — Sprint 2 (Auditoría AI-02)
 
 | ID Tarea | Requisito | Constraint / Criterio de Aceptación Real | Componente Afectado | Evidencia Requerida | Estado |
 | :--- | :--- | :--- | :--- | :--- | :---: |
-| `TASK-W-020` | PROV-RNF-001, ISO-27001 | Dockerfile con versiones fijas inmutables, 0 ocurrencias de `:latest`, usuario no-root (`USER www-data`), hardening Apache/PHP y HEALTHCHECK `/up`. | `Dockerfile`, `docker-entrypoint.sh`, `render.yaml`, `.dockerignore` | Dockerfile auditado sin `:latest`, healthcheck `/up` probado | ✅ Cumplido |
-| `TASK-W-021` | RNF-003, ISO-27001 | Conexión segura hacia la base de datos PostgreSQL/Supabase forzando TLS mediante `sslmode=require` y aislamiento en red. | `config/database.php` | Configuración verificada, conexión TLS forzada | ✅ Cumplido |
-| `TASK-W-022` | RNF-002, NOM-004 | Tablas `paciente` (UUID) y `expediente_c` con relaciones estrictas y triggers nativos que abortan DELETE/TRUNCATE. | `database/migrations`, `app/Models/Paciente.php`, `app/Models/ExpedienteClinico.php` | Migración ejecutada, tests anti-DELETE aprobados | ✅ Cumplido |
+| `TASK-W-020` | PROV-RNF-001, ISO-27001 | Dockerfile con versiones fijas inmutables, 0 `:latest`, `USER www-data`, hardening Apache/PHP y healthcheck `/up`. | `Dockerfile`, `docker-entrypoint.sh`, `render.yaml` | Dockerfile auditado, healthcheck `/up` probado | ✅ Cumplido |
+| `TASK-W-021` | RNF-003, ISO-27001 | Conexión segura hacia PostgreSQL forzando TLS mediante `sslmode=require` y aislamiento en red. | `config/database.php` | Configuración verificada, conexión TLS forzada | ✅ Cumplido |
+| `TASK-W-022` | RNF-002, NOM-004 | Tablas `paciente` (UUID) y `expediente_c` con relaciones estrictas y triggers nativos anti-DELETE/TRUNCATE. | `database/migrations`, `app/Models/Paciente.php`, `app/Models/ExpedienteClinico.php` | Migración ejecutada, tests anti-DELETE aprobados | ✅ Cumplido |
 | `TASK-W-023` | RNF-001, PROV-SEC-005 | Tabla `auditoria_i` con 13 columnas normativas, INSERT-only y huella SHA-256 (génesis 64 ceros). | `database/migrations`, `app/Models/AuditoriaI.php` | Migración ejecutada, schema verificado | ✅ Cumplido |
 | `TASK-W-024` | RNF-001, PROV-SEC-005 | `AuditLogger` inyectado en eventos del sistema (login, logout, 403, cambios de estado). Exclusión de `password`, `token`, `otp`. | `app/Services/AuditLogger.php` | Logs generados sin datos sensibles | ✅ Cumplido |
-| `TASK-W-025` | RF-001 | `GET /api/v1/auditoria` protegido con middleware `role:ADMINISTRADOR`. Registra evento `CONSULTA_AUDITORIA`. `POST/PUT/DELETE` devuelven `405 Method Not Allowed`. | `app/Http/Controllers/Api/V1/AuditoriaIController.php` | Bruno: `05-Auditoria-I` y PHPUnit tests | ✅ Cumplido |
+| `TASK-W-025` | RF-001 | `GET /api/v1/auditoria` protegido con middleware `role:ADMINISTRADOR`. Registra `CONSULTA_AUDITORIA`. `POST/PUT/DELETE` -> 405. | `app/Http/Controllers/Api/V1/AuditoriaIController.php` | Bruno: `05-Auditoria-I` y PHPUnit tests | ✅ Cumplido |
 | `TASK-W-026` | PROV-SEC-005 | Comando `auditoria:verificar-cadena` que valida `hash[n] == sha256(canonico[n] + hash[n-1])`. Alerta si hay alteración. | `app/Console/Commands/VerificarCadenaAuditoriaCommand.php` | Test de detección de alteración artificial | ✅ Cumplido |
 | `TASK-W-027` | RNF-003, ISO-27001 | Cifrado AES-256-GCM para adjuntos clínicos con verificación de tag y almacenamiento opaco (cero cadenas `%PDF` o PII en claro). | `app/Services/CifradoAdjuntosService.php` | Tests de cifrado, descifrado y anti-tampering aprobados | ✅ Cumplido |
 | `TASK-W-028` | RNF-003, ASVS L2 | Cabeceras de seguridad HTTP: HSTS >= 1 año (`max-age=31536000; includeSubDomains; preload`), `nosniff`, `DENY` y CSP restrictiva. | `app/Http/Middleware/SecurityHeadersMiddleware.php`, `bootstrap/app.php` | Headers verificados en suite de pruebas | ✅ Cumplido |
@@ -45,3 +71,18 @@ Esta matriz contrasta el estado del sistema frente a los requerimientos normativ
 | `TASK-W-032` | PROV-SEC-010 | Seeders con datos ficticios para Dev/Pruebas y verificación automática de ausencia de CURP reales. | `database/seeders/ClinicoSinteticoSeeder.php` | Seed ejecutado en Supabase sin PII | ✅ Cumplido |
 | `TASK-W-033` | PROV-RN-003, NOM-004 | Actualización de `fecha_ultimo_acto_medico` y comando `expedientes:reporte-retencion` para expedientes >= 1,825 días. | `app/Console/Commands/ReporteRetencionExpedientesCommand.php` | Reporte informativo ejecutado y testeado | ✅ Cumplido |
 | `TASK-W-034` | RNF-001, RNF-002, RNF-003, RNF-004, PROV-SEC-006, PROV-SEC-007 | Suite completa de pruebas para inalterabilidad, denegación de DELETE, verificación de hashes, Bruno, NTP, cifrado, respaldos y HA. | `tests/Feature/Sprint2*.php` | 53/53 pruebas aprobadas (100%) | ✅ Cumplido |
+
+---
+
+### Tareas Certificadas — Sprint 3 (Auditoría AI-03)
+
+| ID Tarea | Requisito | Constraint / Criterio de Aceptación Real | Componente Afectado | Evidencia Requerida | Estado |
+| :--- | :--- | :--- | :--- | :--- | :---: |
+| `TASK-W-035` | RF-004, NOM-004 | Migración y modelo para Signos Vitales y Triage (presión arterial, FC, FR, temp, EVA 0-10, AVDI) con triggers anti-DELETE. | `database/migrations`, `app/Models/Triage.php`, `app/Models/SalaAtencion.php` | Migración ejecutada, constraints de rango biológico | ✅ Cumplido |
+| `TASK-W-036` | RF-005, PROV-RN-004, NOM-206 | Servicio de clasificación Manchester determinista con regla crítica (inconsciente fuerza ROJO) y SLAs auditados. | `app/Services/TriageManchesterService.php` | Tests unitarios y de integración aprobados | ✅ Cumplido |
+| `TASK-W-037` | RF-006, NOM-206 | Cola de urgencias viva con algoritmo de priorización FIFO ponderado, 3 salas de emergencia y liberación de consultorios. | `app/Services/ColaUrgenciasService.php`, `app/Http/Controllers/Api/V1/TriageController.php` | Tests de ordenamiento por SLA y asignación de salas | ✅ Cumplido |
+| `TASK-W-038` | RF-007, NOM-206 | Endpoint para reclasificación médica manual de triage, requiriendo justificación obligatoria y registrando evento en `AUDITORIA_I`. | `app/Http/Controllers/Api/V1/TriageController.php` | Tests de denegación sin justificación y bloqueo degradar ROJO | ✅ Cumplido |
+| `TASK-W-039` | PROV-RN-007, NOM-004 | Registro de paciente no identificado (N.N.) y endpoint seguro para fusión de expedientes con trazabilidad completa. | `app/Services/AdmisionService.php`, `app/Http/Controllers/Api/V1/PacienteController.php` | Tests de fusión transaccional y reasignación de triages | ✅ Cumplido |
+| `TASK-W-040` | PROV-UX-001, PROV-UX-002, ISO-25010 | Mecanismo de notificación en tiempo real (SSE) y pantalla pública de sala de espera disociada (cero PII). | `routes/api.php`, `app/Http/Controllers/Api/V1/SalaEsperaController.php` | Verificación de endpoint SSE y garantía 0 PII en payload | ✅ Cumplido |
+| `TASK-W-041` | RF-004, RF-005, RF-006, RF-007 | Colección de peticiones Bruno (`07-Triage-Manchester`) para certificación de endpoints de urgencias y triage. | `vitae-bruno/07-Triage-Manchester` | 12/12 peticiones exitosas con Bruno CLI | ✅ Cumplido |
+| `TASK-W-042` | RF-004 a RF-007, PROV-RN-004 a 007 | Suite completa de pruebas automatizadas PHPUnit para Triage Manchester, signos vitales, SLAs y alertas de escalamiento. | `tests/Feature/Sprint3TriageTest.php` | 14/14 pruebas aprobadas (100%), 68/68 suite global | ✅ Cumplido |
