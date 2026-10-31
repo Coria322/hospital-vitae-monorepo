@@ -1,0 +1,38 @@
+info:
+  name: 10 - Consulta Sala de Espera Publica Sin PII (200 OK)
+  type: http
+  seq: 10
+
+http:
+  method: GET
+  url: "{{base_url}}/sala-espera"
+  headers:
+    - name: Accept
+      value: application/json
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Pantalla pública disociada no contiene PII (LFPDPPP)", function() {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().status).to.equal("success");
+          expect(res.getBody().data.pacientes).to.be.an("array");
+          
+          if (res.getBody().data.pacientes.length > 0) {
+            const p = res.getBody().data.pacientes[0];
+            expect(p.iniciales).to.be.a("string");
+            expect(p.folio).to.be.a("string");
+            expect(p.color).to.be.a("string");
+            expect(p.icono).to.be.a("string");
+            expect(p.nombre_completo).to.be.undefined;
+            expect(p.curp).to.be.undefined;
+          }
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

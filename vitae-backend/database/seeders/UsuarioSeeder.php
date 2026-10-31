@@ -47,6 +47,20 @@ class UsuarioSeeder extends Seeder
                 'nombre_completo' => 'Enf. Laura Gómez',
                 'rol' => 'ENFERMERIA',
                 'password_hash' => Hash::make('password123', ['rounds' => 12]),
+                'cedula' => 'ENF-849201',
+                'estado_cuenta' => 'ACTIVA',
+                'intentos_fallidos' => 0,
+                'mfa_habilitado' => false,
+                'debe_cambiar_password' => false,
+            ]
+        );
+
+        Usuario::updateOrCreate(
+            ['id_usuario' => 'REC-001'],
+            [
+                'nombre_completo' => 'Recepcionista Ana Torres',
+                'rol' => 'RECEPCION',
+                'password_hash' => Hash::make('password123', ['rounds' => 12]),
                 'cedula' => null,
                 'estado_cuenta' => 'ACTIVA',
                 'intentos_fallidos' => 0,

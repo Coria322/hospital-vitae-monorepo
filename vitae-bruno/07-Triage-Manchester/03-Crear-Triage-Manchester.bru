@@ -1,0 +1,44 @@
+meta {
+  name: 03 - Crear Triage Manchester - Estable (201 Created)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/triages
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{enfermera_token}}
+}
+
+body:json {
+  {
+    "id_paciente": "{{paciente_id}}",
+    "presion_art": "120/80",
+    "frecuencia_card": 78,
+    "frecuencia_resp": 16,
+    "temperatura": 36.6,
+    "spo2": 98,
+    "nivel_glucosa": 92,
+    "escala_eva": 1,
+    "nivel_conciencia": "ALERTA"
+  }
+}
+
+vars:post-response {
+  triage_id: res.body.data.triage.id_triage
+}
+
+tests {
+  test("Crea triage exitosamente con 201 Created", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.triage.color_asig).to.equal("AZUL");
+    expect(res.getBody().data.triage.sla_vencido).to.equal(false);
+  });
+}

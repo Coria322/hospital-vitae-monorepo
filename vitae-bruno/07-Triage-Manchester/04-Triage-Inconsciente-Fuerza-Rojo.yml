@@ -1,0 +1,43 @@
+info:
+  name: 04 - Inconsciente Fuerza ROJO y Asigna Sala Emergencia (201 Created)
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{base_url}}/triages"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{enfermera_token}}
+  body:
+    type: json
+    data: |-
+      {
+        "id_paciente": "{{paciente_id}}",
+        "presion_art": "120/80",
+        "frecuencia_card": 80,
+        "escala_eva": 0,
+        "nivel_conciencia": "INCONSCIENTE"
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Inconsciente fuerza nivel ROJO de emergencia crítica", function() {
+          expect(res.getStatus()).to.equal(201);
+          expect(res.getBody().data.triage.color_asig).to.equal("ROJO");
+          expect(res.getBody().data.asignacion.asignado).to.equal(true);
+          expect(res.getBody().data.triage.id_sala).to.be.a("string");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

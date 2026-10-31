@@ -1,0 +1,32 @@
+meta {
+  name: 07 - Reclasificación Médica con Justificación (200 OK)
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base_url}}/triages/{{triage_id}}/reclasificaciones
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{medico_token}}
+}
+
+body:json {
+  {
+    "nuevo_color": "AMARILLO",
+    "motivo": "Revaloración médica: Paciente refiere exacerbación de cefalea y dolor en hipocondrio derecho."
+  }
+}
+
+tests {
+  test("Médico reclasifica nivel con justificación obligatoria", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.color_asig).to.equal("AMARILLO");
+  });
+}
