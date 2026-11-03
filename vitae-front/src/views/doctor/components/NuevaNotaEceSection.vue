@@ -120,11 +120,13 @@ const vincularMonitor = () => {
   }
 }
 
+// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/ece/notas (Sprint 4 ECE)
 const onGuardarFirmar = () => {
   emit('guardarYFirmar')
   alert('Nota Médica ECE guardada y firmada digitalmente con e.firma (NOM-004-SSA3-2012).')
 }
 
+// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/ece/borradores
 const onGuardarBorrador = () => {
   emit('guardarBorrador')
   alert('Borrador de nota médica guardado localmente.')

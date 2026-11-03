@@ -44,6 +44,7 @@ const curpValidaSintaxis = computed(() => {
   return regex.test(inputCurp.value.toUpperCase().trim())
 })
 
+// TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/pacientes?curp=... (Validación RENAPO)
 const ejecutarBusquedaCurp = () => {
   if (!inputCurp.value) {
     alert('Ingrese una clave CURP de 18 caracteres para realizar la consulta.')

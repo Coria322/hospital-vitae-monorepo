@@ -86,6 +86,7 @@ const pacienteActivo = ref<PacienteEnfermeria>({
   enfermedadesPrevias: ''
 })
 
+// TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/triage/cola (triageService.obtenerColaUrgencias)
 // Lista reactiva de pacientes en sala de espera
 const pacientesEnEspera = ref<PacienteEnfermeria[]>([
   {
@@ -147,6 +148,7 @@ const cambiarSeccion = (sec: 'triage' | 'reclasificar' | 'sala' | 'nota') => {
   seccionActiva.value = sec
 }
 
+// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/triage (triageService.clasificarTriage)
 const registrarTriage = (datos: any) => {
   pacienteActivo.value = {
     ...pacienteActivo.value,
@@ -170,6 +172,7 @@ const seleccionarPacienteParaNota = (p: PacienteEnfermeria) => {
   seccionActiva.value = 'nota'
 }
 
+// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/triage/reclasificar (triageService.reclasificarTriage)
 const actualizarReclasificacion = (datosReval: any) => {
   if (pacienteActivo.value) {
     pacienteActivo.value.triage = datosReval.nuevoNivel

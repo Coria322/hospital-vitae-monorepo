@@ -37,6 +37,7 @@ const updateClock = () => {
 // --- PESTAÑA ACTIVA ---
 const activeTab = ref<'pendientes' | 'cargar' | 'busqueda' | 'historial'>('pendientes')
 
+// TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/laboratorio/estudios
 // --- BANCO DE ESTUDIOS EN TIEMPO REAL ---
 const orders = ref<EstudioDiagnostico[]>([
   {
@@ -174,6 +175,7 @@ const handleCargarEstudio = (order: EstudioDiagnostico) => {
   activeTab.value = 'cargar'
 }
 
+// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/laboratorio/estudios/{folio}/resultado
 const handleGuardarResultado = (payload: { folio: string; archivo: ArchivoResultado; observaciones: string }) => {
   const index = orders.value.findIndex(o => o.folio === payload.folio)
   if (index !== -1) {
@@ -182,6 +184,7 @@ const handleGuardarResultado = (payload: { folio: string; archivo: ArchivoResult
   kpis.value.validados_hoy += 1
 }
 
+// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/laboratorio/estudios/{folio}/rechazo
 const handleRechazarMuestra = (payload: { folio: string; motivo: string }) => {
   const index = orders.value.findIndex(o => o.folio === payload.folio)
   if (index !== -1) {

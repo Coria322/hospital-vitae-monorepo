@@ -40,6 +40,7 @@ const updateClock = () => {
   currentDateTimeStr.value = `${fecha} · ${horas}:${minutos}:${segundos} h`
 }
 
+// TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/triage/cola (triageService.obtenerColaUrgencias)
 // --- LISTA DE PACIENTES EN COLA ---
 const pacientesCola = ref<Paciente[]>([
   {

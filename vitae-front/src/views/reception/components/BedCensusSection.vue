@@ -143,6 +143,7 @@ const alternarDemoCenso = () => {
   }
 }
 
+// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/camas/{id}/asignar (Censo Hospitalario)
 const confirmarAsignacionCama = () => {
   if (!preasignacionCamaForm.value.solicitudSeleccionada) {
     mostrarAlerta('Seleccione una solicitud de paciente pendiente de la lista.')

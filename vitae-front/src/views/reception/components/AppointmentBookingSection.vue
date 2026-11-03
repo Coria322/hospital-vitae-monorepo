@@ -161,6 +161,7 @@ const cargarDemoCita = () => {
   }
 }
 
+// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/citas (Agenda y Consultorios)
 const confirmarCitaExpedirComprobante = () => {
   if (!agendamientoForm.value.pacienteValidado) {
     mostrarAlerta('Seleccione o valide un paciente antes de confirmar la cita médica.')

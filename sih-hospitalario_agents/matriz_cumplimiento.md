@@ -91,3 +91,31 @@
 | `TASK-W-050` | PROV-SEC-008, LFPDPPP | Generación de PDF de expediente clínico con marca de agua disociada ("COPIA CLÍNICA AUDITADA - USO INTERNO"). | `app/Services/PdfExpedienteService.php` | Test de generación sin PII expuesta en texto plano | ⏳ Pendiente |
 | `TASK-W-051` | RF-008 a RF-010, RNF-007 | Colección Bruno `08-ECE-Recetas-FHIR` cubriendo notas médicas, recetas con QR, FHIR R4 y Break-the-Glass. | `vitae-bruno/08-ECE-Recetas-FHIR` | Ejecución 100% exitosa con Bruno CLI | ⏳ Pendiente |
 | `TASK-W-052` | RF-008 a RF-010, RNF-007 | Suite completa de pruebas automatizadas PHPUnit para ECE, notas inmutables, recetas y FHIR R4. | `tests/Feature/Sprint4EceRecetasTest.php` | Suite de pruebas PHPUnit pasando al 100% | ⏳ Pendiente |
+
+---
+
+## 3. Matriz de Integración Frontend vs Backend (Endpoints Reales vs Mocks)
+*Fecha de Diagnóstico: 2026-11-02 • Rama: `dev`*
+
+| Módulo / Vista Frontend | Componente / Acción | Estado de Conexión | Mock Actual | Endpoint Backend Objetivo / TODO |
+| :--- | :--- | :---: | :--- | :--- |
+| **Administración** (`AdminWorkspaceView.vue`) | Catálogo de usuarios | 🟡 Mock | `usuarios` (6 usuarios simulados) | `GET /api/v1/admin/usuarios` |
+| **Administración** (`AdminWorkspaceView.vue`) | Cuentas bloqueadas | 🟡 Mock | `cuentasBloqueadas` (2 simuladas) | `GET /api/v1/admin/bloqueos` / `POST /.../{id}/desbloquear` |
+| **Administración** (`AdminWorkspaceView.vue`) | Bitácora de auditoría | 🟡 Mock | `trazas` (registros estáticos) | `GET /api/v1/auditoria` (NOM-024 / `AUDITORIA_I`) |
+| **Administración** (`AdminWorkspaceView.vue`) | Contenedores y telemetría | 🟡 Mock | `contenedores`, `telemetria` | `GET /api/v1/admin/infraestructura/contenedores` / `telemetria` |
+| **Laboratorio** (`LabWorkspaceView.vue`) | Banco de estudios pendientes | 🟡 Mock | `orders` (banco de pruebas local) | `GET /api/v1/laboratorio/estudios` |
+| **Laboratorio** (`LabWorkspaceView.vue`) | Cargar y validar resultado | 🟡 Mock | `handleGuardarResultado` (alerta local) | `POST /api/v1/laboratorio/estudios/{folio}/resultado` |
+| **Laboratorio** (`LabWorkspaceView.vue`) | Rechazo de muestra | 🟡 Mock | `handleRechazarMuestra` (alerta local) | `POST /api/v1/laboratorio/estudios/{folio}/rechazo` |
+| **Médico** (`DoctorWorkspaceView.vue`) | Cola de pacientes | 🟡 Mock | `pacientesCola` (DEMO-0248..50) | `GET /api/v1/triage/cola` (`triageService.obtenerColaUrgencias`) |
+| **Médico** (`NuevaNotaEceSection.vue`) | Guardar y firmar nota ECE | 🟡 Mock | `onGuardarFirmar` (alerta local) | `POST /api/v1/ece/notas` (NOM-004-SSA3-2012) |
+| **Médico** (`EmitirRecetaSection.vue`) | Guardar y firmar receta | 🟡 Mock | `firmarYEmitir` (alerta local) | `POST /api/v1/recetas` (COFEPRIS / Cédula verificada) |
+| **Médico** (`SolicitarLaboratorioSection.vue`) | Enviar solicitud lab | 🟡 Mock | `enviarSolicitud` (alerta local) | `POST /api/v1/laboratorio/solicitudes` (HL7 / FHIR R4) |
+| **Enfermería** (`NurseWorkspaceView.vue`) | Pacientes en espera | 🟡 Mock | `pacientesEnEspera` (2 locales) | `GET /api/v1/triage/cola` (`triageService.obtenerColaUrgencias`) |
+| **Enfermería** (`NurseWorkspaceView.vue`) | Registrar clasificación triage | 🟡 Mock | `registrarTriage` (in-memory) | `POST /api/v1/triage` (`triageService.clasificarTriage`) |
+| **Enfermería** (`NurseWorkspaceView.vue`) | Reclasificar triage | 🟡 Mock | `actualizarReclasificacion` (in-mem) | `POST /api/v1/triage/reclasificar` (`triageService.reclasificarTriage`) |
+| **Enfermería** (`NotaEnfermeriaSection.vue`) | Firmar nota enfermería | 🟡 Mock | `guardarNotaEnfermeria` (alerta local) | `POST /api/v1/enfermeria/notas` (NOM-004-SSA3-2012) |
+| **Recepción** (`CurpSearchSection.vue`) | Búsqueda por CURP | 🟡 Mock | `ejecutarBusquedaCurp` (carga demo) | `GET /api/v1/pacientes?curp=...` (Validación RENAPO) |
+| **Recepción** (`PatientRegisterSection.vue`) | Completar registro expediente | 🟡 Mock | `completarRegistroExpediente` (alerta) | `POST /api/v1/pacientes` (NOM-024 / Admisión) |
+| **Recepción** (`AppointmentBookingSection.vue`) | Confirmar cita médica | 🟡 Mock | `confirmarCitaExpedirComprobante` (alerta) | `POST /api/v1/citas` (Agenda y Consultorios) |
+| **Recepción** (`BedCensusSection.vue`) | Asignación de cama | 🟡 Mock | `confirmarAsignacionCama` (local) | `POST /api/v1/camas/{id}/asignar` (Censo Hospitalario) |
+| **Recepción** (`WaitingRoomMonitorSection.vue`) | Monitor sala de espera | 🟡 Mock | `turnosPresenciales` (estático) | `GET /api/v1/triage/sala-espera` (`triageService.obtenerMonitorSalaEspera`) |

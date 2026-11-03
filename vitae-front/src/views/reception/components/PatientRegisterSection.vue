@@ -127,6 +127,7 @@ const cargarDemoRegistro = () => {
   }
 }
 
+// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/pacientes (NOM-024 / Admisión Hospitalaria)
 const completarRegistroExpediente = () => {
   if (!nuevoRegistroForm.value.primerApellido || !nuevoRegistroForm.value.nombres) {
     alert('NOM-024-SSA3-2012: Ingrese al menos el Primer Apellido y Nombre(s) del paciente.')

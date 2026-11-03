@@ -202,6 +202,7 @@ const notasPreviasTurno = ref([
   }
 ])
 
+// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/enfermeria/notas (NOM-004-SSA3-2012 / Trazabilidad Inalterable)
 const guardarNotaEnfermeria = () => {
   if (!notaEnfermeriaForm.value.narrativaSOAPIE) {
     alert('NOM-004-SSA3-2012: Ingrese la narrativa clínica estructurada (SOAPIE) antes de firmar.')

@@ -37,6 +37,7 @@ const updateClock = () => {
 // --- PESTAÑA ACTIVA ---
 const activeTab = ref<'usuarios' | 'bloqueos' | 'bitacora' | 'docker'>('usuarios')
 
+// TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/admin/usuarios
 // --- CATÁLOGO DE USUARIOS INICIALES (184 EN TOTAL SIMULADOS, CON 6 REALISTAS EN VISTA) ---
 const usuarios = ref<UsuarioAdmin[]>([
   {
@@ -137,6 +138,7 @@ const usuarios = ref<UsuarioAdmin[]>([
   }
 ])
 
+// TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/admin/bloqueos y POST /api/v1/admin/bloqueos/{id}/desbloquear
 // --- LISTADO DE CUENTAS BLOQUEADAS PRIORITARIAS (2 INICIALES) ---
 const cuentasBloqueadas = ref<CuentaBloqueada[]>([
   {
@@ -175,6 +177,7 @@ const cuentasBloqueadas = ref<CuentaBloqueada[]>([
   }
 ])
 
+// TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/auditoria (NOM-024 / AUDITORIA_I)
 // --- TRAZAS DE AUDITORÍA NOM-024 (TIEMPO REAL) ---
 const trazas = ref<TrazaAuditoria[]>([
   {
@@ -275,6 +278,7 @@ const trazas = ref<TrazaAuditoria[]>([
   }
 ])
 
+// TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/admin/infraestructura/contenedores
 // --- MATRIZ DE CONTENEDORES DOCKER (6 SERVICIOS) ---
 const contenedores = ref<ContenedorDocker[]>([
   {
@@ -335,6 +339,7 @@ const contenedores = ref<ContenedorDocker[]>([
   }
 ])
 
+// TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/admin/infraestructura/telemetria
 // --- TELEMETRÍA DEL CLÚSTER DE HARDWARE ---
 const telemetria = ref<TelemetriaCluster>({
   cpu_modelo: 'Intel Xeon E5-2690v4',

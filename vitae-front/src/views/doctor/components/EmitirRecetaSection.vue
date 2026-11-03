@@ -105,6 +105,7 @@ const dispensacionFarmacia = ref(true)
 const impresionVolanteQr = ref(false)
 const envioCifrado = ref(false)
 
+// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/recetas (Sprint 4 Farmacia/Recetas)
 const firmarYEmitir = () => {
   if (medicamentosAgregados.value.length === 0 && !medicamento.value) {
     alert('Agregue al menos un medicamento a la receta antes de firmarla.')
@@ -117,6 +118,7 @@ const firmarYEmitir = () => {
   alert('Receta médica firmada digitalmente con e.firma y enviada a Farmacia Hospitalaria con SHA-256.')
 }
 
+// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/recetas/borradores
 const guardarBorrador = () => {
   alert('Borrador de prescripción médica guardado.')
 }

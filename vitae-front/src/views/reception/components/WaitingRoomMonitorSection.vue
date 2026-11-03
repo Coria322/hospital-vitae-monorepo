@@ -41,6 +41,7 @@ const filtroTurnos = ref<'todos' | 'admision' | 'triage' | 'caja'>('todos')
 const altavozConectado = ref(true)
 const hdmiActivo = ref(true)
 
+// TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/triage/sala-espera (triageService.obtenerMonitorSalaEspera)
 // Lista de turnos presenciales pre-cargada conforme a la captura oficial
 const turnosPresenciales = ref<TurnoPresencial[]>([
   {

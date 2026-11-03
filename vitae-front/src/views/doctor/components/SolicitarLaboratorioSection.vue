@@ -194,6 +194,7 @@ const limpiarFormulario = () => {
   }
 }
 
+// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/laboratorio/solicitudes (Sincronización HL7/FHIR v4)
 const enviarSolicitud = () => {
   if (seleccionadosIds.value.length === 0) {
     alert('Seleccione al menos un estudio del catálogo antes de enviar.')
