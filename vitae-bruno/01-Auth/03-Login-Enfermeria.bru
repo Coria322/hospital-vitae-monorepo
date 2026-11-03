@@ -1,0 +1,36 @@
+meta {
+  name: 03 - Login Enfermeria
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id_usuario": "ENF-001",
+    "password": "password123"
+  }
+}
+
+vars:post-response {
+  enfermeria_token: res.body.data.token
+}
+
+tests {
+  test("Login enfermeria exitoso con 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("Rol asignado es ENFERMERIA", function() {
+    expect(res.getBody().data.usuario.rol).to.equal('ENFERMERIA');
+  });
+}

@@ -17,7 +17,7 @@ defineEmits<{
     <div class="prescription-summary-card">
       <div class="card-top-head">
         <div class="title-with-icon">
-          <span class="rx-icon">💊</span>
+          <span class="rx-icon"><svg viewBox="0 0 24 24" class="svg-inline-pill" fill="none" stroke="currentColor" stroke-width="2"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></span>
           <h3>Tratamiento y Recetas</h3>
         </div>
         <span class="badge-status-pill">Oficial</span>
@@ -47,7 +47,7 @@ defineEmits<{
           :disabled="!pacienteSeleccionado"
           @click="$emit('cambiarSeccion', 'receta')"
         >
-          <span>📋</span>
+          <span><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
           <span>Emitir Receta Oficial [Alt+R]</span>
         </button>
       </div>
@@ -60,7 +60,7 @@ defineEmits<{
         <span class="badge-subtle">HL7 / FHIR</span>
       </div>
       <div class="studies-body">
-        <div class="tube-icon">🧪</div>
+        <div class="tube-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 3h15M6 3v16a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V3M6 14h12"/></svg></div>
         <div class="studies-text">
           <p>Bandeja de solicitudes de laboratorio clínico, imagenología y gabinete.</p>
           <button 
@@ -68,7 +68,7 @@ defineEmits<{
             :disabled="!pacienteSeleccionado"
             @click="$emit('cambiarSeccion', 'lab')"
           >
-            Solicitar Laboratorio o Imagen [Alt+L] →
+            Solicitar Laboratorio o Imagen [Alt+L] <svg viewBox="0 0 24 24" class="svg-inline-arrow" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </button>
         </div>
       </div>
@@ -76,7 +76,7 @@ defineEmits<{
 
     <!-- NOTA NORMATIVA DISCRETA -->
     <div class="normative-pill-box">
-      <span>🛡️ NOM-004-SSA3-2012 · Expediente Único</span>
+      <span><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> NOM-004-SSA3-2012 · Expediente Único</span>
     </div>
   </aside>
 </template>

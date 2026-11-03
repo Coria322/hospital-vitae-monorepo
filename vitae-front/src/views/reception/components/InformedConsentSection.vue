@@ -111,7 +111,7 @@ const guardarConsentimientoLegal = () => {
     mostrarAlerta('Debe marcar la casilla de aceptación bajo protesta de decir verdad.')
     return
   }
-  mostrarAlerta('✓ Consentimiento formalizado con sellado de tiempo criptográfico SHA-256 e incorporado al expediente clínico institucional.')
+  mostrarAlerta('<svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Consentimiento formalizado con sellado de tiempo criptográfico SHA-256 e incorporado al expediente clínico institucional.')
 }
 </script>
 
@@ -122,9 +122,9 @@ const guardarConsentimientoLegal = () => {
     <div class="section-top-banner">
       <div class="banner-text-col">
         <div class="badges-row">
-          <span class="cert-pill blue">🛡️ VALIDACIÓN BIOMÉTRICA ACTIVA</span>
-          <span class="cert-pill gray">⚖️ NOM-004-SSA3-2012 / NOM-024</span>
-          <span class="cert-pill gray">⚖️ LGPDPPSO Art. 21</span>
+          <span class="cert-pill blue"><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> VALIDACIÓN BIOMÉTRICA ACTIVA</span>
+          <span class="cert-pill gray"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h18"/></svg> NOM-004-SSA3-2012 / NOM-024</span>
+          <span class="cert-pill gray"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h18"/></svg> LGPDPPSO Art. 21</span>
         </div>
         <h2>Gestión y Registro de Consentimientos Informados y Aviso de Privacidad</h2>
         <p>Formalización legal inmediata con sellado de tiempo criptográfico SHA-256 para expediente clínico hospitalario.</p>
@@ -169,7 +169,7 @@ const guardarConsentimientoLegal = () => {
         <div class="step-card">
           <div class="step-card-header">
             <div class="step-num-title">
-              <span class="step-header-icon">🪪</span>
+              <span class="step-header-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><line x1="15" y1="8" x2="17" y2="8"/><line x1="15" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg></span>
               <h4>1. Búsqueda y Vinculación de Paciente</h4>
             </div>
             <span class="step-label-muted">PASO OBLIGATORIO</span>
@@ -179,7 +179,7 @@ const guardarConsentimientoLegal = () => {
             <label class="field-label-sm">Búsqueda por CURP o Folio de Ingreso Clínico</label>
             <div class="search-input-action-row">
               <div class="curp-field-wrapper">
-                <span class="field-prefix">🔍</span>
+                <span class="field-prefix"><svg viewBox="0 0 24 24" class="svg-inline-search" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
                 <input 
                   type="text" 
                   v-model="consentimientoForm.curpBusqueda" 
@@ -189,7 +189,7 @@ const guardarConsentimientoLegal = () => {
                 />
               </div>
               <button type="button" class="btn-renapo-dark" @click="buscarPacienteParaConsentimiento">
-                <span>⚖️</span>
+                <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h18"/></svg></span>
                 <span>Validar RENAPO</span>
               </button>
             </div>
@@ -209,7 +209,7 @@ const guardarConsentimientoLegal = () => {
                 </div>
                 <span class="bed-location-tag">{{ consentimientoForm.pacienteVinculado.cama }}</span>
               </div>
-              <span class="imss-active-pill">🛡️ {{ consentimientoForm.pacienteVinculado.regimen }}</span>
+              <span class="imss-active-pill"><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> {{ consentimientoForm.pacienteVinculado.regimen }}</span>
             </div>
           </div>
         </div>
@@ -218,7 +218,7 @@ const guardarConsentimientoLegal = () => {
         <div class="step-card">
           <div class="step-card-header">
             <div class="step-num-title">
-              <span class="step-header-icon">👤</span>
+              <span class="step-header-icon"><svg viewBox="0 0 24 24" class="svg-inline-user" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
               <h4>2. Identificación del Declarante u Otorgante</h4>
             </div>
             <span class="step-label-blue">Titular o Apoderado Legal</span>
@@ -283,7 +283,7 @@ const guardarConsentimientoLegal = () => {
         <div class="step-card">
           <div class="step-card-header">
             <div class="step-num-title">
-              <span class="step-header-icon">📄</span>
+              <span class="step-header-icon"><svg viewBox="0 0 24 24" class="svg-inline-doc" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
               <h4>3. Selección del Documento Legal a Formalizar</h4>
             </div>
             <span class="step-label-muted">Seleccione uno para proyectar</span>
@@ -299,7 +299,7 @@ const guardarConsentimientoLegal = () => {
               >
                 <div class="doc-header-row">
                   <div class="doc-title-icon">
-                    <span class="doc-icon-blue">✳️</span>
+                    <span class="doc-icon-blue"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07l14.14-14.14"/></svg></span>
                     <strong>Consentimiento General de Admisión</strong>
                   </div>
                   <span class="badge-status-doc active-pill">Activo</span>
@@ -315,7 +315,7 @@ const guardarConsentimientoLegal = () => {
               >
                 <div class="doc-header-row">
                   <div class="doc-title-icon">
-                    <span class="doc-icon-gray">🛡️</span>
+                    <span class="doc-icon-gray"><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
                     <strong>Aviso de Privacidad Integral</strong>
                   </div>
                   <span class="badge-status-doc signed-pill">Firmado</span>
@@ -331,7 +331,7 @@ const guardarConsentimientoLegal = () => {
               >
                 <div class="doc-header-row">
                   <div class="doc-title-icon">
-                    <span class="doc-icon-red">💉</span>
+                    <span class="doc-icon-red"><svg viewBox="0 0 24 24" class="svg-inline-syringe" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 2 4 4"/><path d="m17 7 3-3"/><path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/><path d="m9 11 4 4"/><path d="m5 19-3 3"/></svg></span>
                     <strong>Procedimientos Menores y Muestras</strong>
                   </div>
                   <span class="badge-status-doc pending-pill">Pendiente</span>
@@ -347,7 +347,7 @@ const guardarConsentimientoLegal = () => {
               >
                 <div class="doc-header-row">
                   <div class="doc-title-icon">
-                    <span class="doc-icon-red">🪪</span>
+                    <span class="doc-icon-red"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><line x1="15" y1="8" x2="17" y2="8"/><line x1="15" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg></span>
                     <strong>Designación de Informados</strong>
                   </div>
                   <span class="badge-status-doc pending-pill">Pendiente</span>
@@ -362,15 +362,15 @@ const guardarConsentimientoLegal = () => {
         <div class="step-card">
           <div class="step-card-header">
             <div class="step-num-title">
-              <span class="step-header-icon">✍️</span>
+              <span class="step-header-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg></span>
               <h4>4. Visualizador Legal y Zona de Firma Biométrica</h4>
             </div>
             <div class="actions-right-stack">
               <button type="button" class="btn-subtle-reader" @click="mostrarAlerta('Ampliando visualizador de documento a pantalla completa...')">
-                🔍 Ampliar
+                <svg viewBox="0 0 24 24" class="svg-inline-search" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Ampliar
               </button>
               <button type="button" class="btn-subtle-reader" @click="mostrarAlerta('Generando vista previa certificada para el otorgante...')">
-                👁️ Vista Previa
+                <svg viewBox="0 0 24 24" class="svg-inline-eye" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Vista Previa
               </button>
             </div>
           </div>
@@ -409,7 +409,7 @@ const guardarConsentimientoLegal = () => {
               <div class="biometric-box-card">
                 <div class="bio-header">
                   <div class="bio-title">
-                    <span>✍️</span>
+                    <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg></span>
                     <strong>Trazo Digital / Táctil</strong>
                   </div>
                   <span class="bio-tag-blue">Pantalla Táctil Activa</span>
@@ -425,10 +425,10 @@ const guardarConsentimientoLegal = () => {
 
                 <div class="bio-footer-actions">
                   <button type="button" class="btn-bio-clean" @click="mostrarAlerta('Lienzo de firma táctil limpiado.')">
-                    🔄 Limpiar Trazo
+                    <svg viewBox="0 0 24 24" class="svg-inline-sync" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Limpiar Trazo
                   </button>
                   <button type="button" class="btn-bio-verified" @click="mostrarAlerta('Trazo biométrico validado con 128 puntos de presión.')">
-                    ✓ Firma Verificada
+                    <svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Firma Verificada
                   </button>
                 </div>
               </div>
@@ -437,7 +437,7 @@ const guardarConsentimientoLegal = () => {
               <div class="biometric-box-card">
                 <div class="bio-header">
                   <div class="bio-title">
-                    <span>👆</span>
+                    <span><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v10"/><path d="M12 6a4 4 0 0 1 4 4v7a4 4 0 0 1-8 0v-7a4 4 0 0 1 4-4z"/></svg></span>
                     <strong>Biometría Dactilar</strong>
                   </div>
                   <span class="bio-tag-blue">● Sensor Calibrado</span>
@@ -455,10 +455,10 @@ const guardarConsentimientoLegal = () => {
 
                 <div class="bio-footer-actions">
                   <button type="button" class="btn-bio-clean" @click="mostrarAlerta('Sensor biométrico reiniciado para nueva captura.')">
-                    🔄 Recapturar
+                    <svg viewBox="0 0 24 24" class="svg-inline-sync" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Recapturar
                   </button>
                   <button type="button" class="btn-bio-token" @click="mostrarAlerta('Token criptográfico generado: SHA-256 #8A20.')">
-                    🔒 Token SHA: #8A20
+                    <svg viewBox="0 0 24 24" class="svg-inline-lock" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Token SHA: #8A20
                   </button>
                 </div>
               </div>
@@ -478,11 +478,11 @@ const guardarConsentimientoLegal = () => {
 
           <div class="actions-stack-legal">
             <button type="button" class="btn-save-consent" @click="guardarConsentimientoLegal">
-              <span class="btn-save-icon">✍️</span>
+              <span class="btn-save-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg></span>
               <span>Guardar Consentimiento [Enter]</span>
             </button>
             <button type="button" class="btn-download-pdf" @click="mostrarAlerta('Generando PDF foliado del consentimiento con código de barras y firma digital...')">
-              <span>📄</span>
+              <span><svg viewBox="0 0 24 24" class="svg-inline-doc" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
               <span>Descargar Copia Foliada en PDF</span>
             </button>
 
@@ -512,7 +512,7 @@ const guardarConsentimientoLegal = () => {
           <div class="legal-check-list">
             <div class="legal-check-item">
               <div class="check-item-left">
-                <span class="icon-circle check">✓</span>
+                <span class="icon-circle check"><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
                 <span>Identificación de Paciente</span>
               </div>
               <span class="status-label blue">Validado</span>
@@ -520,7 +520,7 @@ const guardarConsentimientoLegal = () => {
 
             <div class="legal-check-item">
               <div class="check-item-left">
-                <span class="icon-circle check">✓</span>
+                <span class="icon-circle check"><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
                 <span>Aviso de Privacidad</span>
               </div>
               <span class="status-label blue">Firmado</span>
@@ -553,7 +553,7 @@ const guardarConsentimientoLegal = () => {
             <div class="witness-info">
               <div class="witness-name-check">
                 <strong>{{ recepcionista.nombre }}</strong>
-                <span class="check-shield-blue">🛡️✓</span>
+                <span class="check-shield-blue"><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
               </div>
               <small>Céd. Admisión: {{ recepcionista.cedula }}</small>
             </div>

@@ -1,0 +1,32 @@
+meta {
+  name: 11 - Admisión Paciente Desconocido NN y Fusión (201 y 200)
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{base_url}}/pacientes
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{enfermera_token}}
+}
+
+body:json {
+  {
+    "identificado": false,
+    "sexo": "MASCULINO"
+  }
+}
+
+tests {
+  test("Admite paciente desconocido temporal con UUID y folio", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().data.identificado).to.equal(false);
+    expect(res.getBody().data.folio_urgencias).to.contain("URG-NN-");
+  });
+}

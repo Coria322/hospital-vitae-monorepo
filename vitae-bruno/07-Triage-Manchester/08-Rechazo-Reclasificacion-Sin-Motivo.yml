@@ -1,0 +1,37 @@
+info:
+  name: 08 - Rechazo Reclasificación Sin Motivo (422 Unprocessable)
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{base_url}}/triages/{{triage_id}}/reclasificaciones"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{medico_token}}
+  body:
+    type: json
+    data: |-
+      {
+        "nuevo_color": "NARANJA",
+        "motivo": ""
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Rechaza reclasificación sin justificación con 422", function() {
+          expect(res.getStatus()).to.equal(422);
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

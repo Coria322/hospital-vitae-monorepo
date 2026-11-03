@@ -1,0 +1,38 @@
+info:
+  name: 02 - Obtener Paciente Sintetico (200 OK)
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{base_url}}/pacientes"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: Bearer {{enfermera_token}}
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Obtiene lista de pacientes para vincular triage", function() {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().data.data.length).to.be.greaterThan(0);
+        });
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.data.data[0].id_paciente
+        method: jsonq
+      variable:
+        name: paciente_id
+        scope: runtime
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

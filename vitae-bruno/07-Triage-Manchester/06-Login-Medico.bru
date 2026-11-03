@@ -1,0 +1,35 @@
+meta {
+  name: 06 - Login Médico (200 OK)
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base_url}}/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id_usuario": "MED-001",
+    "password": "password123"
+  }
+}
+
+vars:post-response {
+  medico_token: res.body.data.token
+}
+
+tests {
+  test("Médico inicia sesión exitosamente", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.usuario.rol).to.equal("MEDICO");
+  });
+}

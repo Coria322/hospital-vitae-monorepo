@@ -1,0 +1,34 @@
+meta {
+  name: 10 - Consulta Sala de Espera Pública Sin PII (200 OK)
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{base_url}}/sala-espera
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+tests {
+  test("Pantalla pública disociada no contiene PII (LFPDPPP)", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.pacientes).to.be.an("array");
+    
+    // Validar que los objetos tienen iniciales y folio pero NO nombre completo ni CURP
+    if (res.getBody().data.pacientes.length > 0) {
+      const p = res.getBody().data.pacientes[0];
+      expect(p.iniciales).to.be.a("string");
+      expect(p.folio).to.be.a("string");
+      expect(p.color).to.be.a("string");
+      expect(p.icono).to.be.a("string");
+      expect(p.nombre_completo).to.be.undefined;
+      expect(p.curp).to.be.undefined;
+    }
+  });
+}

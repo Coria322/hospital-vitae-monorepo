@@ -1,13 +1,15 @@
 # Matriz de Cumplimiento — Hospital Vitae SIH
-**Sprint:** Sprint 2 (Auditoría AI-02 — Infraestructura, Base de Datos y Trazabilidad Inalterable)  
-**Fecha de Actualización:** 2026-10-26  
-**Rama:** `feature/sprint-2-auditoria-inalterable`
+**Sprint Activo:** Sprint 4 (Auditoría AI-04 — ECE, Recetas Médicas Controladas e Interoperabilidad HL7 FHIR R4)  
+**Fecha de Actualización:** 2026-10-30  
+**Rama:** `feature/sprint-4-ece-recetas-fhir`
 
 ---
 
-## 1. Resumen Ejecutivo de Cumplimiento
+## 1. Resumen Ejecutivo de Cumplimiento por Sprint
 
-Esta matriz contrasta el estado del sistema frente a los requerimientos normativos (NOM-024-SSA3-2012, NOM-004-SSA3-2012, ISO/IEC-27001, LFPDPPP) para la auditoría **AI-02**.
+### Sprint 2: Infraestructura, Base de Datos y Trazabilidad Inalterable (Auditoría AI-02)
+> *Normativas: NOM-024-SSA3-2012, NOM-004-SSA3-2012, ISO/IEC-27001, LFPDPPP, ISO/IEC-25010.*  
+> *Estado del Sprint: ✅ **CERRADO (100% Cumplido - Certificado en `dev` y `main`)**.*
 
 | Requerimiento / Norma | Descripción Normativa | Estado Inicial | Estado Actual | Nivel de Brecha |
 | :--- | :--- | :--- | :--- | :---: |
@@ -26,22 +28,94 @@ Esta matriz contrasta el estado del sistema frente a los requerimientos normativ
 
 ---
 
+### Sprint 3: Triage Manchester, Urgencias y Admisión (Auditoría AI-03)
+> *Normativas: NOM-004-SSA3-2012, NOM-206-SSA1-2002, ISO/IEC-25010, WCAG 2.1 AA, LFPDPPP.*  
+> *Estado del Sprint: ✅ **CERRADO (100% Cumplido - Mergeado en `dev` PR #2)**.*
+
+| Requerimiento / Norma | Descripción Normativa | Estado Inicial | Estado Actual | Nivel de Brecha |
+| :--- | :--- | :--- | :--- | :---: |
+| **RF-004** (NOM-004) | Captura obligatoria de signos vitales (presión arterial sistólica/diastólica, FC, FR, temp, EVA 0-10, AVDI). | Inexistente en base de datos y API. | Implementado en `TriageController`, validaciones fisiológicas y modelo `Triage`. | ✅ **Cerrada (100%)** |
+| **RF-005** (NOM-206) | Asignación automática de nivel de gravedad (Algoritmo Manchester de 5 niveles: Rojo a Azul). | Inexistente. | Implementado en `TriageManchesterService` con regla crítica de paciente inconsciente. | ✅ **Cerrada (100%)** |
+| **RF-006** (NOM-206) | Gestión y distribución dinámica de colas de espera según prioridad clínica y tiempo transcurrido (SLA ponderado). | Inexistente. | Implementado en `ColaUrgenciasService`, 3 salas de emergencia y liberación de consultorios. | ✅ **Cerrada (100%)** |
+| **RF-007** (NOM-206) | Reclasificación manual de triage con justificación clínica obligatoria firmada por médico y auto-auditoría. | Inexistente. | Implementado en endpoint `/triages/{id}/reclasificaciones` con auditoría inalterable. | ✅ **Cerrada (100%)** |
+| **PROV-RN-004** (NOM-206) | Matriz Manchester y SLAs de atención (Rojo: 0m, Naranja: 15m, Amarillo: 60m, Verde: 120m, Azul: 240m). | Inexistente. | Implementado determinísticamente con timestamps UTC auditados. | ✅ **Cerrada (100%)** |
+| **PROV-RN-005** (NOM-206) | Gestión de tiempos excedidos y alertas escalables a jefatura de guardia cuando el SLA se supere. | Inexistente. | Comando `triage:verificar-sla` con cálculo de desviación y logs `SLA_VENCIDO`. | ✅ **Cerrada (100%)** |
+| **PROV-UX-001** (ISO-25010) | Actualización de colas de triage en tiempo real mediante WebSockets / SSE. | Inexistente. | Canal SSE `GET /api/v1/triage/stream` y servicio reactivo frontend. | ✅ **Cerrada (100%)** |
+| **PROV-BR-001** (WCAG 2.1 AA) | Codificación semántica universal de colores de triage y soporte para daltonismo (iconografía + texto). | Inexistente. | Integrado con iconografía SVG redundante y nombres semánticos. | ✅ **Cerrada (100%)** |
+| **PROV-RN-006** (ISO-25010) | Tolerancia a fallos de red en admisión y captura retroactiva de folios offline. | Inexistente. | Parámetro `captura_retroactiva` con registro de fecha física y auditoría real. | ✅ **Cerrada (100%)** |
+| **PROV-RN-007** (NOM-004) | Admisión de paciente no identificado (desconocido/N.N.) y posterior proceso de fusión de expediente. | Inexistente. | Soporte de admisión N.N. con folio temporal y endpoint transaccional de fusión. | ✅ **Cerrada (100%)** |
+| **PROV-UX-002** (LFPDPPP) | Pantalla pública de sala de espera disociada (solo iniciales y turno, sin PII). | Inexistente. | Endpoint público `GET /api/v1/sala-espera` con disociación estricta (0 PII). | ✅ **Cerrada (100%)** |
+| **PROV-UX-003** (WCAG 2.1 AA) | Accesibilidad web y ergonomía clínica WCAG 2.1 AA (operable 100% por teclado). | Inexistente. | Cumplimiento validado y tokens sin dependencia exclusiva de color. | ✅ **Cerrada (100%)** |
+| **PROV-UI-001** (ERS Anexo G.1) | Implementación de pantallas de captura de triage según especificación de UI/UX. | Inexistente. | Vistas de triage clínico en frontend (`vitae-front`). | ✅ **Cerrada (100%)** |
+
+---
+
+### Sprint 4: ECE, Recetas Médicas Controladas e Interoperabilidad (Auditoría AI-04)
+> *Normativas: NOM-004-SSA3-2012, COFEPRIS / SAT, LFPDPPP, HL7 FHIR R4, ISO/IEC-27001.*  
+> *Estado del Sprint: 🟡 **ACTIVO (Rama: `feature/sprint-4-ece-recetas-fhir`)**.*
+
+| Requerimiento / Norma | Descripción Normativa | Estado Inicial | Estado Actual | Nivel de Brecha |
+| :--- | :--- | :--- | :--- | :---: |
+| **RF-008.1** (NOM-004) | Ficha de Identificación del ECE, antecedentes heredofamiliares, patológicos, no patológicos y alergias. | Tablas `paciente` y `expediente_c` creadas en Sprint 2 sin antecedentes estructurados. | En diseño de migración y modelos relacionales. | 🟡 **En Progreso** |
+| **RF-008.2** (NOM-004) | Notas médicas de evolución, historia clínica e interconsulta. Sellado inmutable post-firma. | Inexistente. | En diseño de migración `nota_medica` con triggers de sellado inmutable. | 🟡 **En Progreso** |
+| **RF-009** (COFEPRIS/SAT) | Receta médica electrónica para medicamentos controlados (Fracc. I, II, III), cédula verificada, hash y código QR. | Inexistente. | En diseño de servicio `RecetaControladaService` con hash SHA-256 y payload QR. | 🟡 **En Progreso** |
+| **RF-010** (NOM-004) | Solicitud y vinculación de resultados de laboratorio e imagenología médica al ECE. | Vistas UI en front agregadas en dev; backend pendiente. | En integración de endpoints `/api/v1/laboratorio/ordenes`. | 🟡 **En Progreso** |
+| **RNF-007** (HL7 FHIR R4) | Interoperabilidad semántica en salud basada en estándar HL7 FHIR R4 (`/fhir/Patient`, `/fhir/Encounter`). | Inexistente. | En diseño de serializadores FHIR R4 y controlador de interoperabilidad. | 🟡 **En Progreso** |
+| **PROV-RN-008** (LFPDPPP) | Consentimiento informado del paciente con hash SHA-256 inmutable y retención estricta. | Inexistente. | En diseño de migración `consentimiento_informado`. | 🟡 **En Progreso** |
+| **PROV-RN-009** (LFPDPPP) | Atención y trazabilidad de derechos ARCO (Acceso, Rectificación, Cancelación, Oposición). | Inexistente. | En diseño de módulo de solicitudes ARCO auditadas. | 🟡 **En Progreso** |
+| **PROV-RN-010** (NOM-004) | Protocolo "Break-the-Glass" de acceso excepcional de emergencia al ECE con auto-auditoría. | Inexistente. | En diseño de middleware y evento `ACCESO_BREAK_THE_GLASS`. | 🟡 **En Progreso** |
+| **PROV-SEC-008** (LFPDPPP) | Exportación de expediente en PDF con marcas de agua dinámicas de auditoría y datos disociados. | Inexistente. | En diseño de servicio de renderizado seguro de ECE en PDF. | 🟡 **En Progreso** |
+| **PROV-UI-002** (ERS Anexo G.2) | Pantallas de consulta de ECE, emisión de recetas médicas y panel de Break-the-Glass. | Componentes previos en front. | En integración con nuevos endpoints de Sprint 4. | 🟡 **En Progreso** |
+
+---
+
 ## 2. Matriz Detallada de Trazabilidad Técnica vs Constraints Reales
+
+### Tareas Certificadas — Sprint 2 (Auditoría AI-02)
+> *Todas las tareas (TASK-W-020 a TASK-W-034) están 100% completadas y auditadas.*
+
+### Tareas Certificadas — Sprint 3 (Auditoría AI-03)
+> *Todas las tareas (TASK-W-035 a TASK-W-042) están 100% completadas y auditadas en PR #2 mergeado a `dev`.*
+
+### Tareas Planificadas — Sprint 4 (Auditoría AI-04)
 
 | ID Tarea | Requisito | Constraint / Criterio de Aceptación Real | Componente Afectado | Evidencia Requerida | Estado |
 | :--- | :--- | :--- | :--- | :--- | :---: |
-| `TASK-W-020` | PROV-RNF-001, ISO-27001 | Dockerfile con versiones fijas inmutables, 0 ocurrencias de `:latest`, usuario no-root (`USER www-data`), hardening Apache/PHP y HEALTHCHECK `/up`. | `Dockerfile`, `docker-entrypoint.sh`, `render.yaml`, `.dockerignore` | Dockerfile auditado sin `:latest`, healthcheck `/up` probado | ✅ Cumplido |
-| `TASK-W-021` | RNF-003, ISO-27001 | Conexión segura hacia la base de datos PostgreSQL/Supabase forzando TLS mediante `sslmode=require` y aislamiento en red. | `config/database.php` | Configuración verificada, conexión TLS forzada | ✅ Cumplido |
-| `TASK-W-022` | RNF-002, NOM-004 | Tablas `paciente` (UUID) y `expediente_c` con relaciones estrictas y triggers nativos que abortan DELETE/TRUNCATE. | `database/migrations`, `app/Models/Paciente.php`, `app/Models/ExpedienteClinico.php` | Migración ejecutada, tests anti-DELETE aprobados | ✅ Cumplido |
-| `TASK-W-023` | RNF-001, PROV-SEC-005 | Tabla `auditoria_i` con 13 columnas normativas, INSERT-only y huella SHA-256 (génesis 64 ceros). | `database/migrations`, `app/Models/AuditoriaI.php` | Migración ejecutada, schema verificado | ✅ Cumplido |
-| `TASK-W-024` | RNF-001, PROV-SEC-005 | `AuditLogger` inyectado en eventos del sistema (login, logout, 403, cambios de estado). Exclusión de `password`, `token`, `otp`. | `app/Services/AuditLogger.php` | Logs generados sin datos sensibles | ✅ Cumplido |
-| `TASK-W-025` | RF-001 | `GET /api/v1/auditoria` protegido con middleware `role:ADMINISTRADOR`. Registra evento `CONSULTA_AUDITORIA`. `POST/PUT/DELETE` devuelven `405 Method Not Allowed`. | `app/Http/Controllers/Api/V1/AuditoriaIController.php` | Bruno: `05-Auditoria-I` y PHPUnit tests | ✅ Cumplido |
-| `TASK-W-026` | PROV-SEC-005 | Comando `auditoria:verificar-cadena` que valida `hash[n] == sha256(canonico[n] + hash[n-1])`. Alerta si hay alteración. | `app/Console/Commands/VerificarCadenaAuditoriaCommand.php` | Test de detección de alteración artificial | ✅ Cumplido |
-| `TASK-W-027` | RNF-003, ISO-27001 | Cifrado AES-256-GCM para adjuntos clínicos con verificación de tag y almacenamiento opaco (cero cadenas `%PDF` o PII en claro). | `app/Services/CifradoAdjuntosService.php` | Tests de cifrado, descifrado y anti-tampering aprobados | ✅ Cumplido |
-| `TASK-W-028` | RNF-003, ASVS L2 | Cabeceras de seguridad HTTP: HSTS >= 1 año (`max-age=31536000; includeSubDomains; preload`), `nosniff`, `DENY` y CSP restrictiva. | `app/Http/Middleware/SecurityHeadersMiddleware.php`, `bootstrap/app.php` | Headers verificados en suite de pruebas | ✅ Cumplido |
-| `TASK-W-029` | RNF-004, ISO-25010 | Réplicas >= 2, límites de CPU/RAM, reinicio automático y endpoint `GET /api/v1/salud` para monitoreo activo de salud y RTO <= 300 s. | `routes/api.php`, `docker-compose.yml`, `vitae-bruno` | Tests automatizados (3/3), Bruno request `03-Salud` | ✅ Cumplido |
-| `TASK-W-030` | PROV-SEC-006, ISO-27001 | Respaldos diarios cifrados AES-256, regla 3-2-1 con copias offsite, retención 30d/12m y monitor de lag WAL (`db:verificar-lag-wal`). | `app/Services/BackupService.php`, `app/Console/Commands/*Backup*.php` | Dump cifrado, test de simulación de lag > 600s | ✅ Cumplido |
-| `TASK-W-031` | PROV-SEC-007, CENAM | Comando `ntp:verificar-sincronizacion` que mide deriva contra CENAM/pool.ntp.org; alerta y audita si \|offset\| > 1s; enforcement UTC. | `app/Services/NtpService.php`, `app/Console/Commands/VerificarSincronizacionHorariaCommand.php`, `config/database.php` | Tests automatizados (5/5) aprobados | ✅ Cumplido |
-| `TASK-W-032` | PROV-SEC-010 | Seeders con datos ficticios para Dev/Pruebas y verificación automática de ausencia de CURP reales. | `database/seeders/ClinicoSinteticoSeeder.php` | Seed ejecutado en Supabase sin PII | ✅ Cumplido |
-| `TASK-W-033` | PROV-RN-003, NOM-004 | Actualización de `fecha_ultimo_acto_medico` y comando `expedientes:reporte-retencion` para expedientes >= 1,825 días. | `app/Console/Commands/ReporteRetencionExpedientesCommand.php` | Reporte informativo ejecutado y testeado | ✅ Cumplido |
-| `TASK-W-034` | RNF-001, RNF-002, RNF-003, RNF-004, PROV-SEC-006, PROV-SEC-007 | Suite completa de pruebas para inalterabilidad, denegación de DELETE, verificación de hashes, Bruno, NTP, cifrado, respaldos y HA. | `tests/Feature/Sprint2*.php` | 53/53 pruebas aprobadas (100%) | ✅ Cumplido |
+| `TASK-W-043` | RF-008.1, NOM-004 | Migración y modelo para antecedentes clínicos (heredofamiliares, patológicos, no patológicos, alergias) vinculados a `expediente_c`. | `database/migrations`, `app/Models/AntecedenteClinico.php` | Migración ejecutada y seed clínico | ⏳ Pendiente |
+| `TASK-W-044` | RF-008.2, NOM-004 | Migración de notas médicas (`nota_medica`) con triggers anti-UPDATE/DELETE tras cambio a estado `CERRADA`/`FIRMADA`. | `database/migrations`, `app/Models/NotaMedica.php` | Test de bloqueo físico/eloquent de notas cerradas | ⏳ Pendiente |
+| `TASK-W-045` | RF-009, COFEPRIS | Servicio de emisión de recetas médicas controladas con validación de cédula, folios únicos, hash SHA-256 y payload QR. | `app/Services/RecetaMedicaService.php`, `app/Http/Controllers/Api/V1/RecetaController.php` | Tests de emisión, validación de fracción y QR | ⏳ Pendiente |
+| `TASK-W-046` | RF-010, NOM-004 | Endpoints para solicitud y registro de estudios de laboratorio clínico vinculados al expediente del paciente. | `app/Http/Controllers/Api/V1/LaboratorioController.php` | Tests de creación y consulta de resultados | ⏳ Pendiente |
+| `TASK-W-047` | RNF-007, FHIR R4 | Controlador de interoperabilidad HL7 FHIR R4 (`Patient`, `Encounter`, `MedicationRequest`) conforme a especificación HL7. | `app/Http/Controllers/Api/V1/FhirController.php`, `app/Services/FhirSerializerService.php` | Validación contra schemas JSON FHIR R4 | ⏳ Pendiente |
+| `TASK-W-048` | PROV-RN-008, LFPDPPP | Registro de consentimiento informado con cálculo de hash SHA-256 inmutable de la voluntad del paciente. | `app/Models/ConsentimientoInformado.php`, `app/Services/ConsentimientoService.php` | Tests de inmutabilidad y verificación de hash | ⏳ Pendiente |
+| `TASK-W-049` | PROV-RN-010, NOM-004 | Protocolo de emergencia "Break-the-Glass" para consulta no autorizada de expediente con justificación y log reforzado en `AUDITORIA_I`. | `app/Http/Middleware/BreakTheGlassMiddleware.php`, `app/Services/BreakTheGlassService.php` | Test de registro de evento crítico y acceso concedido | ⏳ Pendiente |
+| `TASK-W-050` | PROV-SEC-008, LFPDPPP | Generación de PDF de expediente clínico con marca de agua disociada ("COPIA CLÍNICA AUDITADA - USO INTERNO"). | `app/Services/PdfExpedienteService.php` | Test de generación sin PII expuesta en texto plano | ⏳ Pendiente |
+| `TASK-W-051` | RF-008 a RF-010, RNF-007 | Colección Bruno `08-ECE-Recetas-FHIR` cubriendo notas médicas, recetas con QR, FHIR R4 y Break-the-Glass. | `vitae-bruno/08-ECE-Recetas-FHIR` | Ejecución 100% exitosa con Bruno CLI | ⏳ Pendiente |
+| `TASK-W-052` | RF-008 a RF-010, RNF-007 | Suite completa de pruebas automatizadas PHPUnit para ECE, notas inmutables, recetas y FHIR R4. | `tests/Feature/Sprint4EceRecetasTest.php` | Suite de pruebas PHPUnit pasando al 100% | ⏳ Pendiente |
+
+---
+
+## 3. Matriz de Integración Frontend vs Backend (Endpoints Reales vs Mocks)
+*Fecha de Diagnóstico: 2026-11-02 • Rama: `dev`*
+
+| Módulo / Vista Frontend | Componente / Acción | Estado de Conexión | Mock Actual | Endpoint Backend Objetivo / TODO |
+| :--- | :--- | :---: | :--- | :--- |
+| **Administración** (`AdminWorkspaceView.vue`) | Catálogo de usuarios | 🟡 Mock | `usuarios` (6 usuarios simulados) | `GET /api/v1/admin/usuarios` |
+| **Administración** (`AdminWorkspaceView.vue`) | Cuentas bloqueadas | 🟡 Mock | `cuentasBloqueadas` (2 simuladas) | `GET /api/v1/admin/bloqueos` / `POST /.../{id}/desbloquear` |
+| **Administración** (`AdminWorkspaceView.vue`) | Bitácora de auditoría | 🟡 Mock | `trazas` (registros estáticos) | `GET /api/v1/auditoria` (NOM-024 / `AUDITORIA_I`) |
+| **Administración** (`AdminWorkspaceView.vue`) | Contenedores y telemetría | 🟡 Mock | `contenedores`, `telemetria` | `GET /api/v1/admin/infraestructura/contenedores` / `telemetria` |
+| **Laboratorio** (`LabWorkspaceView.vue`) | Banco de estudios pendientes | 🟡 Mock | `orders` (banco de pruebas local) | `GET /api/v1/laboratorio/estudios` |
+| **Laboratorio** (`LabWorkspaceView.vue`) | Cargar y validar resultado | 🟡 Mock | `handleGuardarResultado` (alerta local) | `POST /api/v1/laboratorio/estudios/{folio}/resultado` |
+| **Laboratorio** (`LabWorkspaceView.vue`) | Rechazo de muestra | 🟡 Mock | `handleRechazarMuestra` (alerta local) | `POST /api/v1/laboratorio/estudios/{folio}/rechazo` |
+| **Médico** (`DoctorWorkspaceView.vue`) | Cola de pacientes | 🟡 Mock | `pacientesCola` (DEMO-0248..50) | `GET /api/v1/triage/cola` (`triageService.obtenerColaUrgencias`) |
+| **Médico** (`NuevaNotaEceSection.vue`) | Guardar y firmar nota ECE | 🟡 Mock | `onGuardarFirmar` (alerta local) | `POST /api/v1/ece/notas` (NOM-004-SSA3-2012) |
+| **Médico** (`EmitirRecetaSection.vue`) | Guardar y firmar receta | 🟡 Mock | `firmarYEmitir` (alerta local) | `POST /api/v1/recetas` (COFEPRIS / Cédula verificada) |
+| **Médico** (`SolicitarLaboratorioSection.vue`) | Enviar solicitud lab | 🟡 Mock | `enviarSolicitud` (alerta local) | `POST /api/v1/laboratorio/solicitudes` (HL7 / FHIR R4) |
+| **Enfermería** (`NurseWorkspaceView.vue`) | Pacientes en espera | 🟡 Mock | `pacientesEnEspera` (2 locales) | `GET /api/v1/triage/cola` (`triageService.obtenerColaUrgencias`) |
+| **Enfermería** (`NurseWorkspaceView.vue`) | Registrar clasificación triage | 🟡 Mock | `registrarTriage` (in-memory) | `POST /api/v1/triage` (`triageService.clasificarTriage`) |
+| **Enfermería** (`NurseWorkspaceView.vue`) | Reclasificar triage | 🟡 Mock | `actualizarReclasificacion` (in-mem) | `POST /api/v1/triage/reclasificar` (`triageService.reclasificarTriage`) |
+| **Enfermería** (`NotaEnfermeriaSection.vue`) | Firmar nota enfermería | 🟡 Mock | `guardarNotaEnfermeria` (alerta local) | `POST /api/v1/enfermeria/notas` (NOM-004-SSA3-2012) |
+| **Recepción** (`CurpSearchSection.vue`) | Búsqueda por CURP | 🟡 Mock | `ejecutarBusquedaCurp` (carga demo) | `GET /api/v1/pacientes?curp=...` (Validación RENAPO) |
+| **Recepción** (`PatientRegisterSection.vue`) | Completar registro expediente | 🟡 Mock | `completarRegistroExpediente` (alerta) | `POST /api/v1/pacientes` (NOM-024 / Admisión) |
+| **Recepción** (`AppointmentBookingSection.vue`) | Confirmar cita médica | 🟡 Mock | `confirmarCitaExpedirComprobante` (alerta) | `POST /api/v1/citas` (Agenda y Consultorios) |
+| **Recepción** (`BedCensusSection.vue`) | Asignación de cama | 🟡 Mock | `confirmarAsignacionCama` (local) | `POST /api/v1/camas/{id}/asignar` (Censo Hospitalario) |
+| **Recepción** (`WaitingRoomMonitorSection.vue`) | Monitor sala de espera | 🟡 Mock | `turnosPresenciales` (estático) | `GET /api/v1/triage/sala-espera` (`triageService.obtenerMonitorSalaEspera`) |

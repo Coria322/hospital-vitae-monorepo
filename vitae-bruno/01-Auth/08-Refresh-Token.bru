@@ -1,7 +1,7 @@
 meta {
-  name: 05 - Renovar Token (Refresh)
+  name: 08 - Refrescar Token
   type: http
-  seq: 5
+  seq: 8
 }
 
 post {
@@ -15,13 +15,11 @@ headers {
   Authorization: Bearer {{admin_token}}
 }
 
-vars:post-response {
-  admin_token: res.body.data.token
-}
-
 tests {
-  test("Refresh token exitoso retorna 200", function() {
+  test("Refresco de token retorna 200", function() {
     expect(res.getStatus()).to.equal(200);
+  });
+  test("Nuevo token retornado", function() {
     expect(res.getBody().data.token).to.be.a('string');
   });
 }

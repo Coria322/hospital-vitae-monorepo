@@ -12,8 +12,8 @@ defineProps<{
     <div class="patient-banner-card">
       <div class="breadcrumbs">
         Atención clínica / Expediente clínico electrónico / 
-        <span v-if="pacienteSeleccionado" class="status-open">📂 Expediente abierto · {{ pacienteSeleccionado.folio }}</span>
-        <span v-else class="status-empty">📁 Esperando selección de paciente</span>
+        <span v-if="pacienteSeleccionado" class="status-open"><svg viewBox="0 0 24 24" class="svg-inline-folder" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Expediente abierto · {{ pacienteSeleccionado.folio }}</span>
+        <span v-else class="status-empty"><svg viewBox="0 0 24 24" class="svg-inline-folder" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Esperando selección de paciente</span>
       </div>
 
       <div v-if="pacienteSeleccionado" class="patient-main-row">
@@ -30,7 +30,7 @@ defineProps<{
       </div>
 
       <div v-else class="empty-patient-box">
-        <div class="empty-icon">👤</div>
+        <div class="empty-icon"><svg viewBox="0 0 24 24" class="svg-inline-user" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
         <div>
           <strong>Ningún paciente en consulta</strong>
           <p>Haga clic en uno de los pacientes de la lista izquierda para cargar sus signos vitales e historial.</p>
@@ -66,7 +66,7 @@ defineProps<{
       </div>
 
       <div v-else class="placeholder-box">
-        <span class="placeholder-icon">📊</span>
+        <span class="placeholder-icon"><svg viewBox="0 0 24 24" class="svg-inline-chart" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
         <strong>Módulo de Signos Vitales (Conexión Backend Pendiente)</strong>
         <p>Aquí se graficarán los signos del Triage una vez que Enfermería procese al paciente.</p>
       </div>
@@ -96,7 +96,7 @@ defineProps<{
       </div>
 
       <div v-else class="placeholder-box">
-        <span class="placeholder-icon">📋</span>
+        <span class="placeholder-icon"><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
         <strong>Resumen de Antecedentes (Esperando Selección)</strong>
         <p>Los antecedentes patológicos y alergias se cargarán desde el expediente central en PostgreSQL.</p>
       </div>
@@ -115,7 +115,7 @@ defineProps<{
             <strong>{{ pacienteSeleccionado.ultimaNota.titulo }}</strong><br/>
             <small class="note-author">{{ pacienteSeleccionado.ultimaNota.medico }} · Folio {{ pacienteSeleccionado.ultimaNota.folio }}</small>
           </div>
-          <span class="pill-locked">🔒 Firmada · Solo lectura</span>
+          <span class="pill-locked"><svg viewBox="0 0 24 24" class="svg-inline-lock" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Firmada · Solo lectura</span>
         </div>
         <p class="note-text">{{ pacienteSeleccionado.ultimaNota.contenido }}</p>
         <div class="nom004-footer">
@@ -127,7 +127,7 @@ defineProps<{
       </div>
 
       <div v-else class="placeholder-box">
-        <span class="placeholder-icon">📑</span>
+        <span class="placeholder-icon"><svg viewBox="0 0 24 24" class="svg-inline-doc" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
         <strong>Historial Clínico (Sin registros cargados)</strong>
         <p>Esta sección consultará las notas médicas históricas de la tabla <code>expediente_clinico</code>.</p>
       </div>

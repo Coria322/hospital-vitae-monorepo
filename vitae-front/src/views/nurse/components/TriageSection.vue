@@ -146,7 +146,7 @@ const guardarTriage = () => {
     enfermedadesPrevias: triageForm.value.enfermedadesPrevias
   })
 
-  alert(`✓ Triage registrado con éxito para: ${triageForm.value.nombrePaciente}.\nAsignado a: ${destinoSeleccionado.value} con prioridad ${nivel}.`)
+  alert(`<svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Triage registrado con éxito para: ${triageForm.value.nombrePaciente}.\nAsignado a: ${destinoSeleccionado.value} con prioridad ${nivel}.`)
 }
 
 const derivarAChoque = () => {
@@ -165,7 +165,7 @@ const derivarAChoque = () => {
           <h3 class="module-title">Triage y Clasificación Inicial</h3>
           
           <div class="patient-turn-row">
-            <span class="icon-user">👤</span>
+            <span class="icon-user"><svg viewBox="0 0 24 24" class="svg-inline-user" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
             <div class="patient-turn-text">
               <small>PACIENTE EN TURNO</small>
               <strong v-if="triageForm.nombrePaciente">{{ triageForm.nombrePaciente }}</strong>
@@ -174,13 +174,13 @@ const derivarAChoque = () => {
           </div>
 
           <div class="status-chip-blue">
-            ⏳ Esperando valoración inicial en Box
+            <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg> Esperando valoración inicial en Box
           </div>
         </div>
 
         <div class="banner-right-info">
           <div class="prescription-locked-badge">
-            🔒 Prescripción médica bloqueada (NOM-004 Enfermería)
+            <svg viewBox="0 0 24 24" class="svg-inline-lock" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Prescripción médica bloqueada (NOM-004 Enfermería)
           </div>
           <div class="room-status-badge">
             <span class="status-dot green"></span>
@@ -193,7 +193,7 @@ const derivarAChoque = () => {
       <section class="clinical-box">
         <div class="box-header">
           <div class="box-title-row">
-            <span class="box-num-icon">🪪</span>
+            <span class="box-num-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><line x1="15" y1="8" x2="17" y2="8"/><line x1="15" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg></span>
             <h4>1. Identificación Inicial de Ingreso</h4>
           </div>
           <span class="box-reg-code">ENF - REG - 2026 - VITE</span>
@@ -239,7 +239,7 @@ const derivarAChoque = () => {
       <section class="clinical-box">
         <div class="box-header">
           <div class="box-title-row">
-            <span class="box-num-icon">📈</span>
+            <span class="box-num-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span>
             <h4>2. Telemetría de Signos Vitales</h4>
             <small class="box-subtitle">Navegación secuencial por teclado con tecla TAB. Cálculo reactivo.</small>
           </div>
@@ -320,7 +320,7 @@ const derivarAChoque = () => {
           <!-- AVDI -->
           <div class="scale-box">
             <div class="scale-box-header">
-              <strong>🧠 Escala AVDI</strong>
+              <strong><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-5.04z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-5.04z"/></svg> Escala AVDI</strong>
               <span class="badge-neutral">Consciencia</span>
             </div>
             <small class="avdi-rule">
@@ -369,7 +369,7 @@ const derivarAChoque = () => {
           <!-- Escala Dolor EVA -->
           <div class="scale-box">
             <div class="scale-box-header">
-              <strong>😣 Escala Dolor (EVA)</strong>
+              <strong><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg> Escala Dolor (EVA)</strong>
               <span class="badge-neutral">{{ triageForm.evaDolor }} / 10</span>
             </div>
             <small class="scale-desc">Intensidad manifestada por el paciente o evaluada mediante escala observacional.</small>
@@ -397,7 +397,7 @@ const derivarAChoque = () => {
       <section class="clinical-box">
         <div class="box-header">
           <div class="box-title-row">
-            <span class="box-num-icon">📝</span>
+            <span class="box-num-icon"><svg viewBox="0 0 24 24" class="svg-inline-edit" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
             <h4>3. Motivo de Urgencia y Antecedentes Críticos</h4>
           </div>
         </div>
@@ -440,7 +440,7 @@ const derivarAChoque = () => {
       <section class="clinical-box">
         <div class="box-header">
           <div class="box-title-row">
-            <span class="box-num-icon">📋</span>
+            <span class="box-num-icon"><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
             <h4>Últimos Pacientes Clasificados en Guardia</h4>
           </div>
           <span class="box-reg-code">Registro en tiempo real HL7 FHIR</span>
@@ -461,7 +461,7 @@ const derivarAChoque = () => {
               <tr v-if="pacientesClasificados.length === 0" class="empty-table-row">
                 <td colspan="5">
                   <div class="empty-table-msg">
-                    <span>📁 Sin registros en esta guardia aún</span>
+                    <span><svg viewBox="0 0 24 24" class="svg-inline-folder" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Sin registros en esta guardia aún</span>
                     <small>Los pacientes clasificados se listarán aquí en tiempo real.</small>
                   </div>
                 </td>
@@ -487,7 +487,7 @@ const derivarAChoque = () => {
     <aside class="triage-decision-col">
       <div class="decision-card">
         <div class="decision-header">
-          <span class="decision-icon">📊</span>
+          <span class="decision-icon"><svg viewBox="0 0 24 24" class="svg-inline-chart" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
           <h4>Algoritmo Manchester</h4>
         </div>
 
@@ -572,11 +572,11 @@ const derivarAChoque = () => {
 
         <!-- Botones de Acción Inmediata -->
         <button type="button" class="btn-save-triage" @click="guardarTriage">
-          💾 Guardar Triage y Asignar Turno [Enter]
+          <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Guardar Triage y Asignar Turno [Enter]
         </button>
 
         <button type="button" class="btn-direct-choque" @click="derivarAChoque">
-          ⚡ Derivar a Choque Inmediato [Alt+C]
+          <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Derivar a Choque Inmediato [Alt+C]
         </button>
       </div>
     </aside>

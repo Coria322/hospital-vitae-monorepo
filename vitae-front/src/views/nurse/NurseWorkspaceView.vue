@@ -86,6 +86,7 @@ const pacienteActivo = ref<PacienteEnfermeria>({
   enfermedadesPrevias: ''
 })
 
+// TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/triage/cola (triageService.obtenerColaUrgencias)
 // Lista reactiva de pacientes en sala de espera
 const pacientesEnEspera = ref<PacienteEnfermeria[]>([
   {
@@ -147,6 +148,7 @@ const cambiarSeccion = (sec: 'triage' | 'reclasificar' | 'sala' | 'nota') => {
   seccionActiva.value = sec
 }
 
+// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/triage (triageService.clasificarTriage)
 const registrarTriage = (datos: any) => {
   pacienteActivo.value = {
     ...pacienteActivo.value,
@@ -170,6 +172,7 @@ const seleccionarPacienteParaNota = (p: PacienteEnfermeria) => {
   seccionActiva.value = 'nota'
 }
 
+// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/triage/reclasificar (triageService.reclasificarTriage)
 const actualizarReclasificacion = (datosReval: any) => {
   if (pacienteActivo.value) {
     pacienteActivo.value.triage = datosReval.nuevoNivel
@@ -188,11 +191,11 @@ const actualizarReclasificacion = (datosReval: any) => {
 }
 
 const activarChoqueInmediato = () => {
-  alert('🚨 ALERTA ROJA: Protocolo de Reanimación / Choque activado. Sala 01 notificada en tiempo real.')
+  alert('<svg viewBox="0 0 24 24" class="svg-inline-siren" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> ALERTA ROJA: Protocolo de Reanimación / Choque activado. Sala 01 notificada en tiempo real.')
 }
 
 const activarCodigoAzul = () => {
-  alert('🚨 CÓDIGO AZUL ACTIVADO: Alarma general de paro cardiorrespiratorio en Sala de Espera.')
+  alert('<svg viewBox="0 0 24 24" class="svg-inline-siren" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> CÓDIGO AZUL ACTIVADO: Alarma general de paro cardiorrespiratorio en Sala de Espera.')
 }
 
 // Atajos de teclado del módulo

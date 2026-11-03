@@ -3,6 +3,8 @@ import LoginView from '../views/LoginView.vue'
 import DoctorWorkspaceView from '../views/doctor/DoctorWorkspaceView.vue'
 import NurseWorkspaceView from '../views/nurse/NurseWorkspaceView.vue'
 import ReceptionWorkspaceView from '../views/reception/ReceptionWorkspaceView.vue'
+import LabWorkspaceView from '../views/lab/LabWorkspaceView.vue'
+import AdminWorkspaceView from '../views/admin/AdminWorkspaceView.vue'
 import HomeView from '../views/HomeView.vue'
 import authService from '../services/authService'
 
@@ -35,6 +37,26 @@ const router = createRouter({
     {
       path: '/admision',
       redirect: '/recepcion',
+    },
+    {
+      path: '/laboratorio',
+      name: 'laboratorio',
+      component: LabWorkspaceView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/lab',
+      redirect: '/laboratorio',
+    },
+    {
+      path: '/administrador',
+      name: 'administrador',
+      component: AdminWorkspaceView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/admin',
+      redirect: '/administrador',
     },
     {
       path: '/home',

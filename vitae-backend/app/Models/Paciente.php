@@ -55,6 +55,11 @@ class Paciente extends Model
         return $this->hasOne(ExpedienteClinico::class, 'id_paciente', 'id_paciente');
     }
 
+    public function triages(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Triage::class, 'id_paciente', 'id_paciente');
+    }
+
     /**
      * Ejecuta la baja lógica del paciente y genera evento en AUDITORIA_I.
      */

@@ -1,0 +1,39 @@
+info:
+  name: 11 - Admisión Paciente Desconocido NN (201 Created)
+  type: http
+  seq: 11
+
+http:
+  method: POST
+  url: "{{base_url}}/pacientes"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{enfermera_token}}
+  body:
+    type: json
+    data: |-
+      {
+        "identificado": false,
+        "sexo": "MASCULINO"
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Admite paciente desconocido temporal con UUID y folio", function() {
+          expect(res.getStatus()).to.equal(201);
+          expect(res.getBody().data.identificado).to.equal(false);
+          expect(res.getBody().data.folio_urgencias).to.contain("URG-NN-");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

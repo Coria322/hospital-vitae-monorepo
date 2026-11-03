@@ -62,8 +62,12 @@ const handleLogin = async () => {
         router.push('/medico')
       } else if (rol === 'ENFERMERIA') {
         router.push('/enfermeria')
-      } else if (rol === 'ADMINISTRADOR' || rol === 'RECEPCION') {
+      } else if (rol === 'ADMINISTRADOR' || rol === 'ADMIN') {
+        router.push('/administrador')
+      } else if (rol === 'RECEPCION' || rol === 'ADMISION') {
         router.push('/recepcion')
+      } else if (rol === 'LABORATORIO' || rol === 'LABORATORISTA') {
+        router.push('/laboratorio')
       } else {
         router.push('/medico')
       }
@@ -163,7 +167,13 @@ const handleTriageEmergencia = () => {
           <form @submit.prevent="handleLogin" class="clinical-form">
             <!-- Alerta Reactiva de Autenticación -->
             <div v-if="errorMessage" class="auth-feedback-alert error">
-              <span class="alert-icon">⚠️</span>
+              <span class="alert-icon">
+                <svg viewBox="0 0 24 24" class="svg-feedback-icon" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </span>
               <div class="alert-text">
                 <strong>Error de autenticación</strong>
                 <span>{{ errorMessage }}</span>
@@ -171,7 +181,12 @@ const handleTriageEmergencia = () => {
             </div>
 
             <div v-if="successMessage" class="auth-feedback-alert success">
-              <span class="alert-icon">✓</span>
+              <span class="alert-icon">
+                <svg viewBox="0 0 24 24" class="svg-feedback-icon" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </span>
               <div class="alert-text">
                 <strong>Acceso Autorizado</strong>
                 <span>{{ successMessage }} Redirigiendo a su espacio clínico...</span>
@@ -338,9 +353,39 @@ const handleTriageEmergencia = () => {
       <!-- Accesos Rápidos a Módulos Hospitalarios -->
       <div class="workspace-quick-bar">
         <span>Acceso directo a módulos:</span>
-        <button type="button" class="btn-quick-module" @click="router.push('/medico')">👨‍⚕️ Espacio Médico (/medico)</button>
-        <button type="button" class="btn-quick-module" @click="router.push('/enfermeria')">👩‍⚕️ Enfermería y Triage (/enfermeria)</button>
-        <button type="button" class="btn-quick-module" @click="router.push('/recepcion')">📋 Recepción y Admisión (/recepcion)</button>
+        <button type="button" class="btn-quick-module" @click="router.push('/medico')">
+          <svg viewBox="0 0 24 24" class="quick-btn-svg" fill="currentColor">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
+          </svg>
+          <span>Espacio Médico</span>
+        </button>
+        <button type="button" class="btn-quick-module" @click="router.push('/enfermeria')">
+          <svg viewBox="0 0 24 24" class="quick-btn-svg" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+          </svg>
+          <span>Enfermería y Triage</span>
+        </button>
+        <button type="button" class="btn-quick-module" @click="router.push('/recepcion')">
+          <svg viewBox="0 0 24 24" class="quick-btn-svg" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
+          </svg>
+          <span>Recepción y Admisión</span>
+        </button>
+        <button type="button" class="btn-quick-module" @click="router.push('/laboratorio')">
+          <svg viewBox="0 0 24 24" class="quick-btn-svg" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 2v7.31L4.5 19.5A2 2 0 0 0 6.23 22h11.54a2 2 0 0 0 1.73-2.5L14 9.31V2"/>
+            <line x1="8.5" y1="2" x2="15.5" y2="2"/>
+          </svg>
+          <span>Laboratorio LIS</span>
+        </button>
+        <button type="button" class="btn-quick-module" @click="router.push('/administrador')">
+          <svg viewBox="0 0 24 24" class="quick-btn-svg" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+          </svg>
+          <span>Administración TI</span>
+        </button>
       </div>
     </main>
 
@@ -992,6 +1037,11 @@ const handleTriageEmergencia = () => {
   margin: 0 auto;
 }
 
+.svg-feedback-icon {
+  width: 18px;
+  height: 18px;
+}
+
 .workspace-quick-bar span {
   font-weight: 600;
   color: #475569;
@@ -1006,7 +1056,15 @@ const handleTriageEmergencia = () => {
   font-weight: 700;
   color: #0F4C81;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   transition: all 0.15s;
+}
+
+.quick-btn-svg {
+  width: 14px;
+  height: 14px;
 }
 
 .btn-quick-module:hover {

@@ -52,7 +52,7 @@ const tiempoPromedioEspera = computed(() => {
 })
 
 const emitirVoceo = () => {
-  alert('📢 Sistema de voceo general activado en altavoces de sala de espera.')
+  alert('<svg viewBox="0 0 24 24" class="svg-inline-speaker" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Sistema de voceo general activado en altavoces de sala de espera.')
 }
 
 const dispararCodigoAzul = () => {
@@ -70,18 +70,18 @@ const dispararCodigoAzul = () => {
           <span class="module-tag">MÓDULO ACTIVO</span>
           <h3 class="sala-title">Monitor de Sala de Espera & Censo Dinámico de Urgencias</h3>
         </div>
-        <span class="telemetria-pill">📡 Telemetría Activa</span>
+        <span class="telemetria-pill"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg> Telemetría Activa</span>
       </div>
 
       <div class="sala-top-actions">
         <button type="button" class="btn-voceo" @click="emitirVoceo">
-          📢 Voceo General <kbd>Alt+V</kbd>
+          <svg viewBox="0 0 24 24" class="svg-inline-speaker" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Voceo General <kbd>Alt+V</kbd>
         </button>
         <button type="button" class="btn-codigo-azul" @click="dispararCodigoAzul">
-          ⚡ Código Azul / Alarma Sala
+          <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Código Azul / Alarma Sala
         </button>
         <button type="button" class="btn-nuevo-triage" @click="emit('cambiarSeccion', 'triage')">
-          ➕ Nuevo Triage <kbd>Alt+S</kbd>
+          <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Nuevo Triage <kbd>Alt+S</kbd>
         </button>
       </div>
     </div>
@@ -98,7 +98,7 @@ const dispararCodigoAzul = () => {
           </div>
           <span class="kpi-footer-text">Priorizados según Manchester</span>
         </div>
-        <div class="kpi-icon-box">👥</div>
+        <div class="kpi-icon-box"><svg viewBox="0 0 24 24" class="svg-inline-users" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
       </div>
 
       <!-- KPI 2 -->
@@ -109,9 +109,9 @@ const dispararCodigoAzul = () => {
             <strong>{{ tiempoPromedioEspera }}</strong>
             <span class="kpi-subtag">min</span>
           </div>
-          <span class="kpi-footer-text green">✓ SLA global en norma</span>
+          <span class="kpi-footer-text green"><svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> SLA global en norma</span>
         </div>
-        <div class="kpi-icon-box">⏱️</div>
+        <div class="kpi-icon-box"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M10 2h4"/><path d="m17 5 1.5-1.5"/></svg></div>
       </div>
 
       <!-- KPI 3 -->
@@ -124,7 +124,7 @@ const dispararCodigoAzul = () => {
           </div>
           <span class="kpi-footer-text red">Sin alertas críticas de tiempo</span>
         </div>
-        <div class="kpi-icon-box alert">🚨</div>
+        <div class="kpi-icon-box alert"><svg viewBox="0 0 24 24" class="svg-inline-siren" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
       </div>
 
       <!-- KPI 4 -->
@@ -139,7 +139,7 @@ const dispararCodigoAzul = () => {
             <div class="capacity-fill" :style="{ width: `${Math.min(100, (pacientesEnEsperaCount / 6) * 100)}%` }"></div>
           </div>
         </div>
-        <div class="kpi-icon-box">🏥</div>
+        <div class="kpi-icon-box"><svg viewBox="0 0 24 24" class="svg-inline-hospital" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><line x1="12" y1="6" x2="12" y2="10"/><line x1="10" y1="8" x2="14" y2="8"/></svg></div>
       </div>
     </div>
 
@@ -181,14 +181,14 @@ const dispararCodigoAzul = () => {
       </div>
 
       <div class="auto-refresh-tag">
-        🔄 Actualización automática activa
+        <svg viewBox="0 0 24 24" class="svg-inline-sync" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Actualización automática activa
       </div>
     </div>
 
     <!-- Lista de Tarjetas de Pacientes en Sala -->
     <div class="sala-patients-cards-container">
       <div v-if="listaPacientes.length === 0" class="empty-sala-card">
-        <div class="empty-sala-icon">🛋️</div>
+        <div class="empty-sala-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="7" rx="2"/><path d="M5 18v2M19 18v2M2 9v5M22 9v5"/></svg></div>
         <h4>Sala de espera despejada</h4>
         <p>Actualmente no hay pacientes en cola de espera en esta sala de urgencias. Los pacientes clasificados en el módulo de Triage aparecerán aquí con sus temporizadores en cuenta regresiva.</p>
       </div>
@@ -217,7 +217,7 @@ const dispararCodigoAzul = () => {
               ● {{ p.triage }}
             </span>
             <div class="w-wait-timer">
-              ⏱️ Espera: <strong>{{ p.tiempoEspera || 10 }} min</strong>
+              <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M10 2h4"/><path d="m17 5 1.5-1.5"/></svg> Espera: <strong>{{ p.tiempoEspera || 10 }} min</strong>
             </div>
           </div>
         </div>
@@ -229,7 +229,7 @@ const dispararCodigoAzul = () => {
             <span>SpO2: <strong>{{ p.signos.spo2 }}%</strong></span>
             <span>Temp: <strong>{{ p.signos.temp }}°C</strong></span>
             <span>EVA: <strong>{{ p.signos.evaDolor }}/10</strong></span>
-            <span v-if="p.alergias" class="w-allergy">⚠️ Alergia: {{ p.alergias }}</span>
+            <span v-if="p.alergias" class="w-allergy"><svg viewBox="0 0 24 24" class="svg-inline-alert" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Alergia: {{ p.alergias }}</span>
           </div>
 
           <div class="w-actions-row">
@@ -239,7 +239,7 @@ const dispararCodigoAzul = () => {
               @click="emit('abrirReclasificar', p)"
               title="Abrir este paciente en Reclasificación Manchester"
             >
-              🔄 Reclasificar Manchester
+              <svg viewBox="0 0 24 24" class="svg-inline-sync" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Reclasificar Manchester
             </button>
             <button 
               type="button" 
@@ -247,7 +247,7 @@ const dispararCodigoAzul = () => {
               @click="emit('abrirNota', p)"
               title="Abrir Nota de Enfermería para este paciente"
             >
-              📝 Nota de Enfermería
+              <svg viewBox="0 0 24 24" class="svg-inline-edit" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Nota de Enfermería
             </button>
           </div>
         </div>

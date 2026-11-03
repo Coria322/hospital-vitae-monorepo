@@ -115,7 +115,7 @@ const confirmarReclasificacion = () => {
   reclasificacionesHistoricas.value.unshift({
     hora,
     paciente: nombrePaciente,
-    transicion: `${props.pacienteActivo?.triage || 'Nivel III'} ➔ ${nuevoNivelCalculado.value.titulo}`,
+    transicion: `${props.pacienteActivo?.triage || 'Nivel III'} <svg viewBox="0 0 24 24" class="svg-inline-arrow" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> ${nuevoNivelCalculado.value.titulo}`,
     motivo: reevaluacionForm.value.justificacionClinica.slice(0, 45) + '...',
     destino: nuevoNivelCalculado.value.destino,
     enfermero: props.enfermera.nombre
@@ -136,7 +136,7 @@ const confirmarReclasificacion = () => {
     }
   })
 
-  alert(`✓ Reclasificación confirmada para: ${nombrePaciente}.\nNueva prioridad: ${nuevoNivelCalculado.value.titulo}.\nDestino reasignado: ${nuevoNivelCalculado.value.destino}.`)
+  alert(`<svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Reclasificación confirmada para: ${nombrePaciente}.\nNueva prioridad: ${nuevoNivelCalculado.value.titulo}.\nDestino reasignado: ${nuevoNivelCalculado.value.destino}.`)
 }
 </script>
 
@@ -155,7 +155,7 @@ const confirmarReclasificacion = () => {
         </div>
         <div class="reval-tags-row">
           <span class="tag-status green">● Sala Choque: <strong>DISPONIBLE (BOX 1)</strong></span>
-          <span class="tag-status blue">🛡️ Auditoría Clínico-Legal Activa</span>
+          <span class="tag-status blue"><svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Auditoría Clínico-Legal Activa</span>
           <span class="tag-status gray">Operador: <strong>{{ enfermera.nombre }} [{{ enfermera.cedula }}]</strong></span>
         </div>
       </div>
@@ -165,12 +165,12 @@ const confirmarReclasificacion = () => {
         <div class="reval-patient-left">
           <small>PACIENTE SELECCIONADO EN SALA DE ESPERA PARA REEVALUACIÓN</small>
           <strong v-if="pacienteActivo?.nombre">
-            👤 {{ pacienteActivo.nombre }} {{ pacienteActivo.edad ? `(${pacienteActivo.edad} años)` : '' }} · {{ pacienteActivo.folio || 'FOL-URG' }}
+            <svg viewBox="0 0 24 24" class="svg-inline-user" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{ pacienteActivo.nombre }} {{ pacienteActivo.edad ? `(${pacienteActivo.edad} años)` : '' }} · {{ pacienteActivo.folio || 'FOL-URG' }}
           </strong>
           <strong v-else class="text-unselected">[ Seleccione paciente de la lista de espera ]</strong>
         </div>
         <div class="reval-sla-alert-box">
-          <div class="sla-alert-icon">⏱️</div>
+          <div class="sla-alert-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M10 2h4"/><path d="m17 5 1.5-1.5"/></svg></div>
           <div class="sla-alert-text">
             <span class="badge-danger">ALERTA SLA MANCHESTER</span>
             <p>Próximo a tolerancia clínica máxima.</p>
@@ -186,7 +186,7 @@ const confirmarReclasificacion = () => {
       <section class="clinical-box">
         <div class="box-header">
           <div class="box-title-row">
-            <span class="box-num-icon">〽️</span>
+            <span class="box-num-icon"><svg viewBox="0 0 24 24" class="svg-inline-activity" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
             <h4>Comparativa de Telemetría Dinámica</h4>
           </div>
           <span class="badge-neutral">Delta Fisiológico en Espera</span>
@@ -239,7 +239,7 @@ const confirmarReclasificacion = () => {
               <div class="reval-card-title-row">
                 <strong>● CAPTURA ACTUAL DE REEVALUACIÓN</strong>
                 <button type="button" class="btn-copy-history" @click="copiarSignosPrevios" title="Copiar constantes previas como punto de partida">
-                  📋 Copiar previos
+                  <svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> Copiar previos
                 </button>
               </div>
               <span class="time-tag">Tabulación Rápida</span>
@@ -282,7 +282,7 @@ const confirmarReclasificacion = () => {
       <section class="clinical-box">
         <div class="box-header">
           <div class="box-title-row">
-            <span class="box-num-icon">🩺</span>
+            <span class="box-num-icon"><svg viewBox="0 0 24 24" class="svg-inline-steth" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg></span>
             <h4>Discriminadores Manchester & Causa de Reevaluación</h4>
           </div>
           <span class="protocol-link">Protocolo: Cefalea / Dolor Abdominal / Sepsis Potencial</span>
@@ -314,7 +314,7 @@ const confirmarReclasificacion = () => {
           <!-- Pregunta 1 -->
           <div class="question-row">
             <div class="q-text">
-              <span class="q-icon">🫁</span>
+              <span class="q-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 4v9"/><path d="M9 13a4 4 0 0 1-5-4V6a3 3 0 0 1 5-2c2 0 2 2 2 4v5"/><path d="M15 13a4 4 0 0 0 5-4V6a3 3 0 0 0-5-2c-2 0-2 2-2 4v5"/><path d="M6 13c0 4.4 2.7 8 6 8s6-3.6 6-8"/></svg></span>
               <span>¿Vía aérea comprometida, estridor laríngeo o sibilancias audibles?</span>
             </div>
             <div class="q-actions">
@@ -326,7 +326,7 @@ const confirmarReclasificacion = () => {
           <!-- Pregunta 2 -->
           <div class="question-row highlight-urgent">
             <div class="q-text">
-              <span class="q-icon">📉</span>
+              <span class="q-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></span>
               <div>
                 <span>¿Signos evidentes de hipoperfusión, palidez extrema o shock compensado?</span>
                 <small class="q-hint">PA &lt; 90/60 + Taquicardia &gt; 110 lpm activa umbral de discriminación Nivel II</small>
@@ -341,7 +341,7 @@ const confirmarReclasificacion = () => {
           <!-- Pregunta 3 -->
           <div class="question-row">
             <div class="q-text">
-              <span class="q-icon">🫀</span>
+              <span class="q-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5v4"/></svg></span>
               <span>¿Dolor torácico opresivo de características isquémicas agudas?</span>
             </div>
             <div class="q-actions">
@@ -353,7 +353,7 @@ const confirmarReclasificacion = () => {
           <!-- Pregunta 4 -->
           <div class="question-row">
             <div class="q-text">
-              <span class="q-icon">🧠</span>
+              <span class="q-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-5.04z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-5.04z"/></svg></span>
               <span>¿Alteración aguda del estado de conciencia (AVDI / Glasgow &lt; 14) o crisis presenciada?</span>
             </div>
             <div class="q-actions">
@@ -382,12 +382,12 @@ const confirmarReclasificacion = () => {
       <section class="clinical-box">
         <div class="box-header">
           <div class="box-title-row">
-            <span class="box-num-icon">📋</span>
+            <span class="box-num-icon"><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
             <h4>Trazabilidad de Reclasificaciones del Turno en Curso</h4>
           </div>
           <div class="box-actions-right">
             <span class="shift-tag">Guardia A · Turno Diurno</span>
-            <button type="button" class="btn-clean">📤 Exportar Bitácora FHIR</button>
+            <button type="button" class="btn-clean"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Exportar Bitácora FHIR</button>
           </div>
         </div>
 
@@ -407,7 +407,7 @@ const confirmarReclasificacion = () => {
               <tr v-if="reclasificacionesHistoricas.length === 0" class="empty-table-row">
                 <td colspan="6">
                   <div class="empty-table-msg">
-                    <span>📁 Sin eventos de reclasificación registrados en este turno</span>
+                    <span><svg viewBox="0 0 24 24" class="svg-inline-folder" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Sin eventos de reclasificación registrados en este turno</span>
                     <small>Cada escalamiento aprobado generará un registro sellado en la bitácora clínica.</small>
                   </div>
                 </td>
@@ -430,7 +430,7 @@ const confirmarReclasificacion = () => {
     <aside class="reval-decision-col">
       <div class="decision-card">
         <div class="decision-header">
-          <span class="decision-icon">📊</span>
+          <span class="decision-icon"><svg viewBox="0 0 24 24" class="svg-inline-chart" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
           <h4>Recálculo Manchester</h4>
         </div>
 
@@ -443,7 +443,7 @@ const confirmarReclasificacion = () => {
           <span>Destino actual: {{ pacienteActivo?.box || 'Sala de Espera' }}</span>
         </div>
 
-        <div class="down-arrow-indicator">⬇</div>
+        <div class="down-arrow-indicator"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>
 
         <!-- Nuevo Nivel Calculado -->
         <div class="new-level-card" :class="nuevoNivelCalculado.badge">
@@ -461,7 +461,7 @@ const confirmarReclasificacion = () => {
         <!-- Reasignación Física Inmediata -->
         <div class="reassignment-card">
           <div class="reassign-title">
-            <span class="bed-icon">🏥</span>
+            <span class="bed-icon"><svg viewBox="0 0 24 24" class="svg-inline-hospital" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><line x1="12" y1="6" x2="12" y2="10"/><line x1="10" y1="8" x2="14" y2="8"/></svg></span>
             <strong>DESTINO SUGERIDO:</strong>
           </div>
           <h4>{{ nuevoNivelCalculado.destino }}</h4>
@@ -470,15 +470,15 @@ const confirmarReclasificacion = () => {
 
         <!-- Botones de Acción -->
         <button type="button" class="btn-save-triage" @click="confirmarReclasificacion">
-          ✓ Confirmar Reclasificación y Reordenar Turno [Enter]
+          <svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Confirmar Reclasificación y Reordenar Turno [Enter]
         </button>
 
         <button type="button" class="btn-direct-choque" @click="emit('activarChoque')">
-          ⚡ Escalar Directo a Sala de Choque (Nivel I) [Alt+C]
+          <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Escalar Directo a Sala de Choque (Nivel I) [Alt+C]
         </button>
 
         <button type="button" class="btn-subtle full-w">
-          ⏱️ Mantener Clasificación y Registrar Control de Espera
+          <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M10 2h4"/><path d="m17 5 1.5-1.5"/></svg> Mantener Clasificación y Registrar Control de Espera
         </button>
 
         <!-- Estado de Turno Actual -->

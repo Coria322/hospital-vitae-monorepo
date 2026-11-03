@@ -1,0 +1,36 @@
+meta {
+  name: 05 - Login Laboratorio
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id_usuario": "LAB-001",
+    "password": "password123"
+  }
+}
+
+vars:post-response {
+  laboratorio_token: res.body.data.token
+}
+
+tests {
+  test("Login laboratorio exitoso con 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("Rol asignado es LABORATORISTA", function() {
+    expect(res.getBody().data.usuario.rol).to.equal('LABORATORISTA');
+  });
+}

@@ -1,0 +1,35 @@
+meta {
+  name: 05 - Rechazo de Rango Fisiológico Imposible (422 Unprocessable)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/triages
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{enfermera_token}}
+}
+
+body:json {
+  {
+    "id_paciente": "{{paciente_id}}",
+    "presion_art": "120/80",
+    "frecuencia_card": 999,
+    "escala_eva": 0,
+    "nivel_conciencia": "ALERTA"
+  }
+}
+
+tests {
+  test("Rechaza frecuencia cardíaca 999 fuera de rango con 422", function() {
+    expect(res.getStatus()).to.equal(422);
+    expect(res.getBody().status).to.equal("error");
+    expect(res.getBody().message).to.contain("rango fisiológico");
+  });
+}

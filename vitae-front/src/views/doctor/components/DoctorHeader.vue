@@ -96,8 +96,20 @@ onUnmounted(() => {
             <div class="dropdown-divider"></div>
 
             <div class="dropdown-context-info">
-              <span>📍 {{ doctor.box }}</span>
-              <span>🔒 Sesión segura SSL</span>
+              <span class="ctx-item">
+                <svg viewBox="0 0 24 24" class="ctx-svg" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                {{ doctor.box }}
+              </span>
+              <span class="ctx-item">
+                <svg viewBox="0 0 24 24" class="ctx-svg" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                Sesión segura SSL
+              </span>
             </div>
 
             <div class="dropdown-divider"></div>
@@ -218,20 +230,25 @@ onUnmounted(() => {
 }
 
 .btn-more-options {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  color: #94A3B8;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: #64748B;
   cursor: pointer;
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  transition: all 0.15s;
+  padding: 0.2rem 0.45rem;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-more-options:hover,
 .btn-more-options.active {
   color: #0F4C81;
   background-color: #F1F5F9;
+  border-color: #CBD5E1;
 }
 
 /* MENÚ FLOTANTE DE USUARIO Y CIERRE DE SESIÓN */
@@ -343,6 +360,18 @@ onUnmounted(() => {
 .dropdown-icon {
   width: 18px;
   height: 18px;
+}
+
+.ctx-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ctx-svg {
+  width: 13px;
+  height: 13px;
+  color: #0284c7;
 }
 
 /* Transición del menú */

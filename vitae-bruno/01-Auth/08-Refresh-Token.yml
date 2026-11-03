@@ -1,0 +1,31 @@
+info:
+  name: 08 - Refrescar Token
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{base_url}}/auth/refresh"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: "Bearer {{admin_token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Refresco de token retorna 200", function() {
+          expect(res.getStatus()).to.equal(200);
+        });
+        test("Nuevo token retornado", function() {
+          expect(res.getBody().data.token).to.be.a('string');
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
