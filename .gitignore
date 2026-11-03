@@ -28,3 +28,5 @@
 Thumbs.db
 walkthrough/
 .agents/rules/matriz-cumplimiento.md
+
+*.log

@@ -9,3 +9,15 @@ variables:
   - name: medico_token
     value: ""
     enabled: true
+  - name: enfermera_token
+    value: ""
+    enabled: true
+  - name: recepcion_token
+    value: ""
+    enabled: true
+  - name: triage_id
+    value: ""
+    enabled: true
+  - name: paciente_id
+    value: ""
+    enabled: true

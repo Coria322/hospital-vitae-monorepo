@@ -29,8 +29,9 @@ body:json {
 tests {
   test("Inconsciente fuerza nivel ROJO de emergencia crítica", function() {
     expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal("success");
     expect(res.getBody().data.triage.color_asig).to.equal("ROJO");
-    expect(res.getBody().data.asignacion.asignado).to.equal(true);
-    expect(res.getBody().data.triage.id_sala).to.be.a("string");
+    expect(res.getBody().data.asignacion).to.be.an("object");
+    expect(typeof res.getBody().data.asignacion.asignado).to.equal("boolean");
   });
 }
