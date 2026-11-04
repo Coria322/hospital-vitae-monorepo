@@ -43,7 +43,7 @@ com.example.vitae_mobile/
 | # | Etapa | TASK-M | Requisitos | Tamaño | Backend requerido | Estado |
 |---|---|---|---|---|---|---|
 | 0 | Cimientos | 001, 002, 025 | RNF-006, PROV-UX-003, PROV-UI-003 | M | no | **Hecha** |
-| 1 | Red y errores | 006, 024 | RNF-003, RF-003, RF-002.1 | M | no (MockWebServer) | Pendiente |
+| 1 | Red y errores | 006, 024 | RNF-003, RF-003, RF-002.1 | M | no (MockWebServer) | **Hecha** |
 | 2 | Sesión | 003, 004, 005 | PROV-SEC-001/002, RF-002 | L | `/mobile/auth/*` | Pendiente (mock) |
 | 3 | Inicio y perfil | 008 | RF-011, RNF-007 | M | `/mobile/perfil` | Pendiente (mock) |
 | 4 | Citas, recetas, resultados | 009, 010, 011 | PROV-RF-002, RF-009, RF-010 | L | `/mobile/{citas,recetas,resultados}` | Pendiente (mock) |
@@ -59,7 +59,8 @@ Cada etapa termina con: build + tests unitarios + lint en verde, tu autorizació
 ### Etapa 0 — Cimientos (hecha)
 Compose + Navigation, 12 rutas, `InicioScreen`, `PantallaBase`, tema con contraste verificado por test, `minSdk` 29, `compileSdk` 37.
 
-### Etapa 1 — Red y errores (TASK-M-006, M-024)
+### Etapa 1 — Red y errores (TASK-M-006, M-024) — hecha
+- **Resultado:** `ApiClient`, `AuthInterceptor`, `SesionInterceptor`, `llamar { }` y `ApiError` en `data/network` y `core`; `ApiConfig` toma URL y pines de `BuildConfig`. El release se niega a crear el cliente sin pines. 15 tests unitarios en verde; el recurso empaquetado del release no admite tráfico en claro.
 - **Qué se construye:** cliente OkHttp/Retrofit con `AuthInterceptor` (Bearer), mapeo uniforme de errores (`ApiError`), `Resultado<T>`, envoltorio `{status, message, data}`, `network_security_config.xml` sin tráfico en claro, y permiso `INTERNET`.
 - **Pinning:** `CertificatePinner` con pines por `BuildConfig`. Debug sin pines y con excepción de HTTP solo para `10.0.2.2` (backend local). Release exige pines reales (pendientes: certificado del servidor del hospital).
 - **Respaldo existente:** `vitae-front/src/services/api.ts` (interceptor 401 con refresh y cola de peticiones).
@@ -112,15 +113,17 @@ Compose + Navigation, 12 rutas, `InicioScreen`, `PantallaBase`, tema con contras
 
 | Etapa | Dependencia | Motivo | Alternativa más ligera |
 |---|---|---|---|
-| 1 | `okhttp` 5.5.1 | Pinning e interceptores (RNF-003) | `HttpURLConnection`: sin pinning cómodo |
+| 1 | `okhttp` 5.5.1 (instalada) | Pinning e interceptores (RNF-003) | `HttpURLConnection`: sin pinning cómodo |
 | 1 | `retrofit` 3.0.0 + `converter-kotlinx-serialization` | Lo nombra la especificación | OkHttp a mano |
-| 1 | `kotlinx-serialization-json` 1.12.0 + plugin | Modelos FHIR tipados, sin reflexión, compatible con R8 | Moshi o Gson |
-| 1 | `kotlinx-coroutines-test` 1.11.0, `mockwebserver3` 5.5.1 (solo pruebas) | Pruebas de red y de tiempo | Fakes manuales |
+| 1 | `kotlinx-serialization-json` 1.9.0 + plugin (instalada) | Modelos FHIR tipados, sin reflexión, compatible con R8 | Moshi o Gson |
+| 1 | `kotlinx-coroutines-test` 1.10.2, `mockwebserver3` 5.5.1 (solo pruebas, instaladas) | Pruebas de red y de tiempo | Fakes manuales |
 | 2 | Ninguna para el cifrado de tokens: Keystore de la plataforma (AES-GCM) | Evitar `security-crypto` (ver decisión 4) | `androidx.security:security-crypto` 1.1.0 |
 | 4 | `com.google.zxing:core` 3.5.4 | Dibujar el QR de la receta | Escribir un codificador QR |
 | 7 | `espresso-accessibility`, JaCoCo (ya integrado en AGP) | Accesibilidad y cobertura | n/a |
 
 Hilt, Coil, Room y Material Icons extendidos quedan fuera mientras no hagan falta.
+
+Versiones limitadas por el compilador: el proyecto usa Kotlin 2.2.10, que lee metadatos hasta 2.3. `kotlinx-serialization` 1.12.0 y `kotlinx-coroutines-test` 1.11.0 están compiladas con Kotlin 2.4 y arrastran `kotlin-stdlib` 2.4.10, por eso no compilan. Se subirán junto con el plugin de Kotlin (2.4.x), que lint ya recomienda.
 
 ## 6. Contratos que se reutilizan de la API actual
 
