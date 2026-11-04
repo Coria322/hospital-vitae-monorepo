@@ -33,7 +33,11 @@ class KeystoreTokenStoreTest {
     fun noDejaTokensEnClaro() {
         KeystoreTokenStore(contexto).guardar(sesion)
 
-        val archivo = File(contexto.dataDir, "shared_prefs/sesion.xml").readText()
+        // guardar() usa apply(): el archivo se escribe en segundo plano, hay que esperar a que exista.
+        val fichero = File(contexto.dataDir, "shared_prefs/sesion.xml")
+        val limite = System.currentTimeMillis() + 5_000
+        while (!fichero.exists() && System.currentTimeMillis() < limite) Thread.sleep(50)
+        val archivo = fichero.readText()
 
         assertFalse(archivo.contains("access-secreto-123"))
         assertFalse(archivo.contains("refresh-secreto-456"))

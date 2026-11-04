@@ -24,13 +24,15 @@ import com.example.vitae_mobile.ui.login.LoginScreen
 import com.example.vitae_mobile.ui.login.LoginViewModel
 import com.example.vitae_mobile.ui.otp.OtpScreen
 import com.example.vitae_mobile.ui.otp.OtpViewModel
+import com.example.vitae_mobile.ui.perfil.PerfilScreen
+import com.example.vitae_mobile.ui.perfil.PerfilViewModel
 import com.example.vitae_mobile.ui.screens.InicioScreen
 import com.example.vitae_mobile.ui.screens.PantallaBase
 import com.example.vitae_mobile.ui.sesion.SesionExpiradaScreen
 import kotlinx.coroutines.launch
 
 // Pantallas con implementación propia; el resto usa PantallaBase hasta su etapa.
-private val Implementadas = setOf(Ruta.Login, Ruta.Otp, Ruta.Inicio, Ruta.SesionExpirada)
+private val Implementadas = setOf(Ruta.Login, Ruta.Otp, Ruta.Inicio, Ruta.Perfil, Ruta.SesionExpirada)
 
 @Composable
 fun VitaeNavHost(
@@ -55,7 +57,10 @@ fun VitaeNavHost(
         }
     }
 
-    NavHost(navController, startDestination = Ruta.Login.ruta, modifier = modifier) {
+    // Si la actividad se reabre con la sesión aún viva (el proceso sigue), se arranca en Inicio y no en Login.
+    val destinoInicial = remember { if (estadoSesion is EstadoSesion.Autenticada) Ruta.Inicio else Ruta.Login }
+
+    NavHost(navController, startDestination = destinoInicial.ruta, modifier = modifier) {
         composable(Ruta.Login.ruta) {
             val vm: LoginViewModel = viewModel(
                 factory = viewModelFactory { initializer { LoginViewModel(contenedor.authRepository, contenedor.sesion) } },
@@ -69,10 +74,21 @@ fun VitaeNavHost(
             OtpScreen(vm)
         }
         composable(Ruta.Inicio.ruta) {
+            val vm: PerfilViewModel = viewModel(
+                factory = viewModelFactory { initializer { PerfilViewModel(contenedor.perfilRepository) } },
+            )
+            val perfil by vm.estado.collectAsStateWithLifecycle()
             InicioScreen(
+                perfil = perfil,
                 onAbrir = { navController.navigate(it.ruta) },
                 onCerrarSesion = { alcance.launch { contenedor.sesion.cerrar(MotivoCierre.Voluntario) } },
             )
+        }
+        composable(Ruta.Perfil.ruta) {
+            val vm: PerfilViewModel = viewModel(
+                factory = viewModelFactory { initializer { PerfilViewModel(contenedor.perfilRepository) } },
+            )
+            PerfilScreen(vm)
         }
         composable(Ruta.SesionExpirada.ruta) {
             SesionExpiradaScreen(onIniciarSesion = { navController.irLimpiando(Ruta.Login) })

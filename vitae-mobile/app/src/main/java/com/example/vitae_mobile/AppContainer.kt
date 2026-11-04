@@ -8,6 +8,7 @@ import com.example.vitae_mobile.data.auth.KeystoreTokenStore
 import com.example.vitae_mobile.data.auth.MotivoCierre
 import com.example.vitae_mobile.data.auth.SessionManager
 import com.example.vitae_mobile.data.auth.crearAuthRepository
+import com.example.vitae_mobile.data.perfil.crearPerfilRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -20,6 +21,7 @@ class AppContainer(contexto: Context) {
     private val almacen = KeystoreTokenStore(contexto)
     val authRepository = crearAuthRepository(almacen::idInstalacion)
     val sesion = SessionManager(almacen, authRepository, alcance)
+    val perfilRepository = crearPerfilRepository()
 
     val inactividad = InactivityMonitor(alcance, SystemClock::elapsedRealtime) {
         alcance.launch { sesion.cerrar(MotivoCierre.Inactividad) }

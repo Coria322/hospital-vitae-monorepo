@@ -17,6 +17,21 @@
     <string name="pantalla_en_construccion">Pantalla en construcción</string>
 
     <string name="inicio_cerrar_sesion">Cerrar sesión</string>
+    <string name="inicio_saludo">Hola, %1$s</string>
+
+    <string name="cargando">Cargando</string>
+    <string name="reintentar">Reintentar</string>
+    <string name="dato_no_disponible">No disponible</string>
+    <string name="error_carga">No pudimos cargar tu información. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="error_permisos">No tienes permiso para ver esta información.</string>
+    <string name="error_recurso">No pudimos mostrar tu información. Inténtalo de nuevo.</string>
+
+    <string name="perfil_nombre">Nombre</string>
+    <string name="perfil_curp">CURP</string>
+    <string name="perfil_fecha_nacimiento">Fecha de nacimiento</string>
+    <string name="perfil_seguro">Seguro</string>
+    <string name="perfil_seguro_activo">Activo</string>
+    <string name="perfil_seguro_inactivo">Sin seguro activo</string>
 
     <string name="login_correo">Correo electrónico</string>
     <string name="login_contrasena">Contraseña</string>

@@ -45,7 +45,7 @@ com.example.vitae_mobile/
 | 0 | Cimientos | 001, 002, 025 | RNF-006, PROV-UX-003, PROV-UI-003 | M | no | **Hecha** |
 | 1 | Red y errores | 006, 024 | RNF-003, RF-003, RF-002.1 | M | no (MockWebServer) | **Hecha** |
 | 2 | Sesión | 003, 004, 005 | PROV-SEC-001/002, RF-002 | L | `/mobile/auth/*` | **Hecha** (con mock) |
-| 3 | Inicio y perfil | 008 | RF-011, RNF-007 | M | `/mobile/perfil` | Pendiente (mock) |
+| 3 | Inicio y perfil | 008 | RF-011, RNF-007 | M | `/mobile/perfil` | **Hecha** (con mock) |
 | 4 | Citas, recetas, resultados | 009, 010, 011 | PROV-RF-002, RF-009, RF-010 | L | `/mobile/{citas,recetas,resultados}` | Pendiente (mock) |
 | 5 | Privacidad y ARCO | 012, 013 | PROV-RN-008/009 | M | `/mobile/{aviso,consentimientos,solicitudes-arco}` | Pendiente (mock) |
 | 6 | Estados y hardening | 014, 007 | RNF-006, PROV-SEC-011 | L | 426 | Pendiente |
@@ -82,7 +82,14 @@ Compose + Navigation, 12 rutas, `InicioScreen`, `PantallaBase`, tema con contras
 - **Respaldo existente:** `authService.ts` (login, refresh 2 min antes de expirar, logout), `AuthController` (423 al tercer fallo).
 - **Datos del mock:** solo sintéticos (`paciente.demo@vitae.test`).
 
-### Etapa 3 — Inicio y perfil (TASK-M-008)
+### Etapa 3 — Inicio y perfil (TASK-M-008) — hecha, con mock
+- **Resultado:** `data/fhir` (`FhirPatient`, `FhirParser`), `data/perfil` (`Perfil`, `PerfilRepository`, mock solo en debug), `PerfilViewModel`, `PerfilScreen`, componentes reutilizables de estado (`Esqueleto`, `EstadoError`) y saludo en Inicio. 71 tests unitarios en verde. Cada pantalla tiene su propia instancia del ViewModel, ligada a su entrada de navegación, para que los datos del paciente no sobrevivan al cierre de sesión.
+- **Cambio de alcance:** el resumen de Inicio (próxima cita, recetas activas, últimos resultados) pasa a la etapa 4, porque necesita los repositorios de citas, recetas y resultados. Inicio muestra por ahora el saludo con el nombre.
+- **Supuestos del contrato FHIR** (a confirmar con el backend): la CURP viaja en `identifier` con `system = urn:oid:2.16.840.1.113883.4.629` y `seguro_activo` como extensión `urn:vitae:seguro-activo` (`valueBoolean`); la especificación no define ninguno de los dos.
+- **Verificado en teléfono real** (M2007J20CG, Android 12): Inicio con el saludo, Perfil con nombre, CURP, fecha y seguro, y el esqueleto de carga. Las 9 pruebas instrumentadas pasan en el dispositivo: `HomeTest` (5), `KeystoreTokenStoreTest` (3, con el Keystore real) y `ExampleInstrumentedTest`.
+- **Corrección que salió de las pruebas:** si la actividad se cerraba con "atrás" y se reabría con el proceso vivo, la navegación arrancaba en Login aunque la sesión estuviera activa; ahora arranca en Inicio. `unaActividadNuevaConLaSesionVivaMuestraInicio` lo cubre y se comprobó que falla sin la corrección.
+- **Nota para MIUI (Xiaomi):** bloquea que una app abra su propia pantalla desde segundo plano, y `am instrument` reinicia el proceso, así que `ActivityScenario` se cuelga. `HomeTest` abre la actividad con `am start --activity-clear-task` a través de `UiAutomation` (identidad de shell, que MIUI permite). Además la instalación por USB exige activar "Instalar mediante USB" y aceptar el aviso en el teléfono.
+- **Plan original:**
 - **Inicio:** resumen de próxima cita, recetas activas y últimos resultados, solo datos propios, con estados de carga, vacío y error.
 - **Perfil:** `Patient` FHIR → CURP, nombre y fecha de nacimiento; aseguradora como `seguro_activo` (sí/no), porque no hay más campos (AMB-018).
 - **FHIR:** modelos tipados; un recurso sin `resourceType` o que no valida produce error controlado y la app no se cierra (RNF-007).
@@ -158,7 +165,7 @@ Versiones limitadas por el compilador: el proyecto usa Kotlin 2.2.10, que lee me
 6. **Identificación del dispositivo para el OTP** (adoptado): UUID de instalación guardado en la app. No se define cómo sabe el servidor que el dispositivo es nuevo.
 7. **Datos sin definir:** valores de `CITA.estado` y de `derecho` en ARCO, fuente del texto del aviso integral. Longitud del OTP: se asumió 6 (constante `LONGITUD_OTP`).
 8. **Pines de certificado** del servidor real.
-9. **Aseguradora (AMB-018):** solo existe `seguro_activo`.
+9. **Aseguradora (AMB-018):** solo existe `seguro_activo`. Cómo viaja en el Patient FHIR y en qué sistema va la CURP (supuestos de la etapa 3, ver arriba).
 10. **Commits:** `AGENTS.md` pide tu autorización previa y el 100% de las pruebas.
 
 ## 9. Verificación en cada etapa
