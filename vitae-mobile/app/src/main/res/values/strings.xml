@@ -1,3 +1,18 @@
 <resources>
-    <string name="app_name">vitae-mobile</string>
+    <string name="app_name">Vitae</string>
+
+    <string name="pantalla_login">Iniciar sesión</string>
+    <string name="pantalla_otp">Verificación de dispositivo</string>
+    <string name="pantalla_aviso">Aviso de privacidad</string>
+    <string name="pantalla_inicio">Inicio</string>
+    <string name="pantalla_citas">Citas</string>
+    <string name="pantalla_recetas">Recetas</string>
+    <string name="pantalla_resultados">Resultados</string>
+    <string name="pantalla_perfil">Perfil y aseguradora</string>
+    <string name="pantalla_arco">Solicitud ARCO</string>
+    <string name="pantalla_sesion_expirada">Sesión expirada</string>
+    <string name="pantalla_incompatible">Dispositivo no compatible</string>
+    <string name="pantalla_root">Dispositivo no seguro</string>
+
+    <string name="pantalla_en_construccion">Pantalla en construcción</string>
 </resources>
