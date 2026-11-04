@@ -24,7 +24,7 @@ import com.example.vitae_mobile.core.ApiError
 /** Bloque gris estático de "cargando" (UI_UX_SPEC: skeleton). Sin animación: el ERS no define motion. */
 @Composable
 fun Esqueleto(modifier: Modifier = Modifier, alto: Dp = 20.dp) {
-    Column(modifier = modifier.fillMaxWidth().height(alto).background(MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))) {}
+    Column(modifier = modifier.fillMaxWidth().height(alto).background(MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))) {}
 }
 
 /** Varias filas de esqueleto anunciadas como una sola cosa a TalkBack. */

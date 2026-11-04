@@ -15,7 +15,10 @@ internal val EsquemaClaro = lightColorScheme(
     surface = VitaeSuperficie,
     onSurface = VitaeTexto,
     onSurfaceVariant = VitaeTextoSuave,
-    outline = VitaeBorde,
+    outline = VitaeBordeControl,
+    outlineVariant = VitaeBorde,
+    // Pista de un interruptor apagado (Material la toma de aquí); el valor por defecto es un lavanda fuera de la marca.
+    surfaceContainerHighest = VitaeBorde,
 )
 
 // ponytail: solo tema claro y sin color dinamico; la marca y el contraste (PROV-UX-003) no deben depender del

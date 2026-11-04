@@ -42,10 +42,23 @@ class ContrasteTest {
         }
     }
 
-    // UI_UX_SPEC.md define 12 pantallas con rutas únicas.
+    // WCAG 1.4.11 (AA): el borde y el pulgar de los controles necesitan 3:1 contra el fondo y la superficie.
+    @Test
+    fun losBordesDeLosControlesCumplenContrasteNoTextual() {
+        val c = EsquemaClaro
+        mapOf(
+            "outline/background" to (c.outline to c.background),
+            "outline/surface" to (c.outline to c.surface),
+            "outline/surfaceContainerHighest (pulgar sobre la pista apagada)" to (c.outline to c.surfaceContainerHighest),
+        ).forEach { (nombre, par) ->
+            assertTrue("$nombre = ${contraste(par.first, par.second)}", contraste(par.first, par.second) >= 3.0)
+        }
+    }
+
+    // UI_UX_SPEC.md define 12 pantallas, más la de preferencias de privacidad, con rutas únicas.
     @Test
     fun rutasSonUnicas() {
-        assertEquals(12, Ruta.entries.size)
+        assertEquals(13, Ruta.entries.size)
         assertEquals(Ruta.entries.size, Ruta.entries.map { it.ruta }.toSet().size)
     }
 }

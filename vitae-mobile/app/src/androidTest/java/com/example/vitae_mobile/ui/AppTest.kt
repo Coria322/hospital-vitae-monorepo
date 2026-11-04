@@ -7,6 +7,7 @@ import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.espresso.Espresso
 import androidx.test.platform.app.InstrumentationRegistry
@@ -14,9 +15,12 @@ import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
 import com.example.vitae_mobile.MainActivity
 import com.example.vitae_mobile.R
+import com.example.vitae_mobile.VitaeApplication
+import com.example.vitae_mobile.data.arco.MockArcoRepository
 import com.example.vitae_mobile.data.auth.CODIGO_OTP_DEMO
 import com.example.vitae_mobile.data.auth.CONTRASENA_DEMO
 import com.example.vitae_mobile.data.auth.CORREO_PACIENTE_DEMO
+import com.example.vitae_mobile.data.privacidad.MockPrivacidadRepository
 import org.junit.Before
 import org.junit.Rule
 
@@ -27,7 +31,8 @@ import org.junit.Rule
  * La actividad se abre con `am start` a través de UiAutomation, no con `ActivityScenario`: MIUI bloquea que una app
  * abra su propia pantalla desde segundo plano (y `am instrument` reinicia el proceso, así que siempre lo está), pero
  * deja abrirla a la identidad de shell. Se abre en [iniciar], que corre después de arrancar la regla de Compose.
- * El estado de la sesión vive en el proceso: [entrar] se adapta a que ya haya sesión o no.
+ * El estado de la sesión y de los servidores simulados vive en el proceso: [entrar] se adapta a que ya haya sesión o
+ * no, y a que el aviso de privacidad esté aceptado o no.
  */
 abstract class AppTest {
     @get:Rule
@@ -35,6 +40,12 @@ abstract class AppTest {
 
     protected val contexto = InstrumentationRegistry.getInstrumentation().targetContext
     protected fun texto(id: Int, vararg args: Any): String = contexto.getString(id, *args)
+
+    private val contenedor get() = (contexto.applicationContext as VitaeApplication).contenedor
+
+    /** Servidores simulados de debug: permiten preparar y comprobar el estado desde las pruebas. */
+    protected val privacidad get() = contenedor.privacidadRepository as MockPrivacidadRepository
+    protected val arco get() = contenedor.arcoRepository as MockArcoRepository
 
     // Mientras la actividad no ha compuesto aún, Compose lanza IllegalStateException: se trata como "no visible".
     protected fun visible(texto: String, subcadena: Boolean = false) = try {
@@ -52,6 +63,7 @@ abstract class AppTest {
     protected fun esperar(condicion: () -> Boolean) = rule.waitUntil(ESPERA_MS, condicion)
 
     protected val saludo get() = texto(R.string.inicio_saludo, "Ana Pérez Demo")
+    protected val aceptarAviso get() = texto(R.string.aviso_aceptar)
 
     /** Abre MainActivity como actividad nueva (descarta la anterior); la sesión del proceso se conserva. */
     protected fun abrirApp() {
@@ -63,24 +75,45 @@ abstract class AppTest {
     @Before
     fun iniciar() = abrirApp()
 
-    /** Deja la app en Inicio: inicia sesión si hace falta (con OTP si el mock aún no conoce el dispositivo). */
-    protected fun entrar() {
-        esperar { visible(texto(R.string.login_entrar)) || visible(saludo) }
+    /**
+     * Inicia sesión si hace falta (con OTP si el mock aún no conoce el dispositivo) y espera a que aparezca el aviso
+     * de privacidad o Inicio; no acepta nada.
+     */
+    protected fun entrarHastaElAviso() {
+        esperar { visible(texto(R.string.login_entrar)) || visible(saludo) || visible(aceptarAviso) }
         if (visible(texto(R.string.login_entrar))) {
             rule.onNodeWithText(texto(R.string.login_correo)).performTextInput(CORREO_PACIENTE_DEMO)
             rule.onNodeWithText(texto(R.string.login_contrasena)).performTextInput(CONTRASENA_DEMO)
             rule.onNodeWithText(texto(R.string.login_entrar)).performClick()
-            esperar { visible(texto(R.string.pantalla_otp)) || visible(saludo) }
+            esperar { visible(texto(R.string.pantalla_otp)) || visible(saludo) || visible(aceptarAviso) }
             if (visible(texto(R.string.pantalla_otp))) {
                 rule.onNodeWithText(texto(R.string.otp_codigo)).performTextInput(CODIGO_OTP_DEMO)
                 rule.onNodeWithText(texto(R.string.otp_verificar)).performClick()
             }
         }
+        esperar { visible(saludo) || visible(aceptarAviso) }
+    }
+
+    /** Deja la app en Inicio: inicia sesión y acepta el aviso de privacidad si hace falta. */
+    protected fun entrar() {
+        entrarHastaElAviso()
+        if (visible(aceptarAviso)) pulsar(aceptarAviso)
         esperar { visible(saludo) }
     }
 
+    /** Pulsa un botón, desplazándose hasta él si la pantalla se desplaza y no cabe entera. */
+    protected fun pulsar(texto: String) {
+        val nodo = rule.onNodeWithText(texto)
+        try {
+            nodo.performScrollTo()
+        } catch (e: AssertionError) {
+            // La pantalla no se desplaza: el botón ya está a la vista.
+        }
+        nodo.performClick()
+    }
+
     /** Pulsa el botón de una sección de Inicio. */
-    protected fun abrirSeccion(titulo: Int) = rule.onNodeWithText(texto(titulo)).performClick()
+    protected fun abrirSeccion(titulo: Int) = pulsar(texto(titulo))
 
     /** Pulsa "atrás" [veces] veces y espera a estar de nuevo en Inicio. */
     protected fun volverAInicio(veces: Int = 1) {

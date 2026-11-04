@@ -14,6 +14,7 @@
     <string name="pantalla_incompatible">Dispositivo no compatible</string>
     <string name="pantalla_root">Dispositivo no seguro</string>
 
+    <string name="pantalla_privacidad">Privacidad y consentimientos</string>
     <string name="pantalla_receta_detalle">Receta</string>
     <string name="pantalla_resultado_visor">Resultado</string>
 
@@ -65,6 +66,38 @@
     <string name="resultado_descargando">Descargando… %1$d%%</string>
     <string name="visor_pagina_desc">Página %1$d de %2$d</string>
     <string name="visor_imagen_desc">Imagen del resultado</string>
+
+    <string name="aviso_version">Versión %1$s, vigente desde %2$s</string>
+    <string name="aviso_enlace_integral">Leer el aviso de privacidad integral</string>
+    <string name="aviso_finalidades">Finalidades opcionales</string>
+    <string name="aviso_finalidades_ayuda">Son opcionales: puedes usar la app sin aceptarlas y cambiarlas cuando quieras.</string>
+    <string name="aviso_aceptar">Aceptar y continuar</string>
+    <string name="aviso_no_acepto">No acepto (cerrar sesión)</string>
+    <string name="aviso_actualizar">Actualizar preferencias</string>
+    <string name="aviso_error_envio">No pudimos registrar tu decisión. Inténtalo de nuevo.</string>
+
+    <string name="arco_nueva">Nueva solicitud</string>
+    <string name="arco_elige">Elige el derecho que quieres ejercer.</string>
+    <string name="derecho_acceso">Acceso</string>
+    <string name="derecho_acceso_desc">Conocer qué datos personales tuyos tiene el hospital y cómo los usa.</string>
+    <string name="derecho_rectificacion">Rectificación</string>
+    <string name="derecho_rectificacion_desc">Corregir datos que sean inexactos o estén incompletos.</string>
+    <string name="derecho_cancelacion">Cancelación</string>
+    <string name="derecho_cancelacion_desc">Pedir que se supriman tus datos cuando proceda.</string>
+    <string name="derecho_oposicion">Oposición</string>
+    <string name="derecho_oposicion_desc">Oponerte al uso de tus datos para fines específicos.</string>
+    <string name="arco_enviar">Enviar solicitud</string>
+    <string name="arco_enviada">Solicitud enviada</string>
+    <string name="arco_error_envio">No pudimos enviar tu solicitud. Inténtalo de nuevo.</string>
+    <string name="arco_mis_solicitudes">Mis solicitudes</string>
+    <string name="arco_vacio">Aún no has enviado solicitudes.</string>
+    <string name="arco_folio">Folio</string>
+    <string name="arco_derecho">Derecho</string>
+    <string name="arco_estado">Estado</string>
+    <string name="arco_recibida">Fecha de recepción</string>
+    <string name="arco_plazo_respuesta">Plazo de respuesta</string>
+    <string name="arco_plazo_ejecucion">Plazo de ejecución</string>
+    <string name="arco_actualizar">Actualizar estado</string>
 
     <string name="perfil_nombre">Nombre</string>
     <string name="perfil_curp">CURP</string>

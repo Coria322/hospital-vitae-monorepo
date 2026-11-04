@@ -47,7 +47,7 @@ com.example.vitae_mobile/
 | 2 | Sesión | 003, 004, 005 | PROV-SEC-001/002, RF-002 | L | `/mobile/auth/*` | **Hecha** (con mock) |
 | 3 | Inicio y perfil | 008 | RF-011, RNF-007 | M | `/mobile/perfil` | **Hecha** (con mock) |
 | 4 | Citas, recetas, resultados | 009, 010, 011 | PROV-RF-002, RF-009, RF-010 | L | `/mobile/{citas,recetas,resultados}` | **Hecha** (con mock) |
-| 5 | Privacidad y ARCO | 012, 013 | PROV-RN-008/009 | M | `/mobile/{aviso,consentimientos,solicitudes-arco}` | Pendiente (mock) |
+| 5 | Privacidad y ARCO | 012, 013 | PROV-RN-008/009 | M | `/mobile/{aviso,consentimientos,solicitudes-arco}` | **Hecha** (con mock) |
 | 6 | Estados y hardening | 014, 007 | RNF-006, PROV-SEC-011 | L | 426 | Pendiente |
 | 7 | Calidad y evidencia | 015–020 | RF-011, PROV-UX-003, RF-002.1, RNF-007 | M | colección de contrato | Pendiente |
 
@@ -108,7 +108,14 @@ Compose + Navigation, 12 rutas, `InicioScreen`, `PantallaBase`, tema con contras
 - **Seguridad de pantalla:** `FLAG_SECURE` en recetas, resultados y perfil mediante un contenedor `PantallaSegura`.
 - **Pruebas:** ViewModels con repositorios falsos (vacío, error, éxito), mapeo de estados de receta, `RecetasTest` y `ResultadosTest` instrumentadas.
 
-### Etapa 5 — Privacidad y ARCO (TASK-M-012, M-013)
+### Etapa 5 — Privacidad y ARCO (TASK-M-012, M-013) — hecha, con mock
+- **Resultado:** `data/privacidad` y `data/arco` (modelos, repositorios y servidores simulados solo en debug), `AvisoViewModel` con dos modos (`Aceptacion` y `Gestion`), `AvisoScreen`, `ArcoViewModel`, `ArcoScreen`. Flujo Login → OTP → Aviso → Inicio; la puerta del aviso reenvía sola a Inicio si la versión ya está aceptada y vuelve a aparecer si cambia. Desde Inicio, "Privacidad y consentimientos" permite aceptar y revocar las finalidades opcionales. 148 tests unitarios y 29 instrumentados en verde.
+- **Verificado en teléfono real:** las 29 pruebas instrumentadas pasan (`PrivacidadTest` 6, `ArcoTest` 4, además de las anteriores), y revisión visual del aviso, ARCO y preferencias.
+- **Reglas aplicadas:** las finalidades opcionales arrancan siempre desmarcadas en la aceptación, aunque se hubieran aceptado antes; cada cambio crea un registro nuevo (CON-016: revocar no modifica el anterior); "No acepto" cierra la sesión; no hay `id_paciente` en ninguna petición.
+- **Discrepancia a resolver:** el flujo de `UI_UX_SPEC` pone el aviso después del login, pero el escenario 1 de PROV-RN-008 pide verlo "antes de cualquier formulario" (el login lo es). Se siguió el flujo de pantallas porque el aviso se pide al servidor y eso exige sesión. Alternativa: mostrar un aviso empaquetado en la app antes del login y el vigente después.
+- **Supuestos del contrato** (a confirmar con el backend): `GET /mobile/aviso-privacidad` devuelve versión, vigencia, texto simplificado, enlace al integral, las finalidades opcionales con su estado y si la versión está aceptada por el paciente; `POST /mobile/consentimientos` recibe `tipo` (AVISO_PRIVACIDAD o FINALIDADES_SECUNDARIAS), `version_documento`, `finalidades` y `accion` (ACEPTAR o REVOCAR) y responde 201; los derechos ARCO viajan como ACCESO, RECTIFICACION, CANCELACION y OPOSICION; la solicitud ARCO solo lleva el derecho (el esquema no tiene campo de descripción); `GET .../solicitudes-arco` lista las propias y `GET .../{folio}` devuelve una, con 403 si es ajena.
+- **Accesibilidad no textual (hallazgo):** el borde de los controles (interruptores apagados, campos de texto, botón de contorno) usaba el color decorativo de la web (#E2E8F0, 1,2:1) y casi no se veía. Ahora el borde de controles es #74839A (3,1:1 o más, WCAG 1.4.11) y el decorativo (tarjetas, esqueletos) queda aparte; un test lo comprueba.
+- **Plan original:**
 - **Aviso:** se muestra antes de cualquier formulario en la primera apertura y cuando cambia la versión; se registra la versión mostrada.
 - **Consentimientos:** aceptar y revocar con `POST /mobile/consentimientos` (`accion='REVOCAR'` → 201). Finalidades secundarias en opción independiente y **no preseleccionada**. Los registros son inmutables: la revocación crea uno nuevo (CON-016).
 - **ARCO:** formulario → `POST /mobile/solicitudes-arco` → 201 con folio y fechas límite; consulta de estado por folio.
@@ -173,7 +180,9 @@ Versiones limitadas por el compilador: el proyecto usa Kotlin 2.2.10, que lee me
 8. **Pines de certificado** del servidor real.
 9. **Aseguradora (AMB-018):** solo existe `seguro_activo`. Cómo viaja en el Patient FHIR y en qué sistema va la CURP (supuestos de la etapa 3, ver arriba).
 10. **Contrato de citas y resultados:** la especificación no los define (formato, valores de `CITA.estado`, tipos de archivo y tamaño máximo, AMB-012).
-11. **Commits:** `AGENTS.md` pide tu autorización previa y el 100% de las pruebas.
+11. **Aviso antes del login:** ¿mostrar un aviso empaquetado en la app antes de Login para cumplir el escenario 1 de PROV-RN-008 al pie de la letra? Hoy el aviso va después de Login y OTP.
+12. **Contrato de privacidad y ARCO:** ver los supuestos de la etapa 5; la especificación no define los endpoints de lectura ni los valores de los derechos.
+13. **Commits:** `AGENTS.md` pide tu autorización previa y el 100% de las pruebas.
 
 ## 9. Verificación en cada etapa
 

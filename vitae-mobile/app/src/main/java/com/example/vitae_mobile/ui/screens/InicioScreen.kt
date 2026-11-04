@@ -10,7 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +19,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.vitae_mobile.R
+import com.example.vitae_mobile.ui.components.BotonSecundario
 import com.example.vitae_mobile.ui.components.Campo
 import com.example.vitae_mobile.ui.components.Carga
 import com.example.vitae_mobile.ui.components.CargandoEsqueleto
@@ -32,7 +32,7 @@ import com.example.vitae_mobile.ui.perfil.PerfilUiState
 import com.example.vitae_mobile.ui.seguridad.PantallaSegura
 
 // Secciones del paciente (UI_UX_SPEC.md, navigation flow): solo lectura, sin acciones de edición (RF-011).
-private val Secciones = listOf(Ruta.Citas, Ruta.Recetas, Ruta.Resultados, Ruta.Perfil, Ruta.Arco)
+private val Secciones = listOf(Ruta.Citas, Ruta.Recetas, Ruta.Resultados, Ruta.Perfil, Ruta.Arco, Ruta.Privacidad)
 
 @Composable
 fun InicioScreen(
@@ -72,7 +72,7 @@ fun InicioScreen(
                         Text(stringResource(seccion.titulo))
                     }
                 }
-                OutlinedButton(onClick = onCerrarSesion, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                BotonSecundario(onClick = onCerrarSesion) {
                     Text(stringResource(R.string.inicio_cerrar_sesion))
                 }
             }

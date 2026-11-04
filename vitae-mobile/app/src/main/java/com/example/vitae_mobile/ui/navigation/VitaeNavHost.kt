@@ -34,7 +34,8 @@ import kotlinx.coroutines.launch
 
 // Pantallas con implementación propia; el resto usa PantallaBase hasta su etapa.
 private val Implementadas = setOf(
-    Ruta.Login, Ruta.Otp, Ruta.Inicio, Ruta.Citas, Ruta.Recetas, Ruta.Resultados, Ruta.Perfil, Ruta.SesionExpirada,
+    Ruta.Login, Ruta.Otp, Ruta.Aviso, Ruta.Inicio, Ruta.Citas, Ruta.Recetas, Ruta.Resultados, Ruta.Perfil, Ruta.Arco,
+    Ruta.Privacidad, Ruta.SesionExpirada,
 )
 
 @Composable
@@ -51,7 +52,8 @@ fun VitaeNavHost(
     LaunchedEffect(estadoSesion) {
         if (estadoSesion != previo) {
             val destino = when (val e = estadoSesion) {
-                is EstadoSesion.Autenticada -> Ruta.Inicio
+                // Tras iniciar sesión se pasa por el aviso de privacidad; si ya está aceptado, sigue solo a Inicio.
+                is EstadoSesion.Autenticada -> Ruta.Aviso
                 is EstadoSesion.SinSesion ->
                     if (e.motivo == MotivoCierre.Inactividad || e.motivo == MotivoCierre.Expirada) Ruta.SesionExpirada else Ruta.Login
             }
@@ -60,8 +62,9 @@ fun VitaeNavHost(
         }
     }
 
-    // Si la actividad se reabre con la sesión aún viva (el proceso sigue), se arranca en Inicio y no en Login.
-    val destinoInicial = remember { if (estadoSesion is EstadoSesion.Autenticada) Ruta.Inicio else Ruta.Login }
+    // Si la actividad se reabre con la sesión aún viva (el proceso sigue), se arranca en la puerta del aviso, que
+    // reenvía a Inicio si ya está aceptado, y no en Login.
+    val destinoInicial = remember { if (estadoSesion is EstadoSesion.Autenticada) Ruta.Aviso else Ruta.Login }
 
     NavHost(navController, startDestination = destinoInicial.ruta, modifier = modifier) {
         composable(Ruta.Login.ruta) {
@@ -104,6 +107,7 @@ fun VitaeNavHost(
             PerfilScreen(vm)
         }
         clinico(navController, contenedor)
+        privacidad(navController, contenedor, alRechazarAviso = { alcance.launch { contenedor.sesion.cerrar(MotivoCierre.Voluntario) } })
         composable(Ruta.SesionExpirada.ruta) {
             SesionExpiradaScreen(onIniciarSesion = { navController.irLimpiando(Ruta.Login) })
         }
@@ -114,5 +118,5 @@ fun VitaeNavHost(
 }
 
 /** Navega y vacía la pila: tras iniciar o cerrar sesión no se debe poder volver con "atrás". */
-private fun NavHostController.irLimpiando(destino: Ruta) =
+internal fun NavHostController.irLimpiando(destino: Ruta) =
     navigate(destino.ruta) { popUpTo(graph.id) { inclusive = true } }

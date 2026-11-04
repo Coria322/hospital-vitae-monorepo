@@ -7,9 +7,11 @@ import com.example.vitae_mobile.data.auth.InactivityMonitor
 import com.example.vitae_mobile.data.auth.KeystoreTokenStore
 import com.example.vitae_mobile.data.auth.MotivoCierre
 import com.example.vitae_mobile.data.auth.SessionManager
+import com.example.vitae_mobile.data.arco.crearArcoRepository
 import com.example.vitae_mobile.data.auth.crearAuthRepository
 import com.example.vitae_mobile.data.citas.crearCitasRepository
 import com.example.vitae_mobile.data.perfil.crearPerfilRepository
+import com.example.vitae_mobile.data.privacidad.crearPrivacidadRepository
 import com.example.vitae_mobile.data.recetas.crearRecetasRepository
 import com.example.vitae_mobile.data.resultados.crearResultadosRepository
 import java.io.File
@@ -29,6 +31,8 @@ class AppContainer(contexto: Context) {
     val perfilRepository = crearPerfilRepository()
     val citasRepository = crearCitasRepository()
     val recetasRepository = crearRecetasRepository()
+    val privacidadRepository = crearPrivacidadRepository()
+    val arcoRepository = crearArcoRepository()
 
     // Los resultados se descargan aquí, en la caché interna; nunca en almacenamiento compartido (RF-010).
     private val directorioResultados = File(contexto.cacheDir, "resultados")
