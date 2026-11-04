@@ -15,4 +15,27 @@
     <string name="pantalla_root">Dispositivo no seguro</string>
 
     <string name="pantalla_en_construccion">Pantalla en construcción</string>
+
+    <string name="inicio_cerrar_sesion">Cerrar sesión</string>
+
+    <string name="login_correo">Correo electrónico</string>
+    <string name="login_contrasena">Contraseña</string>
+    <string name="login_entrar">Entrar</string>
+    <string name="login_cargando">Verificando…</string>
+    <string name="login_error_credenciales">No fue posible iniciar sesión. Verifica tus datos e inténtalo de nuevo.</string>
+    <string name="login_error_red">No pudimos conectar con el servicio. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="login_error_incompatible">Esta versión de la app ya no es compatible. Actualízala para continuar.</string>
+
+    <string name="alerta_entendido">Entendido</string>
+    <string name="alerta_bloqueada_titulo">Cuenta bloqueada</string>
+    <string name="alerta_bloqueada_texto">Por seguridad tu cuenta fue bloqueada. Contacta a administración del hospital.</string>
+    <string name="alerta_sin_acceso_titulo">Acceso no disponible</string>
+    <string name="alerta_sin_acceso_texto">Acceso no disponible en la app</string>
+
+    <string name="otp_instruccion">Ingresa el código de %1$d dígitos para verificar este dispositivo.</string>
+    <string name="otp_codigo">Código</string>
+    <string name="otp_verificar">Verificar</string>
+    <string name="otp_error">Código incorrecto o vencido.</string>
+
+    <string name="sesion_expirada_texto">Por seguridad cerramos tu sesión. Inicia sesión de nuevo para continuar.</string>
 </resources>

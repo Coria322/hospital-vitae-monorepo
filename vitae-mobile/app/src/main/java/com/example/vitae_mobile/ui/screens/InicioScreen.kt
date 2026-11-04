@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,7 +24,7 @@ import com.example.vitae_mobile.ui.navigation.Ruta
 private val Secciones = listOf(Ruta.Citas, Ruta.Recetas, Ruta.Resultados, Ruta.Perfil, Ruta.Arco)
 
 @Composable
-fun InicioScreen(onAbrir: (Ruta) -> Unit, modifier: Modifier = Modifier) {
+fun InicioScreen(onAbrir: (Ruta) -> Unit, onCerrarSesion: () -> Unit, modifier: Modifier = Modifier) {
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
             modifier = Modifier.padding(innerPadding).padding(16.dp),
@@ -42,6 +43,9 @@ fun InicioScreen(onAbrir: (Ruta) -> Unit, modifier: Modifier = Modifier) {
                 ) {
                     Text(stringResource(seccion.titulo))
                 }
+            }
+            OutlinedButton(onClick = onCerrarSesion, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.inicio_cerrar_sesion))
             }
         }
     }

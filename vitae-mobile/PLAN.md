@@ -10,8 +10,8 @@ Regla de trabajo: todo el código vive en `vitae-mobile/`. Lo que exija tocar ot
 | S1 | La app es el **portal del paciente de solo lectura** (RF-011): citas, recetas, resultados, perfil, aviso/consentimientos y ARCO. Reutiliza los contratos de la API actual (envoltorio, Bearer, 401/403/423). | Port de los workspaces del personal |
 | S2 | DI manual (un contenedor simple) en lugar de Hilt. SUP-ARQ-M-01 es un supuesto, no un requisito. | Hilt si el grafo crece |
 | S3 | Marca = tokens de `vitae-front/src/assets/main.css` (AMB-010 deja la marca sin definir). Solo tema claro y sin color dinámico. | Marca propia / tema oscuro |
-| S4 | Repositorios como interfaz con dos implementaciones: `Mock*` (hasta que exista el backend móvil) y `Remote*`. Un solo punto de conmutación. | n/a |
-| S5 | Inicio es el arranque temporal. Pasa a Splash → Login en la etapa 2. | n/a |
+| S4 | Repositorios como interfaz. El `Mock*` vive en el source set debug (hasta que exista el backend móvil) y la implementación remota se escribe cuando haya contrato. Un solo punto de conmutación (`crearAuthRepository`). | n/a |
+| S5 | La app arranca en Login (etapa 2). Splash con las comprobaciones de compatibilidad y root llega en la etapa 6. | n/a |
 | S6 | Estado de receta: VIGENTE = activa, CONSUMIDO = dispensada, CANCELADO = cancelada (`RECETA.qr_estado`). La especificación no da el mapeo. | Confirmar con el PO |
 
 ## 2. Arquitectura y convenciones
@@ -44,7 +44,7 @@ com.example.vitae_mobile/
 |---|---|---|---|---|---|---|
 | 0 | Cimientos | 001, 002, 025 | RNF-006, PROV-UX-003, PROV-UI-003 | M | no | **Hecha** |
 | 1 | Red y errores | 006, 024 | RNF-003, RF-003, RF-002.1 | M | no (MockWebServer) | **Hecha** |
-| 2 | Sesión | 003, 004, 005 | PROV-SEC-001/002, RF-002 | L | `/mobile/auth/*` | Pendiente (mock) |
+| 2 | Sesión | 003, 004, 005 | PROV-SEC-001/002, RF-002 | L | `/mobile/auth/*` | **Hecha** (con mock) |
 | 3 | Inicio y perfil | 008 | RF-011, RNF-007 | M | `/mobile/perfil` | Pendiente (mock) |
 | 4 | Citas, recetas, resultados | 009, 010, 011 | PROV-RF-002, RF-009, RF-010 | L | `/mobile/{citas,recetas,resultados}` | Pendiente (mock) |
 | 5 | Privacidad y ARCO | 012, 013 | PROV-RN-008/009 | M | `/mobile/{aviso,consentimientos,solicitudes-arco}` | Pendiente (mock) |
@@ -67,7 +67,12 @@ Compose + Navigation, 12 rutas, `InicioScreen`, `PantallaBase`, tema con contras
 - **Pruebas:** MockWebServer → 401, 403, 423, 426, timeout y 5xx devuelven el `ApiError` correcto; el 403 no limpia sesión; ninguna petición contiene `id_paciente`; `grep 'cleartextTrafficPermitted="false"'` sobre el XML.
 - **Aceptación:** conexión con proxy no fijado falla (verificación manual con mitmproxy, fuera de CI).
 
-### Etapa 2 — Sesión (TASK-M-003, M-004, M-005)
+### Etapa 2 — Sesión (TASK-M-003, M-004, M-005) — hecha, con mock
+- **Resultado:** `data/auth` (`AuthRepository`, `SessionManager`, `KeystoreTokenStore`, `Pkce`, `InactivityMonitor`), pantallas de Login, OTP y Sesión expirada, y cierre de sesión desde Inicio. La navegación la dicta el estado de la sesión. 52 tests unitarios en verde.
+- **Mock solo en debug:** `MockAuthRepository` vive en `src/debug` (trae credenciales de demostración); el release no puede referenciarlo y `crearAuthRepository` falla de forma explícita hasta que exista la implementación remota. Usuario de demo `paciente.demo@vitae.test`, OTP `123456`, personal `medico.demo@vitae.test` (403).
+- **Arranque en frío:** la sesión no se restaura; un token que quede de un proceso anterior se borra y se revoca.
+- **Pendiente de ejecutar en dispositivo:** `KeystoreTokenStoreTest` (compila, no se ha corrido) y la prueba manual del flujo completo.
+- **Plan original:**
 - **Pantallas:** Login (correo y contraseña), OTP, Sesión expirada. Errores genéricos; 423 → alerta de contactar a administración.
 - **Módulos:** `AuthRepository` (mock y remoto), `SessionManager` (Autenticada | SinSesion), `TokenStore` cifrado con Android Keystore, `Pkce` (verifier y challenge S256), `InactivityMonitor` (300 s con reloj inyectable; se reinicia desde `Activity.onUserInteraction`).
 - **Flujo:** credenciales correctas en dispositivo nuevo → `otp_required=true`, sin tokens hasta `otp-verify`. Refresh rotativo; token reutilizado → forzar login. Logout: revocación en servidor + borrado local.
@@ -147,10 +152,10 @@ Versiones limitadas por el compilador: el proyecto usa Kotlin 2.2.10, que lee me
 1. Confirmar S1 a S6.
 2. **Paquete definitivo:** hoy `com.example.vitae_mobile`. Cambiarlo después cuesta más.
 3. **`minSdk` 29 contra el mensaje en Android 9:** con `minSdk` 29 la app no se instala en Android 9 y el mensaje de RNF-006 no se vería. Para mostrarlo habría que bajar `minSdk` y comprobar la versión en ejecución.
-4. **Almacenamiento de tokens:** la especificación nombra `EncryptedSharedPreferences`; recuerdo que sus APIs aparecen como obsoletas y lo confirmo al llegar a la etapa 2. Propongo Keystore directo.
-5. **Cómo se obtiene el código PKCE:** la especificación lista `POST /mobile/auth/token` pero ningún endpoint que lo entregue.
-6. **Identificación del dispositivo para el OTP:** no se define cómo sabe el servidor que el dispositivo es nuevo.
-7. **Datos sin definir:** valores de `CITA.estado`, de `derecho` en ARCO, longitud del OTP y fuente del texto del aviso integral.
+4. **Almacenamiento de tokens** (adoptado en la etapa 2): Keystore directo con AES-GCM. La especificación nombra `EncryptedSharedPreferences`, que está marcado como obsoleto; el criterio de aceptación ("sin tokens en claro") se cumple igual.
+5. **Cómo se obtiene el código PKCE** (adoptado): el repositorio expone `iniciarSesion(correo, contraseña)` y esconde el intercambio. Hay que definirlo con el backend; la especificación lista `POST /mobile/auth/token` pero ningún endpoint que entregue el código.
+6. **Identificación del dispositivo para el OTP** (adoptado): UUID de instalación guardado en la app. No se define cómo sabe el servidor que el dispositivo es nuevo.
+7. **Datos sin definir:** valores de `CITA.estado` y de `derecho` en ARCO, fuente del texto del aviso integral. Longitud del OTP: se asumió 6 (constante `LONGITUD_OTP`).
 8. **Pines de certificado** del servidor real.
 9. **Aseguradora (AMB-018):** solo existe `seguro_activo`.
 10. **Commits:** `AGENTS.md` pide tu autorización previa y el 100% de las pruebas.
