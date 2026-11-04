@@ -14,6 +14,9 @@
     <string name="pantalla_incompatible">Dispositivo no compatible</string>
     <string name="pantalla_root">Dispositivo no seguro</string>
 
+    <string name="pantalla_receta_detalle">Receta</string>
+    <string name="pantalla_resultado_visor">Resultado</string>
+
     <string name="pantalla_en_construccion">Pantalla en construcción</string>
 
     <string name="inicio_cerrar_sesion">Cerrar sesión</string>
@@ -25,6 +28,43 @@
     <string name="error_carga">No pudimos cargar tu información. Revisa tu conexión e inténtalo de nuevo.</string>
     <string name="error_permisos">No tienes permiso para ver esta información.</string>
     <string name="error_recurso">No pudimos mostrar tu información. Inténtalo de nuevo.</string>
+
+    <string name="abrir">Abrir</string>
+
+    <string name="resumen_proxima_cita">Próxima cita</string>
+    <string name="resumen_sin_cita">Sin citas próximas</string>
+    <string name="resumen_recetas_activas">Recetas activas</string>
+    <string name="resumen_ultimo_resultado">Último resultado</string>
+    <string name="resumen_sin_resultado">Sin resultados</string>
+
+    <string name="citas_vacio">No tienes citas programadas.</string>
+    <string name="cita_fecha">Fecha</string>
+    <string name="cita_hora">Hora</string>
+    <string name="cita_estado">Estado</string>
+
+    <string name="recetas_vacio">No tienes recetas.</string>
+    <string name="receta_medicamento">Medicamento</string>
+    <string name="receta_dosis">Dosis</string>
+    <string name="receta_via">Vía</string>
+    <string name="receta_duracion">Duración</string>
+    <string name="receta_estado">Estado</string>
+    <string name="receta_estado_activa">Activa</string>
+    <string name="receta_estado_dispensada">Dispensada</string>
+    <string name="receta_estado_cancelada">Cancelada</string>
+    <string name="receta_sin_qr">Esta receta no tiene código QR.</string>
+    <string name="receta_qr_desc">Código QR de la receta</string>
+    <string name="receta_qr_invalido">Código QR no válido</string>
+    <string name="receta_qr_invalido_desc">Código QR no válido: la receta ya no está activa</string>
+
+    <string name="resultados_vacio">No tienes resultados.</string>
+    <string name="resultado_estudio">Estudio</string>
+    <string name="resultado_fecha">Fecha</string>
+    <string name="resultado_archivo">Archivo</string>
+    <string name="resultado_pdf">PDF</string>
+    <string name="resultado_imagen">Imagen</string>
+    <string name="resultado_descargando">Descargando… %1$d%%</string>
+    <string name="visor_pagina_desc">Página %1$d de %2$d</string>
+    <string name="visor_imagen_desc">Imagen del resultado</string>
 
     <string name="perfil_nombre">Nombre</string>
     <string name="perfil_curp">CURP</string>

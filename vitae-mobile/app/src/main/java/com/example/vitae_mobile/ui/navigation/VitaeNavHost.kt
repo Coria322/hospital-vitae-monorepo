@@ -28,11 +28,14 @@ import com.example.vitae_mobile.ui.perfil.PerfilScreen
 import com.example.vitae_mobile.ui.perfil.PerfilViewModel
 import com.example.vitae_mobile.ui.screens.InicioScreen
 import com.example.vitae_mobile.ui.screens.PantallaBase
+import com.example.vitae_mobile.ui.screens.ResumenViewModel
 import com.example.vitae_mobile.ui.sesion.SesionExpiradaScreen
 import kotlinx.coroutines.launch
 
 // Pantallas con implementación propia; el resto usa PantallaBase hasta su etapa.
-private val Implementadas = setOf(Ruta.Login, Ruta.Otp, Ruta.Inicio, Ruta.Perfil, Ruta.SesionExpirada)
+private val Implementadas = setOf(
+    Ruta.Login, Ruta.Otp, Ruta.Inicio, Ruta.Citas, Ruta.Recetas, Ruta.Resultados, Ruta.Perfil, Ruta.SesionExpirada,
+)
 
 @Composable
 fun VitaeNavHost(
@@ -78,8 +81,18 @@ fun VitaeNavHost(
                 factory = viewModelFactory { initializer { PerfilViewModel(contenedor.perfilRepository) } },
             )
             val perfil by vm.estado.collectAsStateWithLifecycle()
+            val resumenVm: ResumenViewModel = viewModel(
+                factory = viewModelFactory {
+                    initializer {
+                        ResumenViewModel(contenedor.citasRepository, contenedor.recetasRepository, contenedor.resultadosRepository)
+                    }
+                },
+            )
+            val resumen by resumenVm.estado.collectAsStateWithLifecycle()
             InicioScreen(
                 perfil = perfil,
+                resumen = resumen,
+                alReintentarResumen = resumenVm::cargar,
                 onAbrir = { navController.navigate(it.ruta) },
                 onCerrarSesion = { alcance.launch { contenedor.sesion.cerrar(MotivoCierre.Voluntario) } },
             )
@@ -90,6 +103,7 @@ fun VitaeNavHost(
             )
             PerfilScreen(vm)
         }
+        clinico(navController, contenedor)
         composable(Ruta.SesionExpirada.ruta) {
             SesionExpiradaScreen(onIniciarSesion = { navController.irLimpiando(Ruta.Login) })
         }

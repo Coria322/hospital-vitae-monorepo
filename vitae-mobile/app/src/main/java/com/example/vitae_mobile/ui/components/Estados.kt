@@ -1,11 +1,12 @@
 package com.example.vitae_mobile.ui.components
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +19,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.vitae_mobile.R
+import com.example.vitae_mobile.core.ApiError
 
 /** Bloque gris estático de "cargando" (UI_UX_SPEC: skeleton). Sin animación: el ERS no define motion. */
 @Composable
@@ -48,4 +50,41 @@ fun EstadoError(mensaje: String, alReintentar: (() -> Unit)?, modifier: Modifier
             }
         }
     }
+}
+
+/**
+ * Pinta los tres estados de una carga: esqueleto, error con reintento (sin reintento en un 403, RF-003) y el
+ * contenido, o [mensajeVacio] si la lista llegó vacía.
+ */
+@Composable
+fun <T> ContenidoCarga(
+    estado: Carga<T>,
+    alReintentar: () -> Unit,
+    modifier: Modifier = Modifier,
+    estaVacio: (T) -> Boolean = { false },
+    @StringRes mensajeVacio: Int? = null,
+    contenido: @Composable (T) -> Unit,
+) {
+    when (estado) {
+        Carga.Cargando -> CargandoEsqueleto(filas = 4, modifier = modifier)
+        is Carga.Error -> EstadoError(
+            mensaje = stringResource(mensajeDeError(estado.error)),
+            alReintentar = if (estado.error == ApiError.SinPermisos) null else alReintentar,
+            modifier = modifier,
+        )
+        is Carga.Listo ->
+            if (mensajeVacio != null && estaVacio(estado.valor)) {
+                Text(text = stringResource(mensajeVacio), style = MaterialTheme.typography.bodyLarge, modifier = modifier)
+            } else {
+                contenido(estado.valor)
+            }
+    }
+}
+
+// RF-003: 403 → permisos; red o 5xx → reintento; recurso ilegible o inválido (RNF-007) → error controlado.
+@StringRes
+fun mensajeDeError(error: ApiError): Int = when (error) {
+    ApiError.SinPermisos -> R.string.error_permisos
+    ApiError.Red, ApiError.Servidor -> R.string.error_carga
+    ApiError.SesionInvalida, ApiError.CuentaBloqueada, ApiError.AppIncompatible, ApiError.Desconocido -> R.string.error_recurso
 }

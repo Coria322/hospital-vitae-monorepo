@@ -46,7 +46,7 @@ com.example.vitae_mobile/
 | 1 | Red y errores | 006, 024 | RNF-003, RF-003, RF-002.1 | M | no (MockWebServer) | **Hecha** |
 | 2 | Sesión | 003, 004, 005 | PROV-SEC-001/002, RF-002 | L | `/mobile/auth/*` | **Hecha** (con mock) |
 | 3 | Inicio y perfil | 008 | RF-011, RNF-007 | M | `/mobile/perfil` | **Hecha** (con mock) |
-| 4 | Citas, recetas, resultados | 009, 010, 011 | PROV-RF-002, RF-009, RF-010 | L | `/mobile/{citas,recetas,resultados}` | Pendiente (mock) |
+| 4 | Citas, recetas, resultados | 009, 010, 011 | PROV-RF-002, RF-009, RF-010 | L | `/mobile/{citas,recetas,resultados}` | **Hecha** (con mock) |
 | 5 | Privacidad y ARCO | 012, 013 | PROV-RN-008/009 | M | `/mobile/{aviso,consentimientos,solicitudes-arco}` | Pendiente (mock) |
 | 6 | Estados y hardening | 014, 007 | RNF-006, PROV-SEC-011 | L | 426 | Pendiente |
 | 7 | Calidad y evidencia | 015–020 | RF-011, PROV-UX-003, RF-002.1, RNF-007 | M | colección de contrato | Pendiente |
@@ -95,7 +95,13 @@ Compose + Navigation, 12 rutas, `InicioScreen`, `PantallaBase`, tema con contras
 - **FHIR:** modelos tipados; un recurso sin `resourceType` o que no valida produce error controlado y la app no se cierra (RNF-007).
 - **Pruebas:** JSON FHIR válido e inválido; `HomeTest` instrumentada.
 
-### Etapa 4 — Citas, recetas, resultados (TASK-M-009, M-010, M-011)
+### Etapa 4 — Citas, recetas, resultados (TASK-M-009, M-010, M-011) — hecha, con mock
+- **Resultado:** repositorios y pantallas de citas, recetas (lista y detalle con QR) y resultados (lista y visor interno de PDF e imagen); resumen de Inicio (próxima cita, recetas activas, último resultado), que pasó aquí desde la etapa 3; `FLAG_SECURE` en Inicio, Citas, Perfil, Recetas y Resultados con un contador para no quitarlo al navegar entre pantallas protegidas; componentes reutilizables (`CargaViewModel`, `ContenidoCarga`, `Tarjeta`). 116 tests unitarios y 19 instrumentados en verde.
+- **Verificado en teléfono real:** las 18 pruebas instrumentadas pasan (`ClinicoTest` 8, `HomeTest` 6, `KeystoreTokenStoreTest` 3 y el ejemplo). Revisión visual de cada pantalla con un build de debug que permite capturas (`-Pvitae.permitirCapturas=true`; el build normal las bloquea). El QR, tal como se pinta en el teléfono, se decodifica con ZXing como el texto original.
+- **Hallazgos corregidos:** los módulos del QR con tamaño fraccionario dejaban costuras; ahora el tamaño y el desfase son enteros. ZXing codifica en ISO-8859-1 sin declararlo y un texto con acentos se leía de vuelta como katakana; ahora se declara UTF-8 solo si el texto no es ASCII.
+- **Supuestos del contrato** (a confirmar con el backend, la especificación no los define): la lista de recetas es un `Bundle` FHIR y el detalle un `MedicationRequest`; el QR viaja en las extensiones `urn:vitae:qr-codigo` y `urn:vitae:qr-estado` (VIGENTE, CONSUMIDO, CANCELADO); el estado de la receta sale de `status` (active, completed, cancelled o stopped) y de `qr-estado`; la duración sale de `dispenseRequest.expectedSupplyDuration`; citas y resultados llegan como JSON propio (fecha en UTC) y el archivo del resultado como `GET .../resultados/{id}/archivo`.
+- **Protección de capturas:** Inicio, Citas, Perfil, Recetas y Resultados (el plan solo pedía las tres últimas; se añadieron Inicio, por su resumen clínico, y Citas por decisión del PO). Login, OTP y Sesión expirada no la llevan.
+- **Plan original:**
 - **Citas:** lista con fecha, hora y estado; vacío con mensaje. Los valores de `CITA.estado` no están definidos: se muestra el texto del servidor.
 - **Recetas:** lista y detalle con medicamento, dosis, vía, duración, estado y QR. Con QR consumido el QR se muestra inválido y el estado "dispensada". Sin imprimir ni modificar.
 - **Resultados:** lista y visor interno. El archivo se transmite a `cacheDir` (nunca a almacenamiento compartido), se abre con `PdfRenderer` (PDF) o decodificación de imagen, muestra progreso y se borra al salir. Un 403 no muestra datos.
@@ -131,7 +137,7 @@ Compose + Navigation, 12 rutas, `InicioScreen`, `PantallaBase`, tema con contras
 | 1 | `kotlinx-serialization-json` 1.9.0 + plugin (instalada) | Modelos FHIR tipados, sin reflexión, compatible con R8 | Moshi o Gson |
 | 1 | `kotlinx-coroutines-test` 1.10.2, `mockwebserver3` 5.5.1 (solo pruebas, instaladas) | Pruebas de red y de tiempo | Fakes manuales |
 | 2 | Ninguna para el cifrado de tokens: Keystore de la plataforma (AES-GCM) | Evitar `security-crypto` (ver decisión 4) | `androidx.security:security-crypto` 1.1.0 |
-| 4 | `com.google.zxing:core` 3.5.4 | Dibujar el QR de la receta | Escribir un codificador QR |
+| 4 | `com.google.zxing:core` 3.5.4 (instalada) | Dibujar el QR de la receta | Escribir un codificador QR |
 | 7 | `espresso-accessibility`, JaCoCo (ya integrado en AGP) | Accesibilidad y cobertura | n/a |
 
 Hilt, Coil, Room y Material Icons extendidos quedan fuera mientras no hagan falta.
@@ -166,7 +172,8 @@ Versiones limitadas por el compilador: el proyecto usa Kotlin 2.2.10, que lee me
 7. **Datos sin definir:** valores de `CITA.estado` y de `derecho` en ARCO, fuente del texto del aviso integral. Longitud del OTP: se asumió 6 (constante `LONGITUD_OTP`).
 8. **Pines de certificado** del servidor real.
 9. **Aseguradora (AMB-018):** solo existe `seguro_activo`. Cómo viaja en el Patient FHIR y en qué sistema va la CURP (supuestos de la etapa 3, ver arriba).
-10. **Commits:** `AGENTS.md` pide tu autorización previa y el 100% de las pruebas.
+10. **Contrato de citas y resultados:** la especificación no los define (formato, valores de `CITA.estado`, tipos de archivo y tamaño máximo, AMB-012).
+11. **Commits:** `AGENTS.md` pide tu autorización previa y el 100% de las pruebas.
 
 ## 9. Verificación en cada etapa
 

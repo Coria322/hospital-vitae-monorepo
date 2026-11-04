@@ -1,91 +1,39 @@
 package com.example.vitae_mobile.ui
 
-import android.os.ParcelFileDescriptor
-import androidx.compose.ui.test.junit4.createEmptyComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextInput
-import androidx.test.espresso.Espresso
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
-import com.example.vitae_mobile.MainActivity
 import com.example.vitae_mobile.R
-import com.example.vitae_mobile.data.auth.CODIGO_OTP_DEMO
-import com.example.vitae_mobile.data.auth.CONTRASENA_DEMO
-import com.example.vitae_mobile.data.auth.CORREO_PACIENTE_DEMO
 import org.junit.Assert.assertFalse
-import org.junit.Before
-import org.junit.Rule
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * TASK-M-008: recorre la app real (con el servidor simulado de debug) como lo haría un paciente.
- * Se ejecuta en dispositivo o emulador.
- *
- * La actividad se abre con `am start` a través de UiAutomation, no con `ActivityScenario`: MIUI bloquea que una app
- * abra su propia pantalla desde segundo plano (y `am instrument` reinicia el proceso, así que siempre lo está), pero
- * deja abrirla a la identidad de shell. Se abre en [iniciar], que corre después de arrancar la regla de Compose.
- * El estado de la sesión vive en el proceso: [entrar] se adapta a que ya haya sesión o no.
- */
+/** TASK-M-008: Inicio y Perfil. Ver [AppTest] para cómo se abre la app. */
 @RunWith(AndroidJUnit4::class)
-class HomeTest {
-    @get:Rule
-    val rule = createEmptyComposeRule()
-
-    private val contexto = InstrumentationRegistry.getInstrumentation().targetContext
-    private fun texto(id: Int, vararg args: Any) = contexto.getString(id, *args)
-
-    // Mientras la actividad no ha compuesto aún, Compose lanza IllegalStateException: se trata como "no visible".
-    private fun visible(texto: String) = try {
-        rule.onAllNodesWithText(texto).fetchSemanticsNodes().isNotEmpty()
-    } catch (e: IllegalStateException) {
-        false
-    }
-
-    private val saludo get() = texto(R.string.inicio_saludo, "Ana Pérez Demo")
-
-    /** Abre MainActivity como actividad nueva (descarta la anterior); la sesión del proceso se conserva. */
-    private fun abrirApp() {
-        val comando = "am start -W --activity-clear-task -n ${contexto.packageName}/${MainActivity::class.java.name}"
-        val salida = InstrumentationRegistry.getInstrumentation().uiAutomation.executeShellCommand(comando)
-        ParcelFileDescriptor.AutoCloseInputStream(salida).use { it.readBytes() } // espera a que termine el comando
-    }
-
-    @Before
-    fun iniciar() = abrirApp()
-
-    /** Deja la app en Inicio: inicia sesión si hace falta (con OTP si el mock aún no conoce el dispositivo). */
-    private fun entrar() {
-        rule.waitUntil(ESPERA_MS) { visible(texto(R.string.login_entrar)) || visible(saludo) }
-        if (visible(texto(R.string.login_entrar))) {
-            rule.onNodeWithText(texto(R.string.login_correo)).performTextInput(CORREO_PACIENTE_DEMO)
-            rule.onNodeWithText(texto(R.string.login_contrasena)).performTextInput(CONTRASENA_DEMO)
-            rule.onNodeWithText(texto(R.string.login_entrar)).performClick()
-            rule.waitUntil(ESPERA_MS) { visible(texto(R.string.pantalla_otp)) || visible(saludo) }
-            if (visible(texto(R.string.pantalla_otp))) {
-                rule.onNodeWithText(texto(R.string.otp_codigo)).performTextInput(CODIGO_OTP_DEMO)
-                rule.onNodeWithText(texto(R.string.otp_verificar)).performClick()
-            }
-        }
-        rule.waitUntil(ESPERA_MS) { visible(saludo) }
-    }
-
+class HomeTest : AppTest() {
     private fun abrirPerfil() {
-        rule.onNodeWithText(texto(R.string.pantalla_perfil)).performClick()
-        rule.waitUntil(ESPERA_MS) { visible("DEMO900517MDFRRN09") }
-    }
-
-    private fun volverAInicio() {
-        Espresso.pressBack()
-        rule.waitUntil(ESPERA_MS) { visible(saludo) }
+        abrirSeccion(R.string.pantalla_perfil)
+        esperar { visible("DEMO900517MDFRRN09") }
     }
 
     @Test
     fun inicioSaludaAlPacienteConSusPropiosDatos() {
         entrar()
         rule.onNodeWithText(saludo).assertExists()
+    }
+
+    // TASK-M-008: Inicio resume próxima cita, recetas activas y último resultado.
+    @Test
+    fun inicioMuestraElResumenDelPaciente() {
+        entrar()
+
+        esperar { visible(texto(R.string.resumen_proxima_cita)) && !visible(texto(R.string.dato_no_disponible)) }
+        esperar { visible("Biometría hemática", subcadena = true) }
+        assertFalse(visible(texto(R.string.resumen_sin_cita)))
+        assertFalse(visible(texto(R.string.resumen_sin_resultado)))
+        assertTrue(visible(texto(R.string.resumen_recetas_activas)))
+        assertTrue(visible("1")) // el mock tiene una sola receta activa
     }
 
     // RNF-007, escenario 1: el Patient válido muestra CURP, nombre y fecha de nacimiento.
@@ -119,25 +67,21 @@ class HomeTest {
         entrar()
 
         abrirApp() // actividad nueva; el proceso y la sesión siguen vivos
-        rule.waitUntil(ESPERA_MS) { visible(saludo) }
+        esperar { visible(saludo) }
         rule.waitForIdle()
-        Thread.sleep(ESPERA_COMPOSICION_MS)
+        Thread.sleep(1_000)
 
         assertFalse("Se mostró Login con la sesión viva", visible(texto(R.string.login_entrar)))
         assertFalse(visible(texto(R.string.pantalla_otp)))
     }
 
+    // Este test deja la app en Login.
     @Test
     fun cerrarSesionVuelveALogin() {
         entrar()
         rule.onNodeWithText(texto(R.string.inicio_cerrar_sesion)).performClick()
 
-        rule.waitUntil(ESPERA_MS) { visible(texto(R.string.login_entrar)) }
+        esperar { visible(texto(R.string.login_entrar)) }
         assertFalse(visible(saludo))
-    }
-
-    private companion object {
-        const val ESPERA_MS = 8_000L
-        const val ESPERA_COMPOSICION_MS = 1_000L
     }
 }

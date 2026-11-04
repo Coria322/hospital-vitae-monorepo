@@ -32,4 +32,4 @@ data class FhirHumanName(
 )
 
 @Serializable
-data class FhirExtension(val url: String, val valueBoolean: Boolean? = null)
+data class FhirExtension(val url: String, val valueBoolean: Boolean? = null, val valueString: String? = null)

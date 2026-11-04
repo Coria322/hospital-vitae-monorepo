@@ -8,6 +8,9 @@ plugins {
 // y -Pvitae.apiUrl=http://localhost:8080/api/v1/
 val apiUrlDebug = providers.gradleProperty("vitae.apiUrl").getOrElse("http://10.0.2.2:8080/api/v1/")
 
+// Solo debug: -Pvitae.permitirCapturas=true quita FLAG_SECURE para poder hacer capturas al desarrollar. El release nunca.
+val permitirCapturasDebug = providers.gradleProperty("vitae.permitirCapturas").getOrElse("false").toBoolean()
+
 android {
     namespace = "com.example.vitae_mobile"
     compileSdk {
@@ -28,12 +31,14 @@ android {
         debug {
             buildConfigField("String", "API_BASE_URL", "\"$apiUrlDebug\"")
             buildConfigField("String", "API_PINES", "\"\"")
+            buildConfigField("boolean", "PERMITIR_CAPTURAS", "$permitirCapturasDebug")
         }
         release {
             // ponytail: servidor de producción actual; RNF-003 exige los pines SHA-256 (sha256/..., separados por
             // coma) del certificado del servidor definitivo. Sin pines, el release se niega a crear el cliente.
             buildConfigField("String", "API_BASE_URL", "\"https://auditoria-backend-u47a.onrender.com/api/v1/\"")
             buildConfigField("String", "API_PINES", "\"\"")
+            buildConfigField("boolean", "PERMITIR_CAPTURAS", "false")
             optimization {
                 enable = false
             }
@@ -64,6 +69,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp)
+    implementation(libs.zxing.core)
     implementation(libs.retrofit)
     implementation(libs.retrofit.kotlinx.serialization)
     testImplementation(libs.junit)
