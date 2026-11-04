@@ -1,4 +1,4 @@
-package com.example.pacientemovil.ui.theme
+package com.example.vitae_mobile.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

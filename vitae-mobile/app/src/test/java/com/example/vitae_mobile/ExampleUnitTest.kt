@@ -1,4 +1,4 @@
-package com.example.pacientemovil
+package com.example.vitae_mobile
 
 import org.junit.Test
 
