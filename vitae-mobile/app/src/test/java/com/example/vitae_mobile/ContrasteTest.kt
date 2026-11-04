@@ -33,6 +33,9 @@ class ContrasteTest {
             "onBackground/background" to (c.onBackground to c.background),
             "onSurface/surface" to (c.onSurface to c.surface),
             "onSurfaceVariant/surface" to (c.onSurfaceVariant to c.surface),
+            // Los componentes de Material usan estos pares sobre el fondo gris (etiquetas, botón de contorno, subtítulos).
+            "onSurfaceVariant/background" to (c.onSurfaceVariant to c.background),
+            "primary/background" to (c.primary to c.background),
         )
         pares.forEach { (nombre, par) ->
             assertTrue("$nombre = ${contraste(par.first, par.second)}", contraste(par.first, par.second) >= 4.5)

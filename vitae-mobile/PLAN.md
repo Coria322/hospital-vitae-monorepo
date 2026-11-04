@@ -9,7 +9,7 @@ Regla de trabajo: todo el código vive en `vitae-mobile/`. Lo que exija tocar ot
 |---|---|---|
 | S1 | La app es el **portal del paciente de solo lectura** (RF-011): citas, recetas, resultados, perfil, aviso/consentimientos y ARCO. Reutiliza los contratos de la API actual (envoltorio, Bearer, 401/403/423). | Port de los workspaces del personal |
 | S2 | DI manual (un contenedor simple) en lugar de Hilt. SUP-ARQ-M-01 es un supuesto, no un requisito. | Hilt si el grafo crece |
-| S3 | Marca = tokens de `vitae-front/src/assets/main.css` (AMB-010 deja la marca sin definir). Solo tema claro y sin color dinámico. | Marca propia / tema oscuro |
+| S3 | Marca = tokens de `vitae-front/src/assets/main.css` (AMB-010 deja la marca sin definir), con una excepción: el texto suave de la web (`#64748B`) da 4,40:1 sobre el fondo y se oscurece a `#5F6F86` (4,73:1) para cumplir PROV-UX-003. Solo tema claro y sin color dinámico. | Marca propia / tema oscuro |
 | S4 | Repositorios como interfaz. El `Mock*` vive en el source set debug (hasta que exista el backend móvil) y la implementación remota se escribe cuando haya contrato. Un solo punto de conmutación (`crearAuthRepository`). | n/a |
 | S5 | La app arranca en Login (etapa 2). Splash con las comprobaciones de compatibilidad y root llega en la etapa 6. | n/a |
 | S6 | Estado de receta: VIGENTE = activa, CONSUMIDO = dispensada, CANCELADO = cancelada (`RECETA.qr_estado`). La especificación no da el mapeo. | Confirmar con el PO |
@@ -71,7 +71,8 @@ Compose + Navigation, 12 rutas, `InicioScreen`, `PantallaBase`, tema con contras
 - **Resultado:** `data/auth` (`AuthRepository`, `SessionManager`, `KeystoreTokenStore`, `Pkce`, `InactivityMonitor`), pantallas de Login, OTP y Sesión expirada, y cierre de sesión desde Inicio. La navegación la dicta el estado de la sesión. 52 tests unitarios en verde.
 - **Mock solo en debug:** `MockAuthRepository` vive en `src/debug` (trae credenciales de demostración); el release no puede referenciarlo y `crearAuthRepository` falla de forma explícita hasta que exista la implementación remota. Usuario de demo `paciente.demo@vitae.test`, OTP `123456`, personal `medico.demo@vitae.test` (403).
 - **Arranque en frío:** la sesión no se restaura; un token que quede de un proceso anterior se borra y se revoca.
-- **Pendiente de ejecutar en dispositivo:** `KeystoreTokenStoreTest` (compila, no se ha corrido) y la prueba manual del flujo completo.
+- **Verificado en teléfono real** (M2007J20CG, Android 12, API 31, app de debug instalada desde Android Studio): login con error genérico, OTP incorrecto y correcto, Inicio, navegación y cierre de sesión, segundo login sin OTP y arranque en frío que descarta la sesión. Con `run-as`: antes del OTP no hay sesión, después hay un valor cifrado sin tokens en claro, y al cerrar sesión se borra conservando el `id_instalacion`. Sin cierres en logcat.
+- **Sin verificar en dispositivo:** `KeystoreTokenStoreTest` (el teléfono bloquea instalar el APK de pruebas por USB; la instalación manual desde Studio sí funcionó) y el cierre real a los 5 min de inactividad (solo con tests de tiempo virtual).
 - **Plan original:**
 - **Pantallas:** Login (correo y contraseña), OTP, Sesión expirada. Errores genéricos; 423 → alerta de contactar a administración.
 - **Módulos:** `AuthRepository` (mock y remoto), `SessionManager` (Autenticada | SinSesion), `TokenStore` cifrado con Android Keystore, `Pkce` (verifier y challenge S256), `InactivityMonitor` (300 s con reloj inyectable; se reinicia desde `Activity.onUserInteraction`).
