@@ -1,0 +1,24 @@
+meta {
+  name: 16 - Consultar Recurso FHIR Patient (200 OK)
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{base_url}}/fhir/Patient/{{paciente_id}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/fhir+json
+}
+
+tests {
+  test("Retorna recurso estándar HL7 FHIR R4 Patient", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().resourceType).to.equal("Patient");
+    expect(res.getBody().id).to.equal(bru.getVar("paciente_id"));
+    expect(res.getBody().identifier[0].type.coding[0].display).to.equal("CURP");
+  });
+}

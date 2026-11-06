@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use RuntimeException;
 
 class ExpedienteClinico extends Model
@@ -52,6 +53,26 @@ class ExpedienteClinico extends Model
     public function medicoTratante(): BelongsTo
     {
         return $this->belongsTo(Usuario::class, 'id_usuario', 'id_usuario');
+    }
+
+    public function antecedentes(): HasMany
+    {
+        return $this->hasMany(AntecedenteClinico::class, 'id_expediente', 'id_expediente');
+    }
+
+    public function notasMedicas(): HasMany
+    {
+        return $this->hasMany(NotaMedica::class, 'id_expediente', 'id_expediente')->orderBy('fecha_hora', 'asc');
+    }
+
+    public function recetas(): HasMany
+    {
+        return $this->hasMany(Receta::class, 'id_expediente', 'id_expediente')->orderBy('fecha_hora_emision', 'desc');
+    }
+
+    public function solicitudesEstudio(): HasMany
+    {
+        return $this->hasMany(SolicitudEstudio::class, 'id_expediente', 'id_expediente')->orderBy('fecha_hora_solicitud', 'desc');
     }
 
     /**

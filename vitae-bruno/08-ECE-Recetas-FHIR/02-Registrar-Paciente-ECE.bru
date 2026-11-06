@@ -1,0 +1,46 @@
+meta {
+  name: 02 - Registrar Paciente para ECE (201 Created)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/pacientes
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{medico_token}}
+}
+
+script:pre-request {
+  const num = Math.floor(100000 + Math.random() * 900000);
+  bru.setVar("curp_generada", "MORA" + num + "HDFRRN01");
+}
+
+body:json {
+  {
+    "curp": "{{curp_generada}}",
+    "nombre_completo": "Juan Carlos Morales Sintético",
+    "fecha_nacimiento": "1985-06-15",
+    "sexo": "MASCULINO",
+    "domicilio": "Av. Reforma 505, Cuauhtémoc, CDMX",
+    "seguro_activo": true
+  }
+}
+
+vars:post-response {
+  paciente_id: res.body.data.id_paciente
+  paciente_curp: res.body.data.curp
+}
+
+tests {
+  test("Paciente para ECE registrado exitosamente", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.id_paciente).to.be.a('string');
+  });
+}

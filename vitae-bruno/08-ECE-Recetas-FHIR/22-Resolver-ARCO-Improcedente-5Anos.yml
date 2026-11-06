@@ -1,0 +1,32 @@
+info:
+  name: 22 - Resolver ARCO Improcedente por Retención NOM-004 (200 OK)
+  type: http
+  seq: 22
+
+http:
+  method: POST
+  url: "{{base_url}}/solicitudes-arco/{{arco_folio}}/resolver"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: "Bearer {{admin_token}}"
+  body:
+    type: none
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Dictamina improcedente la cancelación por retención legal de 5 años NOM-004", function() {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().status).to.equal("success");
+          expect(res.getBody().data.estado).to.equal("IMPROCEDENTE");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

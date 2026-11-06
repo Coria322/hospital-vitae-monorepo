@@ -1,0 +1,38 @@
+info:
+  name: 07 - Rechazar Modificación de Nota Cerrada (405 Method Not Allowed)
+  type: http
+  seq: 7
+
+http:
+  method: PUT
+  url: "{{base_url}}/expedientes-clinicos/{{expediente_id}}/notas/{{nota_id}}"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: "Bearer {{medico_token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "contenido": "Intento no autorizado de modificación de nota médica sellada."
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Bloquea modificación física de notas médicas con HTTP 405 conforme a NOM-004", function() {
+          expect(res.getStatus()).to.equal(405);
+          expect(res.getBody().status).to.equal("error");
+          expect(res.getBody().code).to.equal("METODO_NO_PERMITIDO");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

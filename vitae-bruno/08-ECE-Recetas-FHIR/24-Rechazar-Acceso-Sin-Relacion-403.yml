@@ -1,0 +1,32 @@
+info:
+  name: 24 - Rechazar Acceso Sin Relación Asistencial (403 Forbidden)
+  type: http
+  seq: 24
+
+http:
+  method: GET
+  url: "{{base_url}}/expedientes-clinicos/{{expediente_id}}"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: "Bearer {{medico2_token}}"
+  body:
+    type: none
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Rechaza consulta con 403 y sugiere Break-the-Glass por falta de relación asistencial", function() {
+          expect(res.getStatus()).to.equal(403);
+          expect(res.getBody().status).to.equal("error");
+          expect(res.getBody().code).to.equal("BREAK_THE_GLASS_REQUIRED");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

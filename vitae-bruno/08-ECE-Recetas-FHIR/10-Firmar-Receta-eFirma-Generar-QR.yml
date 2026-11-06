@@ -1,0 +1,49 @@
+info:
+  name: 10 - Firmar Receta con eFirma y Generar QR (200 OK)
+  type: http
+  seq: 10
+
+http:
+  method: POST
+  url: "{{base_url}}/recetas/{{receta_id}}/firma"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: "Bearer {{medico_token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "firma_electronica": "MIICXAIBAAKCAQEA081293819283VALIDO_EFIRMA_SAT_HOSPITAL_VITAE_MED001",
+        "certificado": "X509_CERT_SAT_VIGENTE"
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Receta validada y código QR de un solo uso activado", function() {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().status).to.equal("success");
+          expect(res.getBody().data.qr_estado).to.equal("VIGENTE");
+          expect(res.getBody().data.qr_codigo).to.be.a('string');
+        });
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.data.qr_codigo
+        method: jsonq
+      variable:
+        name: receta_qr
+        scope: runtime
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

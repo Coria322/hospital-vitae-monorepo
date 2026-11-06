@@ -1,0 +1,64 @@
+info:
+  name: 02 - Registrar Paciente para ECE (201 Created)
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{base_url}}/pacientes"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: "Bearer {{medico_token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "curp": "{{curp_generada}}",
+        "nombre_completo": "Juan Carlos Morales Sintético",
+        "fecha_nacimiento": "1985-06-15",
+        "sexo": "MASCULINO",
+        "domicilio": "Av. Reforma 505, Cuauhtémoc, CDMX",
+        "seguro_activo": true
+      }
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        const num = Math.floor(100000 + Math.random() * 900000);
+        bru.setVar("curp_generada", "MORA" + num + "HDFRRN01");
+    - type: tests
+      code: |-
+        test("Paciente para ECE registrado exitosamente", function() {
+          expect(res.getStatus()).to.equal(201);
+          expect(res.getBody().status).to.equal("success");
+          expect(res.getBody().data.id_paciente).to.be.a('string');
+        });
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.data.id_paciente
+        method: jsonq
+      variable:
+        name: paciente_id
+        scope: runtime
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.data.curp
+        method: jsonq
+      variable:
+        name: paciente_curp
+        scope: runtime
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

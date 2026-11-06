@@ -1,0 +1,33 @@
+meta {
+  name: 19 - Revocar Consentimiento Informado (201 Created)
+  type: http
+  seq: 19
+}
+
+post {
+  url: {{base_url}}/consentimientos/{{consentimiento_id}}/revocaciones
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{medico_token}}
+}
+
+body:json {
+  {
+    "motivo_revocacion": "El paciente decide cambiar de clínica tratante y revoca voluntariamente el consentimiento.",
+    "firmante_nombre": "Juan Carlos Morales"
+  }
+}
+
+tests {
+  test("Revocación registrada como nuevo registro inmutable enlazado", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.estado).to.equal("REVOCADO");
+    expect(res.getBody().data.id_consentimiento_original).to.equal(bru.getVar("consentimiento_id"));
+  });
+}
