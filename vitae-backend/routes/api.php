@@ -106,6 +106,14 @@ Route::prefix('v1')->group(function () {
     Route::get('/sala-espera', [\App\Http\Controllers\Api\V1\SalaEsperaController::class, 'publica']);
     Route::get('/triage/stream', [\App\Http\Controllers\Api\V1\SalaEsperaController::class, 'stream']);
 
+    // Interoperabilidad HL7 FHIR R4 (RNF-007 / NOM-024)
+    Route::prefix('fhir')->group(function () {
+        Route::get('/Patient/{id}', [\App\Http\Controllers\Api\V1\FhirController::class, 'getPatient']);
+        Route::get('/Encounter/{id}', [\App\Http\Controllers\Api\V1\FhirController::class, 'getEncounter']);
+        Route::get('/Observation/{id}', [\App\Http\Controllers\Api\V1\FhirController::class, 'getObservation']);
+        Route::get('/MedicationRequest/{id}', [\App\Http\Controllers\Api\V1\FhirController::class, 'getMedicationRequest']);
+    });
+
     // Auth protegida con Sanctum + verificación de cuenta activa
     Route::middleware(['auth:sanctum', 'account.active'])->group(function () {
         Route::post('/auth/logout', [AuthController::class, 'logout']);
@@ -131,6 +139,54 @@ Route::prefix('v1')->group(function () {
         Route::get('/salas', [\App\Http\Controllers\Api\V1\TriageController::class, 'salas']);
         Route::post('/salas/{id}/liberar', [\App\Http\Controllers\Api\V1\TriageController::class, 'liberarSala'])
             ->middleware('role:MEDICO,ADMINISTRADOR,ENFERMERIA');
+
+        // SPRINT 4: Expediente Clínico Electrónico (ECE) y Notas Médicas (RF-008, RF-008.1, RF-008.2 / NOM-004)
+        Route::post('/expedientes-clinicos', [\App\Http\Controllers\Api\V1\ExpedienteClinicoController::class, 'store'])
+            ->middleware('role:MEDICO,ADMINISTRADOR');
+        Route::get('/expedientes-clinicos/{id}', [\App\Http\Controllers\Api\V1\ExpedienteClinicoController::class, 'show']);
+        Route::post('/expedientes-clinicos/{id}/antecedentes', [\App\Http\Controllers\Api\V1\ExpedienteClinicoController::class, 'storeAntecedente'])
+            ->middleware('role:MEDICO,ADMINISTRADOR');
+        Route::post('/expedientes-clinicos/{id}/notas', [\App\Http\Controllers\Api\V1\ExpedienteClinicoController::class, 'storeNota'])
+            ->middleware('role:MEDICO');
+        Route::post('/expedientes-clinicos/{id}/notas/{nid}/aclaraciones', [\App\Http\Controllers\Api\V1\ExpedienteClinicoController::class, 'storeAclaracion'])
+            ->middleware('role:MEDICO');
+        Route::match(['put', 'patch', 'delete'], '/expedientes-clinicos/{id}/notas/{nid}', [\App\Http\Controllers\Api\V1\ExpedienteClinicoController::class, 'bloquearModificacionNota']);
+        Route::post('/expedientes-clinicos/{id}/exportaciones', [\App\Http\Controllers\Api\V1\ExpedienteClinicoController::class, 'exportarPdf']);
+
+        // SPRINT 4: Recetas Médicas Controladas (RF-009 / COFEPRIS / SAT)
+        Route::post('/recetas', [\App\Http\Controllers\Api\V1\RecetaController::class, 'store'])
+            ->middleware('role:MEDICO');
+        Route::post('/recetas/{id}/firma', [\App\Http\Controllers\Api\V1\RecetaController::class, 'firmar'])
+            ->middleware('role:MEDICO');
+        Route::get('/recetas/{id}', [\App\Http\Controllers\Api\V1\RecetaController::class, 'show']);
+        Route::post('/recetas/{folio}/surtir', [\App\Http\Controllers\Api\V1\RecetaController::class, 'surtir']);
+        Route::get('/recetas/{id}/pdf', [\App\Http\Controllers\Api\V1\RecetaController::class, 'descargarPdf']);
+
+        // SPRINT 4: Solicitudes y Resultados de Laboratorio e Imagen (RF-010 / RNF-003)
+        Route::post('/solicitudes-estudio', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'storeSolicitud'])
+            ->middleware('role:MEDICO');
+        Route::get('/solicitudes-estudio', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'indexSolicitudes']);
+        Route::post('/solicitudes-estudio/{id}/resultados', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'storeResultado'])
+            ->middleware('role:LABORATORISTA,ADMINISTRADOR');
+        Route::get('/solicitudes-estudio/{id}/resultados', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'showResultado']);
+
+        // SPRINT 4: Consentimiento Informado (PROV-RN-008 / LFPDPPP)
+        Route::post('/consentimientos', [\App\Http\Controllers\Api\V1\ConsentimientoController::class, 'store']);
+        Route::get('/consentimientos', [\App\Http\Controllers\Api\V1\ConsentimientoController::class, 'index']);
+        Route::post('/consentimientos/{id}/revocaciones', [\App\Http\Controllers\Api\V1\ConsentimientoController::class, 'revocar']);
+        Route::post('/consentimientos/urgencia-excepcion', [\App\Http\Controllers\Api\V1\ConsentimientoController::class, 'urgenciaExcepcion']);
+
+        // SPRINT 4: Derechos ARCO (PROV-RN-009 / LFPDPPP)
+        Route::post('/solicitudes-arco', [\App\Http\Controllers\Api\V1\SolicitudArcoController::class, 'store']);
+        Route::get('/solicitudes-arco', [\App\Http\Controllers\Api\V1\SolicitudArcoController::class, 'index']);
+        Route::post('/solicitudes-arco/{folio}/resolver', [\App\Http\Controllers\Api\V1\SolicitudArcoController::class, 'resolver'])
+            ->middleware('role:ADMINISTRADOR');
+
+        // SPRINT 4: Protocolo Break-the-Glass de Acceso de Emergencia (PROV-RN-010 / NOM-004)
+        Route::post('/accesos-emergencia', [\App\Http\Controllers\Api\V1\AccesoEmergenciaController::class, 'store'])
+            ->middleware('role:MEDICO');
+        Route::get('/accesos-emergencia', [\App\Http\Controllers\Api\V1\AccesoEmergenciaController::class, 'index'])
+            ->middleware('role:ADMINISTRADOR,MEDICO');
 
         // Endpoints administrativos protegidos por rol ADMINISTRADOR
         Route::middleware(['role:ADMINISTRADOR'])->group(function () {

@@ -1,0 +1,51 @@
+info:
+  name: 03 - Crear Expediente Clínico Válido (201 Created)
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{base_url}}/expedientes-clinicos"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: "Bearer {{medico_token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "id_paciente": "{{paciente_id}}",
+        "motivo_consulta": "Evaluación integral por dolor torácico opresivo de 2 horas de evolución.",
+        "diagnostico": "Síndrome coronario agudo sin elevación del ST en estudio.",
+        "estudios_previos": "Electrocardiograma de 12 derivaciones en sala de urgencias."
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Expediente clínico aperturado conforme a NOM-004-SSA3-2012", function() {
+          expect(res.getStatus()).to.equal(201);
+          expect(res.getBody().status).to.equal("success");
+          expect(res.getBody().data.id_expediente).to.be.a('string');
+          expect(res.getBody().data.estado_activo).to.equal(true);
+        });
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.data.id_expediente
+        method: jsonq
+      variable:
+        name: expediente_id
+        scope: runtime
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

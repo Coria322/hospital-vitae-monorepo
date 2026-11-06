@@ -1,0 +1,34 @@
+meta {
+  name: 05 - Registrar Antecedentes Clínicos (201 Created)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/expedientes-clinicos/{{expediente_id}}/antecedentes
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{medico_token}}
+}
+
+body:json {
+  {
+    "tipo": "PATOLOGICO",
+    "descripcion": "Hipertensión arterial sistémica diagnosticada hace 5 años en tratamiento regular.",
+    "fecha_diagnostico": "2021-03-12",
+    "observaciones": "Control con losartán 50mg cada 12 horas."
+  }
+}
+
+tests {
+  test("Antecedente patológico vinculado exitosamente al expediente", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.tipo).to.equal("PATOLOGICO");
+  });
+}

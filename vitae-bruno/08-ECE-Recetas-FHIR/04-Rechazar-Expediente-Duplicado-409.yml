@@ -1,0 +1,39 @@
+info:
+  name: 04 - Rechazar Expediente Duplicado (409 Conflict)
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{base_url}}/expedientes-clinicos"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: "Bearer {{medico_token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "id_paciente": "{{paciente_id}}",
+        "motivo_consulta": "Intento de apertura de segundo expediente clínico para el mismo paciente."
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Rechaza creación de expediente duplicado por unicidad 1:1 NOM-004", function() {
+          expect(res.getStatus()).to.equal(409);
+          expect(res.getBody().status).to.equal("error");
+          expect(res.getBody().code).to.equal("EXPEDIENTE_DUPLICADO");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true
