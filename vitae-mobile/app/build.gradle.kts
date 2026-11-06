@@ -11,6 +11,10 @@ val apiUrlDebug = providers.gradleProperty("vitae.apiUrl").getOrElse("http://10.
 // Solo debug: -Pvitae.permitirCapturas=true quita FLAG_SECURE para poder hacer capturas al desarrollar. El release nunca.
 val permitirCapturasDebug = providers.gradleProperty("vitae.permitirCapturas").getOrElse("false").toBoolean()
 
+// Solo para pruebas: -Pvitae.minificarDebug=true pasa el debug por R8 para ver en el teléfono que las reglas keep bastan.
+// El release no necesita nada: el release siempre se minifica.
+val minificarDebug = providers.gradleProperty("vitae.minificarDebug").getOrElse("false").toBoolean()
+
 android {
     namespace = "com.example.vitae_mobile"
     compileSdk {
@@ -32,6 +36,9 @@ android {
             buildConfigField("String", "API_BASE_URL", "\"$apiUrlDebug\"")
             buildConfigField("String", "API_PINES", "\"\"")
             buildConfigField("boolean", "PERMITIR_CAPTURAS", "$permitirCapturasDebug")
+            optimization {
+                enable = minificarDebug
+            }
         }
         release {
             // ponytail: servidor de producción actual; RNF-003 exige los pines SHA-256 (sha256/..., separados por
@@ -39,8 +46,9 @@ android {
             buildConfigField("String", "API_BASE_URL", "\"https://auditoria-backend-u47a.onrender.com/api/v1/\"")
             buildConfigField("String", "API_PINES", "\"\"")
             buildConfigField("boolean", "PERMITIR_CAPTURAS", "false")
+            // PROV-SEC-011: ofuscación y reducción con R8 (reglas en src/main/keepRules).
             optimization {
-                enable = false
+                enable = true
             }
         }
     }

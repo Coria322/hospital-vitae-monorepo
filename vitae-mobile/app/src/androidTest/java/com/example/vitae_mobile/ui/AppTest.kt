@@ -46,6 +46,10 @@ abstract class AppTest {
     /** Servidores simulados de debug: permiten preparar y comprobar el estado desde las pruebas. */
     protected val privacidad get() = contenedor.privacidadRepository as MockPrivacidadRepository
     protected val arco get() = contenedor.arcoRepository as MockArcoRepository
+    protected val sesion get() = contenedor.sesion
+    protected val dispositivo get() = contenedor.dispositivo
+
+    protected fun enHiloPrincipal(bloque: () -> Unit) = InstrumentationRegistry.getInstrumentation().runOnMainSync(bloque)
 
     // Mientras la actividad no ha compuesto aún, Compose lanza IllegalStateException: se trata como "no visible".
     protected fun visible(texto: String, subcadena: Boolean = false) = try {
@@ -64,6 +68,7 @@ abstract class AppTest {
 
     protected val saludo get() = texto(R.string.inicio_saludo, "Ana Pérez Demo")
     protected val aceptarAviso get() = texto(R.string.aviso_aceptar)
+    protected val continuarAvisoPrevio get() = texto(R.string.aviso_previo_continuar)
 
     /** Abre MainActivity como actividad nueva (descarta la anterior); la sesión del proceso se conserva. */
     protected fun abrirApp() {
@@ -80,6 +85,9 @@ abstract class AppTest {
      * de privacidad o Inicio; no acepta nada.
      */
     protected fun entrarHastaElAviso() {
+        esperar { visible(texto(R.string.login_entrar)) || visible(saludo) || visible(aceptarAviso) || visible(continuarAvisoPrevio) }
+        // Primera apertura (o versión nueva del aviso): el aviso simplificado va antes del login.
+        if (visible(continuarAvisoPrevio)) pulsar(continuarAvisoPrevio)
         esperar { visible(texto(R.string.login_entrar)) || visible(saludo) || visible(aceptarAviso) }
         if (visible(texto(R.string.login_entrar))) {
             rule.onNodeWithText(texto(R.string.login_correo)).performTextInput(CORREO_PACIENTE_DEMO)

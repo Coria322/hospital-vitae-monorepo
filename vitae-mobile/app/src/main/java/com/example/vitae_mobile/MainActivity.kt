@@ -15,9 +15,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             VitaemobileTheme {
-                VitaeNavHost(contenedor)
+                VitaeNavHost(contenedor, alSalir = ::finishAffinity)
             }
         }
+    }
+
+    // PROV-SEC-011: se vuelve a comprobar cada vez que la app pasa a primer plano (Magisk pudo activarse mientras tanto).
+    override fun onStart() {
+        super.onStart()
+        contenedor.dispositivo.verificar()
     }
 
     // PROV-SEC-001: cada toque o tecla reinicia los 5 minutos de inactividad.

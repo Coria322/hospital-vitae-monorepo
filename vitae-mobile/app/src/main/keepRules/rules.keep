@@ -1,12 +1,6 @@
-# Add project specific R8 rules here.
-# AGP will combine all keep rule files in src/main/keepRules to pass to R8
+# Reglas de R8 (AGP las combina todas desde src/main/keepRules).
 #
-# For more details, see
-#   https://d.android.com/r/tools/r8/keep-rules
-
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Sin reglas propias a propósito: Retrofit, OkHttp y kotlinx.serialization traen las suyas como consumer rules, y el
+# resto del código no usa reflexión. Añadir una regla solo con un fallo en pantalla que la justifique, y comprobarlo
+# con una compilación minificada: ./gradlew assembleDebug -Pvitae.minificarDebug=true
+# (los repositorios remotos de release aún no existen: al escribirlos, repetir esa comprobación con ellos).

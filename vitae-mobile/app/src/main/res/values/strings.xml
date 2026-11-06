@@ -18,8 +18,6 @@
     <string name="pantalla_receta_detalle">Receta</string>
     <string name="pantalla_resultado_visor">Resultado</string>
 
-    <string name="pantalla_en_construccion">Pantalla en construcción</string>
-
     <string name="inicio_cerrar_sesion">Cerrar sesión</string>
     <string name="inicio_saludo">Hola, %1$s</string>
 
@@ -67,6 +65,8 @@
     <string name="visor_pagina_desc">Página %1$d de %2$d</string>
     <string name="visor_imagen_desc">Imagen del resultado</string>
 
+    <string name="aviso_previo_texto">Hospital Vitae trata tus datos personales y de salud para identificarte, darte acceso a tus citas, recetas y resultados, y mantener segura tu cuenta. No los usamos para otros fines sin tu consentimiento, que es opcional y podrás dar o retirar cuando quieras. Puedes ejercer tus derechos de acceso, rectificación, cancelación y oposición (ARCO) desde la app. El aviso de privacidad integral explica todo con detalle.</string>
+    <string name="aviso_previo_continuar">Entendido, continuar</string>
     <string name="aviso_version">Versión %1$s, vigente desde %2$s</string>
     <string name="aviso_enlace_integral">Leer el aviso de privacidad integral</string>
     <string name="aviso_finalidades">Finalidades opcionales</string>
@@ -124,6 +124,10 @@
     <string name="otp_codigo">Código</string>
     <string name="otp_verificar">Verificar</string>
     <string name="otp_error">Código incorrecto o vencido.</string>
+
+    <string name="bloqueo_incompatible_texto">Esta app no es compatible con este dispositivo o está desactualizada. Actualiza la app o tu sistema e inténtalo de nuevo.</string>
+    <string name="bloqueo_root_texto">Por seguridad, la app no funciona en dispositivos modificados. Usa un dispositivo sin modificaciones para consultar tu información.</string>
+    <string name="bloqueo_salir">Salir</string>
 
     <string name="sesion_expirada_texto">Por seguridad cerramos tu sesión. Inicia sesión de nuevo para continuar.</string>
 </resources>

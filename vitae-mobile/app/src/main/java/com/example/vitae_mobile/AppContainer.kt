@@ -11,9 +11,13 @@ import com.example.vitae_mobile.data.arco.crearArcoRepository
 import com.example.vitae_mobile.data.auth.crearAuthRepository
 import com.example.vitae_mobile.data.citas.crearCitasRepository
 import com.example.vitae_mobile.data.perfil.crearPerfilRepository
+import com.example.vitae_mobile.data.privacidad.AvisoPrevioLocal
 import com.example.vitae_mobile.data.privacidad.crearPrivacidadRepository
 import com.example.vitae_mobile.data.recetas.crearRecetasRepository
 import com.example.vitae_mobile.data.resultados.crearResultadosRepository
+import com.example.vitae_mobile.data.seguridad.EntornoAndroid
+import com.example.vitae_mobile.data.seguridad.GuardiaDispositivo
+import com.example.vitae_mobile.data.seguridad.crearDetectorRoot
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +32,14 @@ class AppContainer(contexto: Context) {
     private val almacen = KeystoreTokenStore(contexto)
     val authRepository = crearAuthRepository(almacen::idInstalacion)
     val sesion = SessionManager(almacen, authRepository, alcance)
+
+    // PROV-SEC-011: en un dispositivo bloqueado (root, 426, Android no soportado) la sesión se borra solo en local; revocarla
+    // en el servidor sería una petición, y de un dispositivo bloqueado no sale ninguna.
+    private val entorno = EntornoAndroid(contexto)
+    val dispositivo = GuardiaDispositivo(entorno, crearDetectorRoot(entorno)) {
+        if (sesion.estado.value is EstadoSesion.Autenticada) sesion.expirar()
+    }
+    val avisoPrevio = AvisoPrevioLocal(contexto)
     val perfilRepository = crearPerfilRepository()
     val citasRepository = crearCitasRepository()
     val recetasRepository = crearRecetasRepository()

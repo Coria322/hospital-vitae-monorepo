@@ -11,7 +11,7 @@ Regla de trabajo: todo el código vive en `vitae-mobile/`. Lo que exija tocar ot
 | S2 | DI manual (un contenedor simple) en lugar de Hilt. SUP-ARQ-M-01 es un supuesto, no un requisito. | Hilt si el grafo crece |
 | S3 | Marca = tokens de `vitae-front/src/assets/main.css` (AMB-010 deja la marca sin definir), con una excepción: el texto suave de la web (`#64748B`) da 4,40:1 sobre el fondo y se oscurece a `#5F6F86` (4,73:1) para cumplir PROV-UX-003. Solo tema claro y sin color dinámico. | Marca propia / tema oscuro |
 | S4 | Repositorios como interfaz. El `Mock*` vive en el source set debug (hasta que exista el backend móvil) y la implementación remota se escribe cuando haya contrato. Un solo punto de conmutación (`crearAuthRepository`). | n/a |
-| S5 | La app arranca en Login (etapa 2). Splash con las comprobaciones de compatibilidad y root llega en la etapa 6. | n/a |
+| S5 | La ruta inicial la decide el estado del dispositivo y la sesión (etapa 6): bloqueo, aviso previo, Login o la puerta del aviso. No hay Splash: la comprobación es local e instantánea. | n/a |
 | S6 | Estado de receta: VIGENTE = activa, CONSUMIDO = dispensada, CANCELADO = cancelada (`RECETA.qr_estado`). La especificación no da el mapeo. | Confirmar con el PO |
 
 ## 2. Arquitectura y convenciones
@@ -48,7 +48,7 @@ com.example.vitae_mobile/
 | 3 | Inicio y perfil | 008 | RF-011, RNF-007 | M | `/mobile/perfil` | **Hecha** (con mock) |
 | 4 | Citas, recetas, resultados | 009, 010, 011 | PROV-RF-002, RF-009, RF-010 | L | `/mobile/{citas,recetas,resultados}` | **Hecha** (con mock) |
 | 5 | Privacidad y ARCO | 012, 013 | PROV-RN-008/009 | M | `/mobile/{aviso,consentimientos,solicitudes-arco}` | **Hecha** (con mock) |
-| 6 | Estados y hardening | 014, 007 | RNF-006, PROV-SEC-011 | L | 426 | Pendiente |
+| 6 | Estados y hardening | 014, 007 | RNF-006, PROV-SEC-011 | L | 426 | **Hecha** (con mock) |
 | 7 | Calidad y evidencia | 015–020 | RF-011, PROV-UX-003, RF-002.1, RNF-007 | M | colección de contrato | Pendiente |
 
 Fuera de alcance por ahora: release (TASK-M-021 a 023).
@@ -112,7 +112,7 @@ Compose + Navigation, 12 rutas, `InicioScreen`, `PantallaBase`, tema con contras
 - **Resultado:** `data/privacidad` y `data/arco` (modelos, repositorios y servidores simulados solo en debug), `AvisoViewModel` con dos modos (`Aceptacion` y `Gestion`), `AvisoScreen`, `ArcoViewModel`, `ArcoScreen`. Flujo Login → OTP → Aviso → Inicio; la puerta del aviso reenvía sola a Inicio si la versión ya está aceptada y vuelve a aparecer si cambia. Desde Inicio, "Privacidad y consentimientos" permite aceptar y revocar las finalidades opcionales. 148 tests unitarios y 29 instrumentados en verde.
 - **Verificado en teléfono real:** las 29 pruebas instrumentadas pasan (`PrivacidadTest` 6, `ArcoTest` 4, además de las anteriores), y revisión visual del aviso, ARCO y preferencias.
 - **Reglas aplicadas:** las finalidades opcionales arrancan siempre desmarcadas en la aceptación, aunque se hubieran aceptado antes; cada cambio crea un registro nuevo (CON-016: revocar no modifica el anterior); "No acepto" cierra la sesión; no hay `id_paciente` en ninguna petición.
-- **Discrepancia a resolver:** el flujo de `UI_UX_SPEC` pone el aviso después del login, pero el escenario 1 de PROV-RN-008 pide verlo "antes de cualquier formulario" (el login lo es). Se siguió el flujo de pantallas porque el aviso se pide al servidor y eso exige sesión. Alternativa: mostrar un aviso empaquetado en la app antes del login y el vigente después.
+- **Discrepancia (resuelta en la etapa 6):** el flujo de `UI_UX_SPEC` pone el aviso después del login, pero el escenario 1 de PROV-RN-008 pide verlo "antes de cualquier formulario" (el login lo es). En esta etapa se siguió el flujo de pantallas porque el aviso se pide al servidor y eso exige sesión; en la etapa 6 se añadió un aviso simplificado empaquetado antes del login (ver abajo).
 - **Supuestos del contrato** (a confirmar con el backend): `GET /mobile/aviso-privacidad` devuelve versión, vigencia, texto simplificado, enlace al integral, las finalidades opcionales con su estado y si la versión está aceptada por el paciente; `POST /mobile/consentimientos` recibe `tipo` (AVISO_PRIVACIDAD o FINALIDADES_SECUNDARIAS), `version_documento`, `finalidades` y `accion` (ACEPTAR o REVOCAR) y responde 201; los derechos ARCO viajan como ACCESO, RECTIFICACION, CANCELACION y OPOSICION; la solicitud ARCO solo lleva el derecho (el esquema no tiene campo de descripción); `GET .../solicitudes-arco` lista las propias y `GET .../{folio}` devuelve una, con 403 si es ajena.
 - **Accesibilidad no textual (hallazgo):** el borde de los controles (interruptores apagados, campos de texto, botón de contorno) usaba el color decorativo de la web (#E2E8F0, 1,2:1) y casi no se veía. Ahora el borde de controles es #74839A (3,1:1 o más, WCAG 1.4.11) y el decorativo (tarjetas, esqueletos) queda aparte; un test lo comprueba.
 - **Plan original:**
@@ -121,7 +121,16 @@ Compose + Navigation, 12 rutas, `InicioScreen`, `PantallaBase`, tema con contras
 - **ARCO:** formulario → `POST /mobile/solicitudes-arco` → 201 con folio y fechas límite; consulta de estado por folio.
 - **Pruebas:** orden de pantallas en primera apertura, finalidades sin marcar por defecto, `PrivacidadTest` y `ArcoTest` instrumentadas.
 
-### Etapa 6 — Estados y hardening (TASK-M-014, M-007)
+### Etapa 6 — Estados y hardening (TASK-M-014, M-007) — hecha, con mock
+- **Resultado:** `data/seguridad` (`DetectorRoot`, `EntornoDispositivo`, `EstadoDispositivo`, `GuardiaDispositivo`), `DispositivoInterceptor` en la cadena de red, `PantallaBloqueo` (Root bloqueado e Incompatible), `AvisoPrevioScreen` y `AvisoPrevioLocal`; manifiesto y reglas de respaldo endurecidos; R8 activado en release. La ruta inicial y los cambios en vivo los decide `VitaeNavHost` (sin Splash). Se eliminó `PantallaBase`: ya todas las rutas tienen pantalla real.
+- **Verificado:** 174 pruebas unitarias en verde (26 nuevas); 39 instrumentadas en verde en el teléfono (10 nuevas: `AvisoPrevioTest` 3 y `SeguridadTest` 7); lint sin errores; `assembleRelease` con R8 (APK de 1,4 MB con `mapping.txt`); humo manual en el teléfono con el debug minificado (`-Pvitae.minificarDebug=true`): aviso previo → login → OTP → aviso → Inicio → recetas con QR → visor de PDF, sin caídas ni excepciones de clases faltantes.
+- **No verificado:** root real (se simula en debug con `SimulacionRoot`; la lógica del detector se prueba con un entorno falso); Android < 10 (no hay dispositivo y con `minSdk = 29` no se instala); un 426 de un servidor real (el interceptor se prueba con MockWebServer); el release en ejecución (sus repositorios remotos aún no existen y fallan a propósito); exactitud y falsos positivos de la detección en teléfonos reales con Magisk.
+- **Reglas aplicadas:** con root, 426 o Android no soportado la sesión se borra solo en local y ninguna petición sale (`DispositivoInterceptor` va primero en la cadena); el 426 no se levanta al volver a comprobar; el root se vuelve a comprobar en cada `onStart`; los mensajes son genéricos, sin la señal detectada (un test compara los textos de la pantalla); `allowBackup=false` y reglas que excluyen todo del respaldo y de la transferencia (también evita que el id de instalación, copiado a otro equipo, se salte el OTP); sin `Log` ni `println` en el código de la app.
+- **Detección de root:** binarios `su`, rutas y paquetes de Magisk y de gestores de root (declarados en `<queries>`, un test los compara con el detector), `test-keys` y `/system` montado en lectura y escritura. Es de mejor esfuerzo: un root oculto (Zygisk, Shamiko) no se ve. Falsos positivos posibles en release: firmware personalizado o de desarrollo (`test-keys`); hay que reportarlos a Seguridad (caso borde de PROV-SEC-011). En debug se ignora `test-keys` para poder usar emuladores (decisión 14).
+- **Aviso previo al login (PROV-RN-008, escenario 1):** primera apertura y cada vez que cambia `AvisoPrevio.VERSION` (caso borde "cambio sustancial"). El texto (`aviso_previo_texto`) y la URL del aviso integral son **marcadores** que Legal debe validar. No recaba nada; la aceptación formal y su registro siguen siendo la puerta posterior al login, que sí tiene sesión. La versión vista va en preferencias simples: no es dato sensible.
+- **Sin conexión:** no hay pantalla aparte; cada pantalla muestra su estado de error con "Reintentar" (y el login su mensaje de red). Si se quiere una pantalla propia, es un cambio pequeño.
+- **Firma de la APK (v2+):** corresponde a la etapa de liberación (TASK-M-021), no a esta.
+- **Plan original:**
 - **Pantallas de estado:** incompatible (HTTP 426 y versión de Android), sesión expirada, root bloqueado y sin conexión.
 - **Hardening:** bloqueo en root/Magisk sin enviar peticiones, R8 en release con reglas para serialization y Retrofit, `allowBackup=false`, sin PII en claro.
 - **Detección de root:** comprobaciones locales (binarios `su`, rutas de Magisk, build `test-keys`). Play Integrity necesita verificación en servidor y no es viable sin backend (SUP-007).
@@ -172,7 +181,7 @@ Versiones limitadas por el compilador: el proyecto usa Kotlin 2.2.10, que lee me
 
 1. Confirmar S1 a S6.
 2. **Paquete definitivo:** hoy `com.example.vitae_mobile`. Cambiarlo después cuesta más.
-3. **`minSdk` 29 contra el mensaje en Android 9:** con `minSdk` 29 la app no se instala en Android 9 y el mensaje de RNF-006 no se vería. Para mostrarlo habría que bajar `minSdk` y comprobar la versión en ejecución.
+3. **`minSdk` 29 contra el mensaje en Android 9:** con `minSdk` 29 la app no se instala en Android 9 y el mensaje de RNF-006 no se vería (hoy solo se ve con un 426). Se mantuvo `minSdk = 29` como pide la especificación y la comprobación de versión existe (`verificarDispositivo`), pero solo se ejerce en pruebas unitarias. Para mostrar el mensaje en Android 9 habría que bajar `minSdk`. **Sigue abierta.**
 4. **Almacenamiento de tokens** (adoptado en la etapa 2): Keystore directo con AES-GCM. La especificación nombra `EncryptedSharedPreferences`, que está marcado como obsoleto; el criterio de aceptación ("sin tokens en claro") se cumple igual.
 5. **Cómo se obtiene el código PKCE** (adoptado): el repositorio expone `iniciarSesion(correo, contraseña)` y esconde el intercambio. Hay que definirlo con el backend; la especificación lista `POST /mobile/auth/token` pero ningún endpoint que entregue el código.
 6. **Identificación del dispositivo para el OTP** (adoptado): UUID de instalación guardado en la app. No se define cómo sabe el servidor que el dispositivo es nuevo.
@@ -180,9 +189,11 @@ Versiones limitadas por el compilador: el proyecto usa Kotlin 2.2.10, que lee me
 8. **Pines de certificado** del servidor real.
 9. **Aseguradora (AMB-018):** solo existe `seguro_activo`. Cómo viaja en el Patient FHIR y en qué sistema va la CURP (supuestos de la etapa 3, ver arriba).
 10. **Contrato de citas y resultados:** la especificación no los define (formato, valores de `CITA.estado`, tipos de archivo y tamaño máximo, AMB-012).
-11. **Aviso antes del login:** ¿mostrar un aviso empaquetado en la app antes de Login para cumplir el escenario 1 de PROV-RN-008 al pie de la letra? Hoy el aviso va después de Login y OTP.
+11. **Aviso antes del login** (adoptado en la etapa 6): aviso simplificado empaquetado antes de Login; el vigente, con sus finalidades, sigue después del OTP. Pendiente que Legal valide el texto y la URL.
 12. **Contrato de privacidad y ARCO:** ver los supuestos de la etapa 5; la especificación no define los endpoints de lectura ni los valores de los derechos.
 13. **Commits:** `AGENTS.md` pide tu autorización previa y el 100% de las pruebas.
+14. **Root y emuladores** (adoptado): los emuladores sin Play Store traen `test-keys` y no son root. El detector de debug ignora esa señal (`SimulacionRoot.kt`, un test lo comprueba) para poder usar emuladores en la matriz de dispositivos de la etapa 7; el release la mantiene.
+15. **Token tras un bloqueo por root:** la sesión se borra en local sin revocarla en el servidor (no se envían peticiones desde un dispositivo bloqueado); el token vive hasta que vence. Si Seguridad quiere revocación inmediata, tiene que hacerse del lado del servidor.
 
 ## 9. Verificación en cada etapa
 

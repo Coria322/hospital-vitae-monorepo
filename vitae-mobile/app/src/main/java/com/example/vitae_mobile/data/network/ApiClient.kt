@@ -21,10 +21,13 @@ object ApiClient {
         token: () -> String?,
         alSesionInvalida: () -> Unit,
         pines: List<String> = emptyList(),
+        bloqueado: () -> Boolean = { false },
+        alIncompatible: () -> Unit = {},
     ): Retrofit {
         val cliente = OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
+            .addInterceptor(DispositivoInterceptor(bloqueado, alIncompatible))
             .addInterceptor(AuthInterceptor(token))
             .addInterceptor(SesionInterceptor(alSesionInvalida))
             .apply {
