@@ -6,6 +6,7 @@ import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
@@ -107,6 +108,47 @@ abstract class AppTest {
         entrarHastaElAviso()
         if (visible(aceptarAviso)) pulsar(aceptarAviso)
         esperar { visible(saludo) }
+    }
+
+    /** Raíz del árbol semántico de lo que hay en pantalla. */
+    protected fun arbol() = rule.onRoot().fetchSemanticsNode()
+
+    private fun abrirFila(indice: Int) = rule.onAllNodesWithText(texto(R.string.abrir))[indice].performClick()
+
+    /**
+     * Recorre las pantallas de consulta clínica (Inicio, Citas, Recetas y su detalle, Resultados y su visor, Perfil) y
+     * llama a [revisar] en cada una, con la pantalla ya cargada. Parte de una sesión iniciada y deja la app en Inicio.
+     */
+    protected fun recorrerPantallasClinicas(revisar: (nombre: String) -> Unit) {
+        entrar()
+        esperar { visible(texto(R.string.resumen_proxima_cita)) && !visible(texto(R.string.dato_no_disponible)) }
+        revisar("Inicio")
+
+        abrirSeccion(R.string.pantalla_citas)
+        esperar { visible("Atendida") }
+        revisar("Citas")
+        volverAInicio()
+
+        abrirSeccion(R.string.pantalla_recetas)
+        esperar { visible("Paracetamol 500 mg tabletas") }
+        revisar("Recetas")
+        abrirFila(0)
+        esperar { visible("500 mg") }
+        revisar("Detalle de receta")
+        volverAInicio(veces = 2)
+
+        abrirSeccion(R.string.pantalla_resultados)
+        esperar { visible("Biometría hemática") }
+        revisar("Resultados")
+        abrirFila(0)
+        esperar { visibleConDescripcion(texto(R.string.visor_pagina_desc, 1, 2)) }
+        revisar("Visor de resultado")
+        volverAInicio(veces = 2)
+
+        abrirSeccion(R.string.pantalla_perfil)
+        esperar { visible("DEMO900517MDFRRN09") }
+        revisar("Perfil")
+        volverAInicio()
     }
 
     /** Pulsa un botón, desplazándose hasta él si la pantalla se desplaza y no cabe entera. */

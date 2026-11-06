@@ -1,0 +1,1 @@
+{ "resourceType": "Patient", "id": "rec-demo-1", "name": [{ "text": "No es una receta" }] }

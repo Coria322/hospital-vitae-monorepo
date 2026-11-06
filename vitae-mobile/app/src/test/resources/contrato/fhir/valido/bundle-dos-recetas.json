@@ -1,0 +1,12 @@
+{
+  "resourceType": "Bundle",
+  "type": "searchset",
+  "total": 2,
+  "entry": [
+    { "resource": { "resourceType": "MedicationRequest", "id": "rec-demo-1", "status": "active",
+        "medicationCodeableConcept": { "text": "Paracetamol 500 mg tabletas" },
+        "extension": [{ "url": "urn:vitae:qr-codigo", "valueString": "QR-DEMO-0001" }, { "url": "urn:vitae:qr-estado", "valueString": "VIGENTE" }] } },
+    { "resource": { "resourceType": "MedicationRequest", "id": "rec-demo-2", "status": "completed",
+        "medicationCodeableConcept": { "text": "Amoxicilina 500 mg cápsulas" } } }
+  ]
+}

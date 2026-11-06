@@ -36,6 +36,7 @@ android {
             buildConfigField("String", "API_BASE_URL", "\"$apiUrlDebug\"")
             buildConfigField("String", "API_PINES", "\"\"")
             buildConfigField("boolean", "PERMITIR_CAPTURAS", "$permitirCapturasDebug")
+            enableUnitTestCoverage = true
             optimization {
                 enable = minificarDebug
             }

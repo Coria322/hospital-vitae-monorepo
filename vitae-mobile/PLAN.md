@@ -49,7 +49,7 @@ com.example.vitae_mobile/
 | 4 | Citas, recetas, resultados | 009, 010, 011 | PROV-RF-002, RF-009, RF-010 | L | `/mobile/{citas,recetas,resultados}` | **Hecha** (con mock) |
 | 5 | Privacidad y ARCO | 012, 013 | PROV-RN-008/009 | M | `/mobile/{aviso,consentimientos,solicitudes-arco}` | **Hecha** (con mock) |
 | 6 | Estados y hardening | 014, 007 | RNF-006, PROV-SEC-011 | L | 426 | **Hecha** (con mock) |
-| 7 | Calidad y evidencia | 015–020 | RF-011, PROV-UX-003, RF-002.1, RNF-007 | M | colección de contrato | Pendiente |
+| 7 | Calidad y evidencia | 015–020 | RF-011, PROV-UX-003, RF-002.1, RNF-007 | M | colección de contrato | **Hecha en lo local** (ver pendientes) |
 
 Fuera de alcance por ahora: release (TASK-M-021 a 023).
 Cada etapa termina con: build + tests unitarios + lint en verde, tu autorización y un commit `feat(mobile): …` con `Refs: #TASK-M-xxx, Req: …, Audit: AI-05`.
@@ -136,7 +136,12 @@ Compose + Navigation, 12 rutas, `InicioScreen`, `PantallaBase`, tema con contras
 - **Detección de root:** comprobaciones locales (binarios `su`, rutas de Magisk, build `test-keys`). Play Integrity necesita verificación en servidor y no es viable sin backend (SUP-007).
 - **Pruebas:** `RootBlockTest` con un detector falso, `EstadosTest`, inspección del APK de release (clases ofuscadas).
 
-### Etapa 7 — Calidad y evidencia (TASK-M-015 a M-020)
+### Etapa 7 — Calidad y evidencia (TASK-M-015 a M-020) — hecha en lo local; faltan pasos que requieren a otra persona o al backend
+- **Resultado:** `SinEdicionTest` y `AccesibilidadTest` (teléfono), `SoloLecturaTest`, `ContratoFhirTest` con 15 ejemplos JSON y `PinningTest` (JVM), cobertura con JaCoCo y el paquete `evidence/AI-05-mobile/` (6 documentos, resultados de pruebas y 2 scripts). Cambios de código: `ApiClient.certificatePinner` (extraído para poder probar el pinning) y `enableUnitTestCoverage` en debug.
+- **Verificado:** 191 pruebas unitarias y 44 instrumentadas en verde en el teléfono; lint sin errores; cobertura de líneas: ViewModels 100 % (252/252) y lógica de datos de producción 94,2 % (311/330). Las pruebas nuevas se validaron con mutaciones (se inyectó un botón "Guardar", un control sin etiqueta de 24 dp, un `DELETE` de Retrofit y `id_paciente`, y fallaron como debían); una de esas mutaciones destapó un hueco real en la regex de `SoloLecturaTest` (no veía la anotación calificada), ya corregido. En un emulador de Android 9 (API 28) el sistema rechaza la app con `INSTALL_FAILED_OLDER_SDK`.
+- **No hecho o no verificable:** matriz de dispositivos completa (faltan 2 tamaños de pantalla y APIs 29 y 34 o superior: no hay imágenes de emulador); Accessibility Scanner y TalkBack con voz real; colección compartida de contrato (TASK-W-091) y Newman contra Staging; inspección de tráfico con proxy y pines contra el servidor real; los repositorios remotos de producción (la cobertura MC-10 de repositorios se vuelve a medir cuando existan); rechazo 403/405 de escrituras clínicas del lado del servidor (TASK-W-080).
+- **Cambios respecto al plan:** `espresso-accessibility` no se añadió. Se probó `ui-test-junit4-accessibility` (ATF para Compose): exigía forzar versiones de Guava y `concurrent-futures` y no detectó una violación inyectada a propósito, así que se descartó y se revirtió; la accesibilidad se revisa con comprobaciones propias sobre el árbol semántico (texto hablable, objetivos de 48 dp, imágenes con descripción, encabezado), 14 pantallas. No se añadió ninguna dependencia nueva.
+- **Plan original:**
 - **Sin controles de edición:** prueba de UI que recorre las pantallas clínicas y exige 0 botones guardar/editar/eliminar.
 - **Accesibilidad:** Espresso con `AccessibilityChecks`, TalkBack con `contentDescription` en todos los controles, objetivos >= 48 dp.
 - **Cobertura >= 80%** en ViewModels y repositorios con JaCoCo, e inspección de tráfico: 0 `id_paciente`.
@@ -154,7 +159,7 @@ Compose + Navigation, 12 rutas, `InicioScreen`, `PantallaBase`, tema con contras
 | 1 | `kotlinx-coroutines-test` 1.10.2, `mockwebserver3` 5.5.1 (solo pruebas, instaladas) | Pruebas de red y de tiempo | Fakes manuales |
 | 2 | Ninguna para el cifrado de tokens: Keystore de la plataforma (AES-GCM) | Evitar `security-crypto` (ver decisión 4) | `androidx.security:security-crypto` 1.1.0 |
 | 4 | `com.google.zxing:core` 3.5.4 (instalada) | Dibujar el QR de la receta | Escribir un codificador QR |
-| 7 | `espresso-accessibility`, JaCoCo (ya integrado en AGP) | Accesibilidad y cobertura | n/a |
+| 7 | JaCoCo (ya integrado en AGP). `espresso-accessibility` y `ui-test-junit4-accessibility` **no se añadieron** (ver etapa 7) | Cobertura | n/a |
 
 Hilt, Coil, Room y Material Icons extendidos quedan fuera mientras no hagan falta.
 
