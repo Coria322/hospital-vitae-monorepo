@@ -104,9 +104,13 @@ cd vitae-bruno && powershell -ExecutionPolicy Bypass -File ./test-prod-suite.ps1
 
 ## Estado de la app móvil **[verificado en código]**
 
-- `applicationId = com.example.pacientemovil`, `compileSdk`/`targetSdk` 35, **`minSdk` 34**.
-- Contiene solo `MainActivity`, el tema Compose y los recursos del lanzador. No hay pantallas, red ni autenticación.
-- Pendiente de decidir contra la especificación (`sih-hospitalario_agents/mobile/`): ahí se pide `minSdk` 29, login con PKCE y el namespace `/api/v1/mobile`.
+*Actualizado el 5 de noviembre de 2026 (rama `feature/mobile-app`, etapa 6 de 7 del plan en [`vitae-mobile/PLAN.md`](vitae-mobile/PLAN.md)).*
+
+- `applicationId = com.example.vitae_mobile`, `compileSdk` 37, `targetSdk` 36, **`minSdk` 29** (como pide la especificación).
+- Implementado: navegación y tema accesible; capa de red (Retrofit y OkHttp, pinning por `BuildConfig`, manejo de 401, 403, 423 y 426); sesión con OTP, PKCE y cierre a los 5 min de inactividad; Inicio y perfil (Patient FHIR); citas, recetas con QR y visor de resultados; aviso de privacidad (antes y después del login), consentimientos y ARCO; bloqueo por root o Magisk, pantalla de incompatibilidad, R8 en release y sin respaldo de datos.
+- **Todo corre contra repositorios simulados que solo existen en debug.** El backend aún no tiene `/api/v1/mobile/*` y el build release falla a propósito al crear los repositorios remotos. Los contratos que la app asume están listados en `vitae-mobile/PLAN.md` y hay que confirmarlos con el backend.
+- Pruebas: 174 unitarias y 39 instrumentadas (en un teléfono físico) en verde.
+- Falta: etapa 7 (calidad y evidencia: cobertura, accesibilidad, contrato), los pines de certificado reales y los cambios de backend de la sección 7 del plan.
 
 ## Flujo de trabajo Git (de [AGENTS.md](AGENTS.md))
 
