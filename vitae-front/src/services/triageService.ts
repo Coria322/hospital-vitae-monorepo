@@ -58,6 +58,23 @@ export interface SalaEsperaPublicaItem {
 
 export const triageService = {
   /**
+   * Registra un paciente en admisión de urgencias para asociar su triage
+   */
+  async registrarPacienteUrgencia(nombre: string, edad?: number | null, sexo?: string) {
+    const fechaNac = edad
+      ? new Date(new Date().getFullYear() - Number(edad), 0, 1).toISOString().split('T')[0]
+      : '2000-01-01'
+
+    const response = await api.post('/pacientes', {
+      identificado: false,
+      nombre_completo: nombre,
+      sexo: sexo ? sexo.toUpperCase() : 'DESCONOCIDO',
+      fecha_nacimiento: fechaNac
+    })
+    return response.data?.data || response.data
+  },
+
+  /**
    * Registra un nuevo triage con cálculo Manchester (RF-004, RF-005)
    */
   async registrarTriage(datos: TriageRegistroPayload) {
@@ -81,6 +98,14 @@ export const triageService = {
       nuevo_color: nuevoColor,
       motivo,
     })
+    return response.data
+  },
+
+  /**
+   * Da de egreso hospitalario a un paciente retirándolo de la cola de espera y liberando recursos
+   */
+  async egresarPaciente(idTriage: string, motivo?: string) {
+    const response = await api.post(`/triages/${idTriage}/egreso`, { motivo })
     return response.data
   },
 

@@ -139,20 +139,6 @@ const emit = defineEmits<{
         <span class="balance-val healthy">6 / 6 Online</span>
       </div>
     </div>
-
-    <!-- 4. DISCLAIMER NORMATIVO / SEGURIDAD -->
-    <div class="sidebar-footer">
-      <div class="legal-badge">
-        <svg viewBox="0 0 24 24" class="legal-svg" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-        <div class="legal-text">
-          <strong>ISO 27001 / NOM-024</strong>
-          <span>Separación de Funciones: Auditoría estricta de accesos. Datos clínicos disociados sin acceso a notas médicas.</span>
-        </div>
-      </div>
-    </div>
   </aside>
 </template>
 

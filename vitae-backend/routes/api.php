@@ -125,7 +125,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/triages/cola', [\App\Http\Controllers\Api\V1\TriageController::class, 'cola']);
         Route::get('/triages/{id}', [\App\Http\Controllers\Api\V1\TriageController::class, 'show']);
         Route::post('/triages/{id}/reclasificaciones', [\App\Http\Controllers\Api\V1\TriageController::class, 'reclasificar'])
-            ->middleware('role:MEDICO,ADMINISTRADOR');
+            ->middleware('role:MEDICO,ADMINISTRADOR,ENFERMERIA');
+        Route::post('/triages/{id}/egreso', [\App\Http\Controllers\Api\V1\TriageController::class, 'egreso'])
+            ->middleware('role:ENFERMERIA,MEDICO,ADMINISTRADOR');
 
         // Gestión de Salas de Atención y Liberación de Consultorios
         Route::get('/salas', [\App\Http\Controllers\Api\V1\TriageController::class, 'salas']);

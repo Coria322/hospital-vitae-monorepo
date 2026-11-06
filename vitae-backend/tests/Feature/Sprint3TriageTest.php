@@ -485,6 +485,37 @@ class Sprint3TriageTest extends TestCase
         $this->assertStringContainsString('J.C.M.', $content);
     }
 
+    public function test_rf008_egreso_hospitalario_marca_atendido_y_libera_sala(): void
+    {
+        $triage = Triage::create([
+            'id_triage' => 'TRG-EGR001',
+            'id_paciente' => $this->pacientePrueba->id_paciente,
+            'id_usuario' => 'ENF-TEST',
+            'presion_art' => '120/80',
+            'frecuencia_card' => 80,
+            'nivel_conciencia' => 'ALERTA',
+            'escala_eva' => 0,
+            'color_asig' => 'VERDE',
+            'color_original' => 'VERDE',
+            'fecha_hora_ingreso' => Carbon::now('UTC'),
+            'folio_ingreso' => 'FOL-EGR-001',
+            'sla_vencimiento_en' => Carbon::now('UTC')->addMinutes(120),
+            'estado_atencion' => 'EN_ESPERA',
+        ]);
+
+        $response = $this->actingAs($this->enfermera, 'sanctum')
+            ->postJson("/api/v1/triages/{$triage->id_triage}/egreso", [
+                'motivo' => 'Nota de Egreso Hospitalario de Enfermería',
+            ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('status', 'success')
+            ->assertJsonPath('data.triage.estado_atencion', 'ATENDIDO');
+
+        $triage->refresh();
+        $this->assertEquals('ATENDIDO', $triage->estado_atencion);
+    }
+
     public function test_nom004_prohibido_delete_fisico_en_triage(): void
     {
         $triage = Triage::create([
