@@ -165,11 +165,11 @@ class TriageController extends Controller
     {
         $usuario = $request->user();
 
-        // RF-007: Privilegios superiores (MEDICO o ADMINISTRADOR)
-        if (!in_array($usuario->rol, ['MEDICO', 'ADMINISTRADOR'])) {
+        // RF-007: Privilegios clínicos (MEDICO, ADMINISTRADOR o ENFERMERIA de guardia)
+        if (!in_array($usuario->rol, ['MEDICO', 'ADMINISTRADOR', 'ENFERMERIA'])) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Acción denegada. Solo un MÉDICO o ADMINISTRADOR tiene privilegios para reclasificar el nivel de triage.',
+                'message' => 'Acción denegada. No autorizado para reclasificar el nivel de triage.',
             ], 403);
         }
 
@@ -238,6 +238,63 @@ class TriageController extends Controller
             'status' => 'success',
             'total' => $cola->count(),
             'data' => $cola,
+        ]);
+    }
+
+    /**
+     * Da de egreso a un paciente en triage (marca estado_atencion como ATENDIDO)
+     * y libera cualquier sala asignada (NOM-004-SSA3-2012 / NOM-206-SSA1-2002).
+     */
+    public function egreso(Request $request, string $id): JsonResponse
+    {
+        $triage = Triage::where('id_triage', $id)
+            ->orWhere('folio_ingreso', $id)
+            ->first();
+
+        if (!$triage) {
+            $triage = Triage::where('id_paciente', $id)
+                ->whereIn('estado_atencion', ['EN_ESPERA', 'EN_ATENCION'])
+                ->first();
+        }
+
+        if (!$triage) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se encontró un registro activo de triage para dar egreso.',
+            ], 404);
+        }
+
+        $salaLiberada = null;
+        if ($triage->id_sala) {
+            $sala = SalaAtencion::find($triage->id_sala);
+            if ($sala) {
+                $sala->liberar();
+                $salaLiberada = $sala->nombre;
+            }
+        }
+
+        $triage->update([
+            'estado_atencion' => 'ATENDIDO',
+            'id_sala' => null,
+        ]);
+
+        AuditLogger::log(
+            tipoMovimiento: 'UPDATE',
+            tablaAfectada: 'triage',
+            registroId: $triage->id_triage,
+            valorAnterior: ['estado_atencion' => 'EN_ESPERA'],
+            valorNuevo: ['estado_atencion' => 'ATENDIDO'],
+            resultado: 'EXITOSO',
+            motivo: $request->input('motivo', 'Nota de Egreso Hospitalario de Enfermería')
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Paciente egresado de sala de espera exitosamente.',
+            'data' => [
+                'triage' => $triage,
+                'sala_liberada' => $salaLiberada,
+            ],
         ]);
     }
 

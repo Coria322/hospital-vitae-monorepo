@@ -1,0 +1,40 @@
+meta {
+  name: 09 - Emitir Receta Controlada Fracción I (201 Created)
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{base_url}}/recetas
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{medico_token}}
+}
+
+body:json {
+  {
+    "id_expediente": "{{expediente_id}}",
+    "fraccion": "I",
+    "medicamentos": "Fentanilo solución inyectable 0.5mg/10ml, 2 ampolletas.",
+    "indicaciones": "Administración intravenosa bajo estricta supervisión en área de choque para analgesia mayor."
+  }
+}
+
+vars:post-response {
+  receta_id: res.body.data.id_receta
+  receta_folio: res.body.data.folio
+}
+
+tests {
+  test("Receta controlada emitida conforme a COFEPRIS", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.fraccion).to.equal("I");
+    expect(res.getBody().data.folio).to.be.a('string');
+  });
+}

@@ -1,0 +1,59 @@
+info:
+  name: 09 - Emitir Receta Controlada Fracción I (201 Created)
+  type: http
+  seq: 9
+
+http:
+  method: POST
+  url: "{{base_url}}/recetas"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: "Bearer {{medico_token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "id_expediente": "{{expediente_id}}",
+        "fraccion": "I",
+        "medicamentos": "Fentanilo solución inyectable 0.5mg/10ml, 2 ampolletas.",
+        "indicaciones": "Administración intravenosa bajo estricta supervisión en área de choque para analgesia mayor."
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Receta controlada emitida conforme a COFEPRIS", function() {
+          expect(res.getStatus()).to.equal(201);
+          expect(res.getBody().status).to.equal("success");
+          expect(res.getBody().data.fraccion).to.equal("I");
+          expect(res.getBody().data.folio).to.be.a('string');
+        });
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.data.id_receta
+        method: jsonq
+      variable:
+        name: receta_id
+        scope: runtime
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.data.folio
+        method: jsonq
+      variable:
+        name: receta_folio
+        scope: runtime
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

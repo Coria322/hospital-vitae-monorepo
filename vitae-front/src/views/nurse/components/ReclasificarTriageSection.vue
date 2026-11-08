@@ -1,5 +1,27 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import triageService from '@/services/triageService'
+
+const procesandoReclasificacion = ref(false)
+
+const ejecutarReclasificacion = async (idTriage: string, nuevoColor: string, justificacion: string) => {
+  if (!justificacion || justificacion.trim().length < 10) {
+    alert('Debe ingresar una justificación clínica médica de al menos 10 caracteres.')
+    return
+  }
+
+  procesandoReclasificacion.value = true
+  try {
+    const res = await triageService.reclasificar(idTriage, nuevoColor, justificacion)
+    alert(`Paciente reclasificado exitosamente a: ${res.data.color_asig}`)
+    // Refrescar cola
+  } catch (err: any) {
+    const mensaje = err.response?.data?.message || 'Error al procesar la reclasificación.'
+    alert(`Error clínico: ${mensaje}`)
+  } finally {
+    procesandoReclasificacion.value = false
+  }
+}
 
 const props = defineProps<{
   enfermera: {
@@ -8,6 +30,9 @@ const props = defineProps<{
     servicio: string
   }
   pacienteActivo?: {
+    id?: string | number
+    id_triage?: string
+    id_paciente?: string
     nombre: string
     edad: number | null
     sexo?: string
@@ -50,6 +75,14 @@ const reevaluacionForm = ref({
   justificacionClinica: ''
 })
 
+// Modal de bloqueo y firma con credenciales (NOM-024 / NOM-206)
+const mostrarModalFirma = ref(false)
+const firmaCredenciales = ref({
+  nombre: props.enfermera?.nombre || '',
+  cedula: props.enfermera?.cedula?.replace('CÉD. ', '') || '',
+  pin: ''
+})
+
 // Trazabilidad de reclasificaciones
 const reclasificacionesHistoricas = ref<Array<{
   hora: string
@@ -73,8 +106,60 @@ const copiarSignosPrevios = () => {
   }
 }
 
+// Selector manual o reactivo del nuevo nivel
+const nivelSeleccionadoManual = ref<'ROJO' | 'NARANJA' | 'AMARILLO' | 'VERDE' | 'AZUL' | null>(null)
+
+const seleccionarNivelManual = (color: 'ROJO' | 'NARANJA' | 'AMARILLO' | 'VERDE' | 'AZUL') => {
+  nivelSeleccionadoManual.value = color
+}
+
 // Cálculo del nuevo nivel
 const nuevoNivelCalculado = computed(() => {
+  if (nivelSeleccionadoManual.value) {
+    switch (nivelSeleccionadoManual.value) {
+      case 'ROJO':
+        return {
+          titulo: '● NIVEL I · Reanimación',
+          color: '#EF4444',
+          badge: 'red',
+          tiempo: 'INMEDIATO (0 min)',
+          destino: 'Sala de Choque Inmediato (Box 01)'
+        }
+      case 'NARANJA':
+        return {
+          titulo: '● NIVEL II · Muy Urgente',
+          color: '#EA580C',
+          badge: 'orange',
+          tiempo: '≤ 10 - 15 MINUTOS',
+          destino: 'Box de Urgencias Críticas 01'
+        }
+      case 'AMARILLO':
+        return {
+          titulo: '● NIVEL III · Urgente',
+          color: '#D97706',
+          badge: 'yellow',
+          tiempo: '≤ 60 MINUTOS',
+          destino: 'Consultorio Filtro 02'
+        }
+      case 'VERDE':
+        return {
+          titulo: '● NIVEL IV · Poco Urgente',
+          color: '#10B981',
+          badge: 'green',
+          tiempo: '≤ 120 MINUTOS',
+          destino: 'Sala de Espera General / Consulta'
+        }
+      case 'AZUL':
+        return {
+          titulo: '● NIVEL V · No Urgente',
+          color: '#2563EB',
+          badge: 'blue',
+          tiempo: '≤ 240 MINUTOS',
+          destino: 'Consulta Externa / Filtro General'
+        }
+    }
+  }
+
   if (reevaluacionForm.value.alteracionConciencia || reevaluacionForm.value.viaAereaComprometida) {
     return {
       titulo: '● NIVEL I · Reanimación',
@@ -103,23 +188,146 @@ const nuevoNivelCalculado = computed(() => {
 })
 
 const confirmarReclasificacion = () => {
-  if (!reevaluacionForm.value.justificacionClinica) {
-    alert('NORMA MÉDICA NOM-027 / NOM-024: La justificación clínica es obligatoria para registrar la reclasificación inalterable.')
+  // 1. Validar que exista paciente seleccionado
+  if (!props.pacienteActivo?.nombre) {
+    alert('Validación clínica: Debe seleccionar primero a un paciente desde la "Sala de Espera y Monitoreo" para reclasificar.')
+    return
+  }
+
+  // 2. Validar que todos los campos de constantes vitales estén capturados (no permitir vacíos)
+  if (!reevaluacionForm.value.paSistolica || !reevaluacionForm.value.paDiastolica) {
+    alert('Campos obligatorios incompletos: Ingrese la Presión Arterial de control (Sistólica y Diastólica), o presione "Copiar previos".')
+    return
+  }
+
+  if (!reevaluacionForm.value.fc) {
+    alert('Campos obligatorios incompletos: Ingrese la Frecuencia Cardíaca (lpm) del paciente.')
+    return
+  }
+
+  if (!reevaluacionForm.value.fr) {
+    alert('Campos obligatorios incompletos: Ingrese la Frecuencia Respiratoria (rpm) del paciente.')
+    return
+  }
+
+  if (!reevaluacionForm.value.spo2) {
+    alert('Campos obligatorios incompletos: Ingrese el porcentaje de Saturación de Oxígeno (SpO2 %).')
+    return
+  }
+
+  if (!reevaluacionForm.value.temp) {
+    alert('Campos obligatorios incompletos: Ingrese la Temperatura corporal (°C) del paciente.')
+    return
+  }
+
+  if (reevaluacionForm.value.evaDolor === '' || reevaluacionForm.value.evaDolor === null) {
+    alert('Campos obligatorios incompletos: Ingrese la valoración de Dolor en escala EVA (0 a 10).')
+    return
+  }
+
+  // 3. Validar rangos biológicos coherentes
+  const pas = Number(reevaluacionForm.value.paSistolica)
+  const pad = Number(reevaluacionForm.value.paDiastolica)
+  const fc = Number(reevaluacionForm.value.fc)
+  const fr = Number(reevaluacionForm.value.fr)
+  const spo2 = Number(reevaluacionForm.value.spo2)
+  const temp = Number(reevaluacionForm.value.temp)
+  const eva = Number(reevaluacionForm.value.evaDolor)
+
+  if (isNaN(pas) || isNaN(pad) || pas < 50 || pas > 260 || pad < 30 || pad > 160) {
+    alert('Validación fisiológica: Los valores de Presión Arterial deben ser numéricos creíbles (PA Sistólica 50-260, Diastólica 30-160 mmHg).')
+    return
+  }
+
+  if (isNaN(fc) || fc < 30 || fc > 250) {
+    alert('Validación fisiológica: La Frecuencia Cardíaca debe estar entre 30 y 250 lpm.')
+    return
+  }
+
+  if (isNaN(fr) || fr < 6 || fr > 60) {
+    alert('Validación fisiológica: La Frecuencia Respiratoria debe estar entre 6 y 60 rpm.')
+    return
+  }
+
+  if (isNaN(spo2) || spo2 < 40 || spo2 > 100) {
+    alert('Validación fisiológica: La Saturación SpO2 debe estar entre 40% y 100%.')
+    return
+  }
+
+  if (isNaN(temp) || temp < 32 || temp > 43) {
+    alert('Validación fisiológica: La Temperatura axilar debe estar entre 32.0°C y 43.0°C.')
+    return
+  }
+
+  if (isNaN(eva) || eva < 0 || eva > 10) {
+    alert('Validación fisiológica: La Escala EVA de Dolor debe ser un valor numérico entre 0 y 10.')
+    return
+  }
+
+  // 4. Validar justificación clínica obligatoria
+  if (!reevaluacionForm.value.justificacionClinica || reevaluacionForm.value.justificacionClinica.trim().length < 10) {
+    alert('Auditoría clínica: La justificación clínica es obligatoria y debe contener al menos 10 caracteres detallando el motivo de la reclasificación.')
+    return
+  }
+
+  // Prellenar credenciales con los datos del operador en sesión
+  if (!firmaCredenciales.value.nombre) firmaCredenciales.value.nombre = props.enfermera?.nombre || ''
+  if (!firmaCredenciales.value.cedula) firmaCredenciales.value.cedula = props.enfermera?.cedula?.replace('CÉD. ', '') || ''
+  firmaCredenciales.value.pin = ''
+
+  // Bloquear la pantalla y mostrar la ventana flotante de firma
+  mostrarModalFirma.value = true
+}
+
+const procesarFirmaYReclasificar = async () => {
+  if (!firmaCredenciales.value.nombre || firmaCredenciales.value.nombre.trim().length < 3) {
+    alert('Campos obligatorios incompletos: Ingrese el nombre completo del personal de enfermería responsable.')
+    return
+  }
+  if (!firmaCredenciales.value.cedula || firmaCredenciales.value.cedula.trim().length < 4) {
+    alert('Campos obligatorios incompletos: Ingrese el número de cédula o matrícula profesional válido.')
+    return
+  }
+  if (!firmaCredenciales.value.pin || firmaCredenciales.value.pin.trim().length < 3) {
+    alert('Campos obligatorios incompletos: Ingrese el PIN o clave de confirmación clínica.')
     return
   }
 
   const now = new Date()
   const hora = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} hrs`
   const nombrePaciente = props.pacienteActivo?.nombre || 'Paciente en Espera'
+  const idTriage = props.pacienteActivo?.id_triage || (typeof props.pacienteActivo?.id === 'string' ? props.pacienteActivo.id : '')
+  const colorKey = nuevoNivelCalculado.value.titulo.includes('I ·') ? 'ROJO' :
+                   nuevoNivelCalculado.value.titulo.includes('II ·') ? 'NARANJA' :
+                   nuevoNivelCalculado.value.titulo.includes('III ·') ? 'AMARILLO' :
+                   nuevoNivelCalculado.value.titulo.includes('IV ·') ? 'VERDE' : 'AZUL'
+
+  if (idTriage) {
+    procesandoReclasificacion.value = true
+    try {
+      const justificacionCompleta = `${reevaluacionForm.value.justificacionClinica} [Firmado por: ${firmaCredenciales.value.nombre} - Céd. ${firmaCredenciales.value.cedula}]`
+      await triageService.reclasificar(idTriage, colorKey, justificacionCompleta)
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.message || 'Error al conectar con la API de reclasificación.'
+      alert(`Error clínico en reclasificación: ${errorMsg}`)
+      procesandoReclasificacion.value = false
+      return
+    } finally {
+      procesandoReclasificacion.value = false
+    }
+  }
 
   reclasificacionesHistoricas.value.unshift({
     hora,
     paciente: nombrePaciente,
-    transicion: `${props.pacienteActivo?.triage || 'Nivel III'} <svg viewBox="0 0 24 24" class="svg-inline-arrow" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg> ${nuevoNivelCalculado.value.titulo}`,
+    transicion: `${props.pacienteActivo?.triage || 'Nivel III'} → ${nuevoNivelCalculado.value.titulo}`,
     motivo: reevaluacionForm.value.justificacionClinica.slice(0, 45) + '...',
     destino: nuevoNivelCalculado.value.destino,
-    enfermero: props.enfermera.nombre
+    enfermero: firmaCredenciales.value.nombre
   })
+
+  // Cerrar ventana flotante y desbloquear la web
+  mostrarModalFirma.value = false
 
   emit('actualizarReclasificacion', {
     nuevoNivel: nuevoNivelCalculado.value.titulo.replace('● ', ''),
@@ -136,7 +344,22 @@ const confirmarReclasificacion = () => {
     }
   })
 
-  alert(`<svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Reclasificación confirmada para: ${nombrePaciente}.\nNueva prioridad: ${nuevoNivelCalculado.value.titulo}.\nDestino reasignado: ${nuevoNivelCalculado.value.destino}.`)
+  // Limpiar campos de reevaluación después de cada operación
+  reevaluacionForm.value.justificacionClinica = ''
+  reevaluacionForm.value.paSistolica = ''
+  reevaluacionForm.value.paDiastolica = ''
+  reevaluacionForm.value.fc = ''
+  reevaluacionForm.value.fr = ''
+  reevaluacionForm.value.spo2 = ''
+  reevaluacionForm.value.temp = ''
+  reevaluacionForm.value.evaDolor = ''
+  reevaluacionForm.value.viaAereaComprometida = false
+  reevaluacionForm.value.signosHipoperfusion = false
+  reevaluacionForm.value.dolorToracicoIsquemico = false
+  reevaluacionForm.value.alteracionConciencia = false
+  nivelSeleccionadoManual.value = null
+
+  alert(`Reclasificación registrada y sellada con éxito para: ${nombrePaciente}.\nResponsable: ${firmaCredenciales.value.nombre} (${firmaCredenciales.value.cedula})\nNueva prioridad: ${nuevoNivelCalculado.value.titulo}.`)
 }
 </script>
 
@@ -366,7 +589,7 @@ const confirmarReclasificacion = () => {
         <!-- Justificación Clínica Obligatoria -->
         <div class="justificacion-box">
           <div class="just-header">
-            <label>JUSTIFICACIÓN CLÍNICA OBLIGATORIA DE RECLASIFICACIÓN (NORMA AUDITORÍA MÉDICA NOM-027 / NOM-024)</label>
+            <label>JUSTIFICACIÓN CLÍNICA OBLIGATORIA DE RECLASIFICACIÓN</label>
             <span class="badge-required">* Campo Requerido</span>
           </div>
           <textarea 
@@ -445,6 +668,53 @@ const confirmarReclasificacion = () => {
 
         <div class="down-arrow-indicator"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>
 
+        <!-- Selector Manual de Prioridad Manchester -->
+        <div class="manual-level-selector">
+          <small class="selector-heading">NIVEL DESTINO A RECLASIFICAR</small>
+          <div class="level-btn-row">
+            <button 
+              type="button" 
+              class="lvl-pill lvl-rojo" 
+              :class="{ active: (nivelSeleccionadoManual === 'ROJO' || (!nivelSeleccionadoManual && nuevoNivelCalculado.titulo.includes('I ·'))) }"
+              @click="seleccionarNivelManual('ROJO')"
+            >
+              I · Rojo
+            </button>
+            <button 
+              type="button" 
+              class="lvl-pill lvl-naranja" 
+              :class="{ active: (nivelSeleccionadoManual === 'NARANJA' || (!nivelSeleccionadoManual && nuevoNivelCalculado.titulo.includes('II ·'))) }"
+              @click="seleccionarNivelManual('NARANJA')"
+            >
+              II · Naranja
+            </button>
+            <button 
+              type="button" 
+              class="lvl-pill lvl-amarillo" 
+              :class="{ active: (nivelSeleccionadoManual === 'AMARILLO' || (!nivelSeleccionadoManual && nuevoNivelCalculado.titulo.includes('III ·'))) }"
+              @click="seleccionarNivelManual('AMARILLO')"
+            >
+              III · Amarillo
+            </button>
+            <button 
+              type="button" 
+              class="lvl-pill lvl-verde" 
+              :class="{ active: (nivelSeleccionadoManual === 'VERDE' || (!nivelSeleccionadoManual && nuevoNivelCalculado.titulo.includes('IV ·'))) }"
+              @click="seleccionarNivelManual('VERDE')"
+            >
+              IV · Verde
+            </button>
+            <button 
+              type="button" 
+              class="lvl-pill lvl-azul" 
+              :class="{ active: (nivelSeleccionadoManual === 'AZUL' || (!nivelSeleccionadoManual && nuevoNivelCalculado.titulo.includes('V ·'))) }"
+              @click="seleccionarNivelManual('AZUL')"
+            >
+              V · Azul
+            </button>
+          </div>
+        </div>
+
         <!-- Nuevo Nivel Calculado -->
         <div class="new-level-card" :class="nuevoNivelCalculado.badge">
           <div class="new-level-tag">
@@ -494,6 +764,79 @@ const confirmarReclasificacion = () => {
         </div>
       </div>
     </aside>
+
+    <!-- MODAL BLOQUEANTE DE FIRMA DE ENFERMERÍA (NOM-024 / NOM-206) -->
+    <div v-if="mostrarModalFirma" class="modal-signature-backdrop">
+      <div class="modal-signature-card">
+        <div class="modal-sig-header">
+          <div class="modal-sig-icon">
+            <svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div>
+            <h4>Firma y Validación de Credenciales</h4>
+            <p>Validación de credenciales y registro de guardia</p>
+          </div>
+        </div>
+
+        <div class="modal-sig-body">
+          <div class="modal-sig-warning">
+            Se requiere confirmación de identidad profesional para asentar la reclasificación inalterable en la bitácora criptográfica de auditoría.
+          </div>
+
+          <div class="sig-field-group">
+            <label>Nombre del Personal de Enfermería Responsable *</label>
+            <input 
+              v-model="firmaCredenciales.nombre" 
+              type="text" 
+              class="input-clinical" 
+              placeholder="Nombre y Apellidos..."
+              required
+            />
+          </div>
+
+          <div class="sig-field-group">
+            <label>Número de Cédula Profesional / Credencial *</label>
+            <input 
+              v-model="firmaCredenciales.cedula" 
+              type="text" 
+              class="input-clinical" 
+              placeholder="ej. ENF-049821 / 12345678"
+              required
+            />
+          </div>
+
+          <div class="sig-field-group">
+            <label>PIN o Clave de Confirmación Clínica</label>
+            <input 
+              v-model="firmaCredenciales.pin" 
+              type="password" 
+              class="input-clinical" 
+              placeholder="••••"
+            />
+          </div>
+        </div>
+
+        <div class="modal-sig-footer">
+          <button 
+            type="button" 
+            class="btn-cancel-modal" 
+            :disabled="procesandoReclasificacion"
+            @click="mostrarModalFirma = false"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="button" 
+            class="btn-confirm-modal" 
+            :disabled="procesandoReclasificacion"
+            @click="procesarFirmaYReclasificar"
+          >
+            <span v-if="procesandoReclasificacion">Registrando en Servidor...</span>
+            <span v-else>Registrar y Sellar Reclasificación</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -1228,5 +1571,236 @@ const confirmarReclasificacion = () => {
   .telemetry-comparison-grid, .radio-options-row {
     grid-template-columns: 1fr;
   }
+}
+
+/* MODAL DE FIRMA Y CREDENCIALES */
+.modal-signature-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-signature-card {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  border: 1px solid #CBD5E1;
+  overflow: hidden;
+  animation: fadeInModal 0.2s ease-out;
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-sig-header {
+  padding: 1.25rem 1.5rem;
+  background-color: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.modal-sig-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1D4ED8;
+}
+
+.modal-sig-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.modal-sig-header h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+}
+
+.modal-sig-header p {
+  font-size: 0.72rem;
+  color: #64748B;
+  margin: 0.2rem 0 0 0;
+}
+
+.modal-sig-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal-sig-warning {
+  background-color: #FFFBEB;
+  border: 1px solid #FDE68A;
+  color: #92400E;
+  padding: 0.65rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.sig-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.sig-field-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.modal-sig-footer {
+  padding: 1rem 1.5rem;
+  background-color: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btn-cancel-modal {
+  padding: 0.55rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748B;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-cancel-modal:hover:not(:disabled) {
+  background: #F1F5F9;
+  color: #334155;
+}
+
+.btn-confirm-modal {
+  padding: 0.55rem 1.25rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  background-color: #0284C7;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.btn-confirm-modal:hover:not(:disabled) {
+  background-color: #0369A1;
+}
+
+.btn-confirm-modal:disabled, .btn-cancel-modal:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Selector Manual de Nivel Manchester */
+.manual-level-selector {
+  margin: 0.6rem 0;
+  padding: 0.6rem;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+}
+
+.selector-heading {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+}
+
+.level-btn-row {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.lvl-pill {
+  flex: 1 1 auto;
+  padding: 0.35rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s ease;
+  background-color: #FFFFFF;
+}
+
+.lvl-pill.lvl-rojo {
+  color: #DC2626;
+  border-color: #FECACA;
+}
+.lvl-pill.lvl-rojo.active {
+  background-color: #DC2626;
+  color: #FFFFFF;
+  border-color: #B91C1C;
+}
+
+.lvl-pill.lvl-naranja {
+  color: #EA580C;
+  border-color: #FED7AA;
+}
+.lvl-pill.lvl-naranja.active {
+  background-color: #EA580C;
+  color: #FFFFFF;
+  border-color: #C2410C;
+}
+
+.lvl-pill.lvl-amarillo {
+  color: #D97706;
+  border-color: #FDE68A;
+}
+.lvl-pill.lvl-amarillo.active {
+  background-color: #D97706;
+  color: #FFFFFF;
+  border-color: #B45309;
+}
+
+.lvl-pill.lvl-verde {
+  color: #059669;
+  border-color: #A7F3D0;
+}
+.lvl-pill.lvl-verde.active {
+  background-color: #059669;
+  color: #FFFFFF;
+  border-color: #047857;
+}
+
+.lvl-pill.lvl-azul {
+  color: #2563EB;
+  border-color: #BFDBFE;
+}
+.lvl-pill.lvl-azul.active {
+  background-color: #2563EB;
+  color: #FFFFFF;
+  border-color: #1D4ED8;
 }
 </style>

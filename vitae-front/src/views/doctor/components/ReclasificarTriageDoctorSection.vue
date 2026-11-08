@@ -59,7 +59,7 @@ const signosIngreso = computed(() => {
 const escalaraChoque = () => {
   nuevoNivel.value = 1
   discriminadores.value.viaAerea = true
-  alert('<svg viewBox="0 0 24 24" class="svg-inline-siren" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> ALERTA CRÍTICA: Paciente escalado inmediatamente a Nivel I (Choque / Resucitación). Alerta enviada a sala de estabilización.')
+  alert('ALERTA CRÍTICA: Paciente escalado inmediatamente a Nivel I (Choque / Resucitación). Alerta enviada a sala de estabilización.')
 }
 
 const confirmarReclasificacion = () => {
@@ -67,7 +67,7 @@ const confirmarReclasificacion = () => {
     alert('Debe ingresar la justificación clínica médica obligatoria para auditar el cambio de prioridad.')
     return
   }
-  alert(`Reclasificación médica confirmada. Registrado en bitácora criptográfica NOM-027-SSA3-2013 con la firma del médico ${props.doctor.nombre}.`)
+  alert(`Reclasificación médica confirmada. Registrado en bitácora de auditoría con la firma del médico ${props.doctor.nombre}.`)
   emit('cambiarSeccion', 'atencion')
 }
 
@@ -85,7 +85,7 @@ const cancelar = () => {
         <strong class="breadcrumb-current">Reclasificación Médica de Triage (Protocolo Manchester Internacional)</strong>
       </div>
       <div class="subnav-right">
-        <span class="tag-normativa">● Normativa NOM-027-SSA3-2013</span>
+        <span class="tag-normativa">● Protocolo Institucional Activo</span>
       </div>
     </div>
 
@@ -523,7 +523,7 @@ const cancelar = () => {
             <span><svg viewBox="0 0 24 24" class="svg-inline-activity" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
             <strong>Trazabilidad y Auditoría Médica</strong>
           </div>
-          <p>Cada modificación en el triage queda registrada en la bitácora criptográfica hospitalaria conforme a la <strong>NOM-024-SSA3</strong> y <strong>NOM-027-SSA3</strong>. Toda re-estratificación a un nivel inferior exige justificación explícita.</p>
+          <p>Cada modificación en el triage queda registrada en la bitácora criptográfica hospitalaria de auditoría. Toda re-estratificación a un nivel inferior exige justificación explícita.</p>
         </div>
 
       </aside>

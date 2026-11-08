@@ -1,0 +1,32 @@
+meta {
+  name: 27 - Exportar Expediente Clínico PDF Auditado (200 OK)
+  type: http
+  seq: 27
+}
+
+post {
+  url: {{base_url}}/expedientes-clinicos/{{expediente_id}}/exportaciones
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{medico_token}}
+}
+
+body:json {
+  {
+    "enmascarar_pii": false
+  }
+}
+
+tests {
+  test("Exportación segura con marcas de agua dinámicas y auditoría inalterable", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.encabezado.marca_agua_seguridad).to.include("COPIA CLÍNICA AUDITADA - USO INTERNO");
+    expect(res.getBody().data.hash_integridad_exportacion).to.be.a('string');
+  });
+}

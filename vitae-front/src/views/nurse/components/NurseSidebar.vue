@@ -1,6 +1,7 @@
 <script setup lang="ts">
 defineProps<{
   seccionActiva: 'triage' | 'reclasificar' | 'sala' | 'nota'
+  tienePacienteSeleccionado?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -53,22 +54,26 @@ const emit = defineEmits<{
 
       <button 
         class="tool-btn" 
-        :class="{ active: seccionActiva === 'reclasificar' }"
-        @click="emit('cambiarSeccion', 'reclasificar')"
+        :class="{ active: seccionActiva === 'reclasificar', disabled: !tienePacienteSeleccionado }"
+        :title="!tienePacienteSeleccionado ? 'Seleccione primero un paciente en Sala de Espera' : 'Reclasificar Manchester'"
+        @click="tienePacienteSeleccionado ? emit('cambiarSeccion', 'reclasificar') : null"
       >
         <span class="tool-icon"><svg viewBox="0 0 24 24" class="svg-inline-sync" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span>
         <span class="tool-label">Reclasificar Manchester</span>
-        <span class="dot-indicator blue"></span>
+        <svg v-if="!tienePacienteSeleccionado" viewBox="0 0 24 24" class="svg-lock-mini" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span v-else class="dot-indicator blue"></span>
       </button>
 
       <button 
         class="tool-btn" 
-        :class="{ active: seccionActiva === 'nota' }"
-        @click="emit('cambiarSeccion', 'nota')"
+        :class="{ active: seccionActiva === 'nota', disabled: !tienePacienteSeleccionado }"
+        :title="!tienePacienteSeleccionado ? 'Seleccione primero un paciente en Sala de Espera' : 'Nota de Enfermería'"
+        @click="tienePacienteSeleccionado ? emit('cambiarSeccion', 'nota') : null"
       >
         <span class="tool-icon"><svg viewBox="0 0 24 24" class="svg-inline-edit" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
         <span class="tool-label">Nota de Enfermería</span>
-        <kbd>Alt+E</kbd>
+        <svg v-if="!tienePacienteSeleccionado" viewBox="0 0 24 24" class="svg-lock-mini" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <kbd v-else>Alt+E</kbd>
       </button>
 
       <button 
@@ -81,11 +86,6 @@ const emit = defineEmits<{
         <span class="count-pill">03</span>
       </button>
     </nav>
-
-    <div class="sidebar-footer-lock">
-      <svg viewBox="0 0 24 24" class="svg-inline-shield" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Entorno clínico protegido<br/>
-      <small>Trazabilidad auditada bajo protocolo de urgencias NOM-027 / NOM-024.</small>
-    </div>
   </aside>
 </template>
 
@@ -287,5 +287,18 @@ kbd {
   color: #94A3B8;
   line-height: 1.3;
   margin-top: 1rem;
+}
+
+.tool-btn.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+}
+
+.svg-lock-mini {
+  width: 15px;
+  height: 15px;
+  margin-left: auto;
+  opacity: 0.7;
 }
 </style>

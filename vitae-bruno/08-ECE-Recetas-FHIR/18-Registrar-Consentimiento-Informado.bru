@@ -1,0 +1,40 @@
+meta {
+  name: 18 - Registrar Consentimiento Informado (201 Created)
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{base_url}}/consentimientos
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{medico_token}}
+}
+
+body:json {
+  {
+    "id_paciente": "{{paciente_id}}",
+    "tipo": "TRATAMIENTO_CLINICO_GENERAL",
+    "finalidades": "Consentimiento informado para diagnóstico, estudios serológicos y tratamiento farmacológico de patologías cardiovasculares.",
+    "firmante_nombre": "Juan Carlos Morales",
+    "medico_responsable_id": "MED-001"
+  }
+}
+
+vars:post-response {
+  consentimiento_id: res.body.data.id_consentimiento
+}
+
+tests {
+  test("Consentimiento informado registrado inmutablemente con hash SHA-256", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.estado).to.equal("OTORGADO");
+    expect(res.getBody().data.hash_documento).to.be.a('string');
+  });
+}

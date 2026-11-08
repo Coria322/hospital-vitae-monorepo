@@ -1,0 +1,33 @@
+meta {
+  name: 08 - Crear Nota Aclaratoria (201 Created)
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{base_url}}/expedientes-clinicos/{{expediente_id}}/notas/{{nota_id}}/aclaraciones
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{medico_token}}
+}
+
+body:json {
+  {
+    "contenido": "ACLARACIÓN: Se agrega indicación de electrocardiograma de control a las 6 horas de ingreso y enzimas cardíacas seriadas.",
+    "plan_tratamiento": "Troponina I seriada a las 0, 3 y 6 horas."
+  }
+}
+
+tests {
+  test("Nota aclaratoria enlazada a la nota original conservando inalterabilidad", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.tipo).to.equal("ACLARATORIA");
+    expect(res.getBody().data.id_nota_original).to.equal(bru.getVar("nota_id"));
+  });
+}

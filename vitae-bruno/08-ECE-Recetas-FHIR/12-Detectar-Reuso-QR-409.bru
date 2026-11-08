@@ -1,0 +1,24 @@
+meta {
+  name: 12 - Detectar Reuso de QR (409 Conflict)
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{base_url}}/recetas/{{receta_folio}}/surtir
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer {{medico_token}}
+}
+
+tests {
+  test("Alerta de incidente y bloqueo estricto al intentar resurtir QR consumido", function() {
+    expect(res.getStatus()).to.equal(409);
+    expect(res.getBody().status).to.equal("error");
+    expect(res.getBody().code).to.equal("REUSO_QR_BLOQUEADO");
+  });
+}

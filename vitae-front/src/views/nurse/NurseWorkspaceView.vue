@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import NurseHeader from './components/NurseHeader.vue'
 import NurseSidebar from './components/NurseSidebar.vue'
 import TriageSection from './components/TriageSection.vue'
@@ -7,6 +7,9 @@ import ReclasificarTriageSection from './components/ReclasificarTriageSection.vu
 import SalaEsperaMonitoreoSection from './components/SalaEsperaMonitoreoSection.vue'
 import NotaEnfermeriaSection from './components/NotaEnfermeriaSection.vue'
 import authService from '@/services/authService'
+
+//import servicio de la cola viva
+import triageService from '@/services/triageService'
 
 // --- DATOS DEL PERSONAL DE ENFERMERÍA EN SESIÓN (DESDE API SI EXISTE) ---
 const usuarioAuth = authService.getUsuario()
@@ -45,6 +48,9 @@ export interface PacienteEnfermeria {
   triage: string
   triageColor: string
   tiempoEspera?: number
+  fechaIngreso?: string
+  slaVencimiento?: string
+  slaVencido?: boolean
   signos: {
     paSistolica: string
     paDiastolica: string
@@ -87,79 +93,150 @@ const pacienteActivo = ref<PacienteEnfermeria>({
 })
 
 // TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/triage/cola (triageService.obtenerColaUrgencias)
-// Lista reactiva de pacientes en sala de espera
-const pacientesEnEspera = ref<PacienteEnfermeria[]>([
-  {
-    id: 1,
-    nombre: 'Elena Torres Morales',
-    edad: 54,
-    sexo: 'Femenino',
-    folio: 'FOL-TRI-8492',
-    box: 'Sala de Espera A',
-    triage: 'Nivel III · Urgente',
-    triageColor: '#D97706',
-    tiempoEspera: 28,
-    signos: {
-      paSistolica: '135',
-      paDiastolica: '85',
-      fc: '88',
-      fr: '18',
-      spo2: '96',
-      temp: '37.1',
-      glucosa: '110',
-      avdi: 'A',
-      evaDolor: 6
-    },
-    motivoConsulta: 'Dolor abdominal cólico progresivo en cuadrante inferior derecho de 6 hrs.',
-    alergias: 'Penicilina',
-    enfermedadesPrevias: 'Hipertensión arterial'
-  },
-  {
-    id: 2,
-    nombre: 'Carlos Mendoza Vega',
-    edad: 68,
-    sexo: 'Masculino',
-    folio: 'FOL-TRI-7310',
-    box: 'Sala de Espera A',
-    triage: 'Nivel II · Muy Urgente',
-    triageColor: '#EA580C',
-    tiempoEspera: 12,
-    signos: {
-      paSistolica: '150',
-      paDiastolica: '95',
-      fc: '104',
-      fr: '22',
-      spo2: '93',
-      temp: '36.8',
-      glucosa: '145',
-      avdi: 'A',
-      evaDolor: 8
-    },
-    motivoConsulta: 'Dolor torácico opresivo con irradiación a brazo izquierdo.',
-    alergias: 'Sulfas',
-    enfermedadesPrevias: 'Diabetes Mellitus tipo 2'
+
+
+// Lista reactiva conectada al servidor
+const pacientesEnEspera = ref<PacienteEnfermeria[]>([])
+const cargandoCola = ref(false)
+
+// Función para obtener la cola viva desde el backend
+const cargarColaUrgencias = async () => {
+  try {
+    cargandoCola.value = true
+    const cola = await triageService.obtenerCola()
+    
+    // Mapear los datos canónicos de la API al modelo visual de la sala
+    pacientesEnEspera.value = cola.map(item => {
+      const pa = (item.signos?.presion_art || '120/80').split('/')
+      const colorHex = 
+        item.color_asig === 'ROJO' ? '#EF4444' :
+        item.color_asig === 'NARANJA' ? '#EA580C' :
+        item.color_asig === 'AMARILLO' ? '#D97706' :
+        item.color_asig === 'VERDE' ? '#10B981' : '#3B82F6'
+
+      return {
+        id: item.id_triage,
+        nombre: item.paciente_nombre,
+        edad: (item as any).paciente_edad ?? null,
+        sexo: (item as any).paciente_sexo ?? '',
+        folio: item.folio_ingreso,
+        box: item.sala_nombre || 'Sala de Espera General',
+        triage: `Nivel ${item.prioridad_nivel} · ${item.color_asig}`,
+        triageColor: colorHex,
+        tiempoEspera: item.minutos_espera,
+        fechaIngreso: item.fecha_hora_ingreso,
+        slaVencimiento: item.sla_vencimiento_en,
+        slaVencido: item.sla_vencido,
+        signos: {
+          paSistolica: pa[0] || '120',
+          paDiastolica: pa[1] || '80',
+          fc: String(item.signos?.frecuencia_card || 80),
+          fr: String(item.signos?.frecuencia_resp || 16),
+          spo2: String(item.signos?.spo2 || 98),
+          temp: String(item.signos?.temperatura || 36.5),
+          glucosa: String(item.signos?.nivel_glucosa || ''),
+          avdi: (item.signos?.nivel_conciencia === 'INCONSCIENTE' ? 'I' : 
+                 item.signos?.nivel_conciencia === 'DOLOR' ? 'D' : 
+                 item.signos?.nivel_conciencia === 'VERBAL' ? 'V' : 'A') as 'A' | 'V' | 'D' | 'I',
+          evaDolor: item.signos?.escala_eva || 0
+        },
+        motivoConsulta: 'Ingreso valorado por triage Manchester',
+        alergias: '',
+        enfermedadesPrevias: ''
+      }
+    })
+  } catch (error) {
+    console.error('Error al cargar la cola viva de urgencias:', error)
+  } finally {
+    cargandoCola.value = false
   }
-])
+}
+
+// Función auxiliar de colores institucionales
+const obtenerHexColor = (color: string) => {
+  switch (color) {
+    case 'ROJO': return '#EF4444'
+    case 'NARANJA': return '#EA580C'
+    case 'AMARILLO': return '#D97706'
+    case 'VERDE': return '#10B981'
+    case 'AZUL': return '#2563EB'
+    default: return '#64748B'
+  }
+}
+
+onMounted(() => {
+  updateClock()
+  cargarColaUrgencias()
+})
 
 // --- NAVEGACIÓN ENTRE PANTALLAS DE ENFERMERÍA ---
-const seccionActiva = ref<'triage' | 'reclasificar' | 'sala' | 'nota'>('triage')
+// Al ingresar al sistema debe ubicar en Sala de Espera y Monitoreo
+const seccionActiva = ref<'triage' | 'reclasificar' | 'sala' | 'nota'>('sala')
+
+const tienePacienteSeleccionado = computed(() => {
+  return Boolean(pacienteActivo.value?.id && pacienteActivo.value?.nombre)
+})
 
 const cambiarSeccion = (sec: 'triage' | 'reclasificar' | 'sala' | 'nota') => {
+  if ((sec === 'reclasificar' || sec === 'nota') && !tienePacienteSeleccionado.value) {
+    alert('Acceso restringido: Debe seleccionar primero a un paciente desde la "Sala de Espera y Monitoreo" para acceder a esta sección.')
+    return
+  }
   seccionActiva.value = sec
 }
 
 // TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/triage (triageService.clasificarTriage)
-const registrarTriage = (datos: any) => {
+const registrarTriage = async (datos: any) => {
   pacienteActivo.value = {
     ...pacienteActivo.value,
     ...datos
   }
-  if (datos.nombre) {
-    const yaExiste = pacientesEnEspera.value.find(p => p.folio === datos.folio)
-    if (!yaExiste) {
-      pacientesEnEspera.value.unshift({ ...pacienteActivo.value })
+  // Refrescar inmediatamente la cola real desde el servidor
+  await cargarColaUrgencias()
+  seccionActiva.value = 'sala'
+}
+
+// Egreso hospitalario: Quitar al paciente de Sala de Espera y Monitoreo
+const procesarEgresoPaciente = async (idTriageOId: string | number) => {
+  const targetId = String(idTriageOId || pacienteActivo.value.id || pacienteActivo.value.folio)
+
+  try {
+    if (targetId) {
+      await triageService.egresarPaciente(targetId, 'Nota de Egreso Hospitalario de Enfermería').catch(() => null)
     }
+  } catch (e) {
+    console.warn('Aviso egreso:', e)
   }
+
+  pacientesEnEspera.value = pacientesEnEspera.value.filter(p => p.id !== idTriageOId && p.id !== targetId && p.folio !== pacienteActivo.value.folio)
+
+  pacienteActivo.value = {
+    id: '',
+    nombre: '',
+    edad: null,
+    sexo: '',
+    folio: '',
+    box: 'Box 03 · Urgencias',
+    triage: '',
+    triageColor: '',
+    signos: {
+      paSistolica: '',
+      paDiastolica: '',
+      fc: '',
+      fr: '',
+      spo2: '',
+      temp: '',
+      glucosa: '',
+      avdi: 'A',
+      evaDolor: 0
+    },
+    motivoConsulta: '',
+    alergias: '',
+    enfermedadesPrevias: ''
+  }
+
+  await cargarColaUrgencias()
+  seccionActiva.value = 'sala'
 }
 
 const seleccionarPacienteParaReclasificar = (p: PacienteEnfermeria) => {
@@ -173,7 +250,7 @@ const seleccionarPacienteParaNota = (p: PacienteEnfermeria) => {
 }
 
 // TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/triage/reclasificar (triageService.reclasificarTriage)
-const actualizarReclasificacion = (datosReval: any) => {
+const actualizarReclasificacion = async (datosReval: any) => {
   if (pacienteActivo.value) {
     pacienteActivo.value.triage = datosReval.nuevoNivel
     pacienteActivo.value.triageColor = datosReval.nuevoColor
@@ -185,17 +262,19 @@ const actualizarReclasificacion = (datosReval: any) => {
     }
     const idx = pacientesEnEspera.value.findIndex(p => p.folio === pacienteActivo.value.folio || p.nombre === pacienteActivo.value.nombre)
     if (idx !== -1) {
-      pacientesEnEspera.value[idx] = { ...pacienteActivo.value }
+      pacientesEnEspera.value[idx] = { ...pacientesEnEspera.value[idx], ...pacienteActivo.value }
     }
   }
+  await cargarColaUrgencias()
+  seccionActiva.value = 'sala'
 }
 
 const activarChoqueInmediato = () => {
-  alert('<svg viewBox="0 0 24 24" class="svg-inline-siren" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> ALERTA ROJA: Protocolo de Reanimación / Choque activado. Sala 01 notificada en tiempo real.')
+  alert('ALERTA ROJA: Protocolo de Reanimación / Choque activado. Sala 01 notificada en tiempo real.')
 }
 
 const activarCodigoAzul = () => {
-  alert('<svg viewBox="0 0 24 24" class="svg-inline-siren" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> CÓDIGO AZUL ACTIVADO: Alarma general de paro cardiorrespiratorio en Sala de Espera.')
+  alert('CÓDIGO AZUL ACTIVADO: Alarma general de paro cardiorrespiratorio en Sala de Espera.')
 }
 
 // Atajos de teclado del módulo
@@ -216,6 +295,8 @@ onMounted(() => {
   updateClock()
   timerId = window.setInterval(updateClock, 1000)
   window.addEventListener('keydown', handleKeyboardShortcuts)
+  // Cargar pacientes de urgencias al abrir la vista
+  cargarColaUrgencias()
 })
 
 onUnmounted(() => {
@@ -237,6 +318,7 @@ onUnmounted(() => {
       <!-- SIDEBAR IZQUIERDA -->
       <NurseSidebar 
         :seccionActiva="seccionActiva"
+        :tienePacienteSeleccionado="tienePacienteSeleccionado"
         @cambiarSeccion="cambiarSeccion"
         @activarChoque="activarChoqueInmediato"
       />
@@ -274,6 +356,7 @@ onUnmounted(() => {
         <NotaEnfermeriaSection 
           v-else-if="seccionActiva === 'nota'" 
           :pacienteActivo="pacienteActivo"
+          @darEgreso="procesarEgresoPaciente"
         />
       </main>
     </div>

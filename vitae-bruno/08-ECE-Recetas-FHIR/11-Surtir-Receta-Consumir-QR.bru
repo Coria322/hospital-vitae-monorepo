@@ -1,0 +1,25 @@
+meta {
+  name: 11 - Surtir Receta y Consumir QR (200 OK)
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{base_url}}/recetas/{{receta_folio}}/surtir
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer {{medico_token}}
+}
+
+tests {
+  test("Receta surtida en farmacia y código QR consumido de forma irreversible", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.qr_estado).to.equal("CONSUMIDO");
+    expect(res.getBody().data.surtida_en).to.be.a('string');
+  });
+}

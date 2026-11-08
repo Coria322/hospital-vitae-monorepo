@@ -1,0 +1,24 @@
+meta {
+  name: 17 - Consultar Recurso FHIR MedicationRequest (200 OK)
+  type: http
+  seq: 17
+}
+
+get {
+  url: {{base_url}}/fhir/MedicationRequest/{{receta_id}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/fhir+json
+}
+
+tests {
+  test("Retorna recurso FHIR MedicationRequest con estado consistente completed", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().resourceType).to.equal("MedicationRequest");
+    expect(res.getBody().status).to.equal("completed");
+    expect(res.getBody().intent).to.equal("order");
+  });
+}

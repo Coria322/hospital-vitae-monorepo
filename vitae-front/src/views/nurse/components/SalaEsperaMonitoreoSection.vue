@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 
 const props = defineProps<{
   pacientes?: Array<{
@@ -12,6 +12,9 @@ const props = defineProps<{
     triage: string
     triageColor: string
     tiempoEspera?: number
+    fechaIngreso?: string
+    slaVencimiento?: string
+    slaVencido?: boolean
     signos: {
       paSistolica: string
       paDiastolica: string
@@ -33,6 +36,108 @@ const emit = defineEmits<{
   (e: 'abrirNota', paciente: any): void
 }>()
 
+// --- CONTADOR Y TEMPORIZADOR SLA EN TIEMPO REAL ---
+const currentTime = ref(Date.now())
+let timerInterval: any = null
+
+onMounted(() => {
+  timerInterval = setInterval(() => {
+    currentTime.value = Date.now()
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (timerInterval) clearInterval(timerInterval)
+})
+
+// Umbrales SLA Manchester en minutos:
+// Nivel I: 0 min (Inmediato)
+// Nivel II: 10 min (Muy urgente)
+// Nivel III: 60 min (Urgente)
+// Nivel IV: 120 min (Poco urgente)
+// Nivel V: 240 min (No urgente)
+const obtenerLimiteSlaMinutos = (triageStr: string): number => {
+  const t = (triageStr || '').toUpperCase()
+  if (t.includes('ROJO') || t.includes('NIVEL 1') || t.includes('NIVEL I ·')) return 0
+  if (t.includes('NARANJA') || t.includes('NIVEL 2') || t.includes('NIVEL II ·')) return 10
+  if (t.includes('AMARILLO') || t.includes('NIVEL 3') || t.includes('NIVEL III ·')) return 60
+  if (t.includes('VERDE') || t.includes('NIVEL 4') || t.includes('NIVEL IV ·')) return 120
+  return 240
+}
+
+// Cálculo del estado SLA por paciente en tiempo real (segundo a segundo)
+const calcularEstadoSla = (p: any) => {
+  const limiteMinutos = obtenerLimiteSlaMinutos(p.triage || '')
+  const limiteMs = limiteMinutos * 60 * 1000
+
+  let transcurridoMs = 0
+  if (p.fechaIngreso) {
+    const ingresoMs = new Date(p.fechaIngreso).getTime()
+    if (!isNaN(ingresoMs)) {
+      transcurridoMs = Math.max(0, currentTime.value - ingresoMs)
+    }
+  }
+  if (!transcurridoMs && p.tiempoEspera) {
+    transcurridoMs = p.tiempoEspera * 60 * 1000
+  }
+
+  const transcurridoSegundos = Math.floor(transcurridoMs / 1000)
+  const minTranscurridos = Math.floor(transcurridoSegundos / 60)
+  const segTranscurridos = transcurridoSegundos % 60
+
+  const tiempoFormateado = `${String(minTranscurridos).padStart(2, '0')}:${String(segTranscurridos).padStart(2, '0')}`
+
+  const diferenciaMs = limiteMs - transcurridoMs
+  const excedido = transcurridoMs > limiteMs
+
+  let tiempoRestanteOExcedido = ''
+  if (excedido) {
+    const excesoSeg = Math.floor((transcurridoMs - limiteMs) / 1000)
+    const exMin = Math.floor(excesoSeg / 60)
+    const exSeg = excesoSeg % 60
+    tiempoRestanteOExcedido = `+${String(exMin).padStart(2, '0')}:${String(exSeg).padStart(2, '0')}`
+  } else {
+    const restSeg = Math.max(0, Math.floor(diferenciaMs / 1000))
+    const rMin = Math.floor(restSeg / 60)
+    const rSeg = restSeg % 60
+    tiempoRestanteOExcedido = `${String(rMin).padStart(2, '0')}:${String(rSeg).padStart(2, '0')}`
+  }
+
+  return {
+    transcurridoSegundos,
+    tiempoFormateado,
+    limiteMinutos,
+    excedido,
+    tiempoRestanteOExcedido
+  }
+}
+
+// Alerta Sonora Discreta usando Web Audio API
+let ultimoSonidoAlarma = 0
+const sonarAlarmaSla = () => {
+  try {
+    const now = Date.now()
+    if (now - ultimoSonidoAlarma < 45000) return // Intervalo mínimo de 45s para no saturar
+    ultimoSonidoAlarma = now
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+    if (!AudioCtx) return
+    const ctx = new AudioCtx()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(880, ctx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(587.33, ctx.currentTime + 0.35)
+    gain.gain.setValueAtTime(0.12, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.35)
+  } catch (e) {
+    // Modo silencioso si no hay interacción previa de audio
+  }
+}
+
 const filtroSala = ref<'todos' | 'naranja' | 'amarillo' | 'verde'>('todos')
 
 const listaPacientes = computed(() => {
@@ -45,6 +150,17 @@ const listaPacientes = computed(() => {
 })
 
 const pacientesEnEsperaCount = computed(() => (props.pacientes || []).length)
+
+const pacientesSlaVencidos = computed(() => {
+  return (props.pacientes || []).filter(p => calcularEstadoSla(p).excedido)
+})
+
+watch(() => pacientesSlaVencidos.value.length, (newCount, oldCount) => {
+  if (newCount > (oldCount || 0)) {
+    sonarAlarmaSla()
+  }
+})
+
 const tiempoPromedioEspera = computed(() => {
   if (!props.pacientes?.length) return 0
   const suma = props.pacientes.reduce((acc, curr) => acc + (curr.tiempoEspera || 0), 0)
@@ -52,7 +168,7 @@ const tiempoPromedioEspera = computed(() => {
 })
 
 const emitirVoceo = () => {
-  alert('<svg viewBox="0 0 24 24" class="svg-inline-speaker" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Sistema de voceo general activado en altavoces de sala de espera.')
+  alert('Sistema de voceo general activado en altavoces de sala de espera.')
 }
 
 const dispararCodigoAzul = () => {
@@ -115,16 +231,23 @@ const dispararCodigoAzul = () => {
       </div>
 
       <!-- KPI 3 -->
-      <div class="kpi-card alert">
+      <div class="kpi-card" :class="{ alert: pacientesSlaVencidos.length > 0 }">
         <div class="kpi-info">
-          <small>PRÓXIMOS A VENCER SLA</small>
+          <small>PRÓXIMOS A VENCER / VENCIDOS SLA</small>
           <div class="kpi-value-row">
-            <strong class="text-danger">0</strong>
-            <span class="badge-danger-mini">Control SLA</span>
+            <strong :class="pacientesSlaVencidos.length > 0 ? 'text-danger' : 'text-success'">{{ pacientesSlaVencidos.length }}</strong>
+            <span :class="pacientesSlaVencidos.length > 0 ? 'badge-danger-mini' : 'badge-success-mini'">Control SLA</span>
           </div>
-          <span class="kpi-footer-text red">Sin alertas críticas de tiempo</span>
+          <span v-if="pacientesSlaVencidos.length > 0" class="kpi-footer-text red">
+            {{ pacientesSlaVencidos.length }} paciente(s) con SLA Manchester excedido
+          </span>
+          <span v-else class="kpi-footer-text green">
+            <svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Sin alertas críticas de tiempo
+          </span>
         </div>
-        <div class="kpi-icon-box alert"><svg viewBox="0 0 24 24" class="svg-inline-siren" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+        <div class="kpi-icon-box" :class="{ alert: pacientesSlaVencidos.length > 0 }">
+          <svg viewBox="0 0 24 24" class="svg-inline-siren" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
       </div>
 
       <!-- KPI 4 -->
@@ -193,19 +316,29 @@ const dispararCodigoAzul = () => {
         <p>Actualmente no hay pacientes en cola de espera en esta sala de urgencias. Los pacientes clasificados en el módulo de Triage aparecerán aquí con sus temporizadores en cuenta regresiva.</p>
       </div>
 
-      <!-- Tarjetas de pacientes activos en espera -->
+      <!-- Tarjetas de pacientes activos en espera con Monitoreo de Alarma SLA -->
       <div 
         v-for="p in listaPacientes" 
         :key="p.id || p.folio" 
         class="waiting-patient-card"
+        :class="{ 'sla-alarm-active': calcularEstadoSla(p).excedido }"
       >
+        <!-- Banner de Alerta Crítica por Superación de SLA -->
+        <div v-if="calcularEstadoSla(p).excedido" class="sla-alarm-alert-banner">
+          <svg viewBox="0 0 24 24" class="svg-inline-siren-pulse" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <div class="sla-banner-text">
+            <strong>¡ALARMA SLA MANCHESTER EXCEDIDO!</strong>
+            <span>Tiempo límite de atención superado (Tolerancia: {{ calcularEstadoSla(p).limiteMinutos }} min). Priorizar valoración médica inmediata.</span>
+          </div>
+        </div>
+
         <div class="w-patient-top">
           <div class="w-patient-identity">
             <div class="w-avatar">{{ p.nombre.charAt(0) }}</div>
             <div>
               <div class="w-name-row">
                 <h4>{{ p.nombre }}</h4>
-                <span class="w-age">({{ p.edad }} años · {{ p.sexo }})</span>
+                <span v-if="p.edad || p.sexo" class="w-age">({{ p.edad ? `${p.edad} años` : '' }}{{ p.edad && p.sexo ? ' · ' : '' }}{{ p.sexo || '' }})</span>
                 <span class="w-folio">{{ p.folio }}</span>
               </div>
               <p class="w-motivo">{{ p.motivoConsulta }}</p>
@@ -216,8 +349,12 @@ const dispararCodigoAzul = () => {
             <span class="w-triage-pill" :style="{ backgroundColor: p.triageColor + '20', color: p.triageColor, borderColor: p.triageColor }">
               ● {{ p.triage }}
             </span>
-            <div class="w-wait-timer">
-              <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M10 2h4"/><path d="m17 5 1.5-1.5"/></svg> Espera: <strong>{{ p.tiempoEspera || 10 }} min</strong>
+            <div class="w-wait-timer" :class="{ 'timer-exceeded': calcularEstadoSla(p).excedido }">
+              <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M10 2h4"/><path d="m17 5 1.5-1.5"/></svg>
+              <span>Espera: <strong>{{ calcularEstadoSla(p).tiempoFormateado }}</strong></span>
+              <span class="timer-badge" :class="calcularEstadoSla(p).excedido ? 'badge-exceeded' : 'badge-remaining'">
+                {{ calcularEstadoSla(p).excedido ? `Excedido ${calcularEstadoSla(p).tiempoRestanteOExcedido}` : `Restante: ${calcularEstadoSla(p).tiempoRestanteOExcedido}` }}
+              </span>
             </div>
           </div>
         </div>
@@ -709,6 +846,99 @@ kbd {
 
 .btn-w-note:hover {
   background-color: #DBEAFE;
+}
+
+/* ESTILOS DE ALARMA SLA Y TEMPORIZADOR EN TIEMPO REAL */
+.waiting-patient-card.sla-alarm-active {
+  border: 2px solid #EF4444;
+  background-color: #FFF5F5;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.25);
+  animation: pulse-alarm 2s infinite ease-in-out;
+}
+
+@keyframes pulse-alarm {
+  0% {
+    border-color: #EF4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+  }
+  50% {
+    border-color: #B91C1C;
+    box-shadow: 0 0 18px rgba(220, 38, 38, 0.45);
+  }
+  100% {
+    border-color: #EF4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.2);
+  }
+}
+
+.sla-alarm-alert-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background-color: #FEE2E2;
+  border: 1px solid #FCA5A5;
+  border-radius: 6px;
+  padding: 0.45rem 0.75rem;
+  margin-bottom: 0.6rem;
+  color: #991B1B;
+  font-size: 0.75rem;
+}
+
+.svg-inline-siren-pulse {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  stroke: #DC2626;
+  animation: rotate-siren 1.5s infinite linear;
+}
+
+@keyframes rotate-siren {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.sla-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.sla-banner-text strong {
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.w-wait-timer.timer-exceeded {
+  color: #DC2626;
+  background-color: #FEE2E2;
+  border-color: #FCA5A5;
+}
+
+.timer-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  margin-left: 0.4rem;
+  font-family: monospace;
+}
+
+.timer-badge.badge-exceeded {
+  background-color: #DC2626;
+  color: #FFFFFF;
+  animation: blink-badge 1s infinite alternate;
+}
+
+.timer-badge.badge-remaining {
+  background-color: #E2E8F0;
+  color: #475569;
+}
+
+@keyframes blink-badge {
+  from { opacity: 1; }
+  to { opacity: 0.7; }
 }
 
 @media (max-width: 800px) {

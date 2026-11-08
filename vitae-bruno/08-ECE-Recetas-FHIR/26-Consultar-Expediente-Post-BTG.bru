@@ -1,0 +1,24 @@
+meta {
+  name: 26 - Consultar Expediente Clínico con Pase BTG (200 OK)
+  type: http
+  seq: 26
+}
+
+get {
+  url: {{base_url}}/expedientes-clinicos/{{expediente_id}}
+  body: none
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Authorization: Bearer {{medico2_token}}
+}
+
+tests {
+  test("Acceso clínico concedido tras validación de pase de emergencia Break-the-Glass", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.id_expediente).to.equal(bru.getVar("expediente_id"));
+  });
+}
