@@ -1,0 +1,39 @@
+meta {
+  name: 06 - Crear Nota Médica de Evolución (201 Created)
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base_url}}/expedientes-clinicos/{{expediente_id}}/notas
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{medico_token}}
+}
+
+body:json {
+  {
+    "tipo": "EVOLUCION",
+    "contenido": "Paciente masculino en reposo absoluto, signos vitales estables, sin datos de dificultad respiratoria. Se mantiene monitoreo continuo.",
+    "diagnostico_cie": "I20.0",
+    "plan_tratamiento": "Monitoreo cardíaco cada 4 horas y perfusión de solución fisiológica."
+  }
+}
+
+vars:post-response {
+  nota_id: res.body.data.id_nota
+}
+
+tests {
+  test("Nota médica emitida y sellada inmutablemente", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.cerrada).to.equal(true);
+    expect(res.getBody().data.hash_sha256).to.be.a('string');
+  });
+}

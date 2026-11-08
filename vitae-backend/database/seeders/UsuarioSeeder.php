@@ -43,6 +43,21 @@ class UsuarioSeeder extends Seeder
             ]
         );
 
+        // 2b. Segundo Médico (Para pruebas de interconsulta y Break-the-Glass)
+        Usuario::updateOrCreate(
+            ['id_usuario' => 'MED-002'],
+            [
+                'nombre_completo' => 'Dra. Elena Vasconcelos',
+                'rol' => 'MEDICO',
+                'password_hash' => Hash::make('password123', ['rounds' => 12]),
+                'cedula' => '9876543210',
+                'estado_cuenta' => 'ACTIVA',
+                'intentos_fallidos' => 0,
+                'mfa_habilitado' => false,
+                'debe_cambiar_password' => false,
+            ]
+        );
+
         // 3. Enfermería y Triage
         Usuario::updateOrCreate(
             ['id_usuario' => 'ENF-001'],

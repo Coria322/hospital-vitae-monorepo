@@ -137,7 +137,7 @@ const completarRegistroExpediente = () => {
     alert('Debe marcar la casilla de Aceptación de Consentimiento Informado Administrativo.')
     return
   }
-  alert('<svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Paciente registrado exitosamente. Se ha generado la Clave Única de Expediente (CUPE) con Folio ADM-2026-10492.')
+  alert('Paciente registrado exitosamente. Se ha generado la Clave Única de Expediente (CUPE) con Folio ADM-2026-10492.')
 }
 
 // Datos de la cola de espera de admisión
@@ -149,7 +149,7 @@ const colaEsperaAdmision = ref([
 ])
 
 const llamarSiguienteTurno = () => {
-  alert('<svg viewBox="0 0 24 24" class="svg-inline-speaker" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg> Llamando siguiente turno al altavoz de sala y pantalla pública de admisión.')
+  alert('Llamando siguiente turno al altavoz de sala y pantalla pública de admisión.')
 }
 </script>
 

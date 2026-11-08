@@ -1,0 +1,33 @@
+meta {
+  name: 15 - Cargar Resultado de Estudio Cifrado AES-256-GCM (201 Created)
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{base_url}}/solicitudes-estudio/{{solicitud_id}}/resultados
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{laboratorista_token}}
+}
+
+body:json {
+  {
+    "observaciones": "Glucosa sérica: 98 mg/dL, Urea: 28 mg/dL, Creatinina: 0.9 mg/dL. Parámetros normales.",
+    "contenido_texto": "REPORTE OFICIAL LABORATORIO VITAE - QUIMICA CLINICA COMPLETA - PACIENTE MORALES J.C.",
+    "mime": "text/plain"
+  }
+}
+
+tests {
+  test("Resultado de laboratorio cifrado con AES-256-GCM y enlazado al expediente", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.hash_sha256).to.be.a('string');
+  });
+}

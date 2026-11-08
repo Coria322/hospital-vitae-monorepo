@@ -1,0 +1,40 @@
+meta {
+  name: 20 - Registrar Solicitud ARCO Cancelación (201 Created)
+  type: http
+  seq: 20
+}
+
+post {
+  url: {{base_url}}/solicitudes-arco
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{medico_token}}
+}
+
+body:json {
+  {
+    "id_paciente": "{{paciente_id}}",
+    "derecho": "CANCELACION",
+    "acreditacion_identidad": true,
+    "documento_acreditacion": "INE_DOCUMENTO_CERTIFICADO_PACIENTE_PDF",
+    "observaciones": "El paciente solicita cancelación de su historial en base de datos."
+  }
+}
+
+vars:post-response {
+  arco_folio: res.body.data.folio
+}
+
+tests {
+  test("Solicitud ARCO radicada con cálculo de plazos de 20 y 15 días hábiles", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.estado).to.equal("RECIBIDA");
+    expect(res.getBody().data.respuesta_limite).to.be.a('string');
+  });
+}

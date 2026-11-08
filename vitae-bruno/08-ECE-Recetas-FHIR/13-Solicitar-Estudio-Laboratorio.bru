@@ -1,0 +1,38 @@
+meta {
+  name: 13 - Solicitar Estudio de Laboratorio (201 Created)
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{base_url}}/solicitudes-estudio
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{medico_token}}
+}
+
+body:json {
+  {
+    "id_expediente": "{{expediente_id}}",
+    "tipo_estudio": "QUIMICA_CLINICA_6_ELEMENTOS",
+    "prioridad": "NORMAL",
+    "indicaciones_clinicas": "Ayuno de 8 horas, determinar glucosa, urea, creatinina y ácido úrico."
+  }
+}
+
+vars:post-response {
+  solicitud_id: res.body.data.id_solicitud
+}
+
+tests {
+  test("Solicitud de laboratorio vinculada exitosamente al expediente", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.estado).to.equal("PENDIENTE");
+  });
+}

@@ -86,6 +86,8 @@ class ColaUrgenciasService
                 'folio_ingreso' => $t->folio_ingreso,
                 'id_paciente' => $t->id_paciente,
                 'paciente_nombre' => $t->paciente ? $t->paciente->nombre_completo : 'N.N. No Identificado',
+                'paciente_edad' => $t->paciente && $t->paciente->fecha_nacimiento ? $t->paciente->fecha_nacimiento->age : null,
+                'paciente_sexo' => $t->paciente?->sexo,
                 'identificado' => $t->paciente ? $t->paciente->identificado : false,
                 'color_asig' => $t->color_asig,
                 'prioridad_nivel' => $pesoPrioridad,

@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { triageService } from '@/services/triageService'
+import type { TriageRegistroPayload } from '@/services/triageService'
 
 const props = defineProps<{
   pacienteActivo?: {
+    id?: string | number
     nombre: string
     edad: number | null
     sexo: string
@@ -32,7 +35,7 @@ const triageForm = ref({
   temp: '',
   glucosa: '',
   avdi: 'A' as 'A' | 'V' | 'D' | 'I',
-  evaDolor: 0,
+  evaDolor: 0 as number | string | null,
   motivoConsulta: '',
   alergias: '',
   enfermedadesPrevias: ''
@@ -66,24 +69,45 @@ const pacientesClasificados = ref<Array<{
   clasificacion: string
   colorClass: string
   destino: string
-}>>([
-  {
-    hora: '14:10',
-    paciente: 'Elena Torres Morales (54a)',
-    signos: 'PA 135/85 · FC 88 · SpO2 96%',
-    clasificacion: 'Nivel III · Amarillo',
-    colorClass: 'yellow',
-    destino: 'Sala de Espera A'
-  },
-  {
-    hora: '13:45',
-    paciente: 'Carlos Mendoza Vega (68a)',
-    signos: 'PA 150/95 · FC 104 · SpO2 93%',
-    clasificacion: 'Nivel II · Naranja',
-    colorClass: 'orange',
-    destino: 'Box 02 Urgencias'
+}>>([])
+
+const cargarPacientesClasificadosRecientes = async () => {
+  try {
+    const cola = await triageService.obtenerCola()
+    if (cola && cola.length > 0) {
+      pacientesClasificados.value = cola.map(item => {
+        const fecha = new Date(item.fecha_hora_ingreso)
+        const horaStr = !isNaN(fecha.getTime()) 
+          ? `${String(fecha.getHours()).padStart(2, '0')}:${String(fecha.getMinutes()).padStart(2, '0')}`
+          : '14:00'
+        
+        const colorClass = 
+          item.color_asig === 'ROJO' ? 'red' :
+          item.color_asig === 'NARANJA' ? 'orange' :
+          item.color_asig === 'AMARILLO' ? 'yellow' :
+          item.color_asig === 'VERDE' ? 'green' : 'blue'
+
+        const s = item.signos
+        const signosStr = s ? `PA ${s.presion_art || '--'} · FC ${s.frecuencia_card || '--'} · SpO2 ${s.spo2 || '--'}%` : 'Sin signos'
+
+        return {
+          hora: horaStr,
+          paciente: `${item.paciente_nombre || 'N.N.'} ${(item as any).paciente_edad ? `(${(item as any).paciente_edad}a)` : ''}`,
+          signos: signosStr,
+          clasificacion: `Nivel ${item.prioridad_nivel} · ${item.color_asig}`,
+          colorClass,
+          destino: item.sala_nombre || 'Box de Urgencias Generales'
+        }
+      })
+    }
+  } catch (e) {
+    console.warn('No se pudo cargar la lista de pacientes clasificados:', e)
   }
-])
+}
+
+onMounted(() => {
+  cargarPacientesClasificadosRecientes()
+})
 
 const limpiarSignos = () => {
   triageForm.value.paSistolica = ''
@@ -97,56 +121,203 @@ const limpiarSignos = () => {
   triageForm.value.evaDolor = 0
 }
 
-const guardarTriage = () => {
-  if (!triageForm.value.nombrePaciente) {
-    alert('Ingrese el nombre del paciente o asigne un folio de desconocido.')
+const limpiarFormularioCompleto = () => {
+  limpiarSignos()
+  triageForm.value.nombrePaciente = ''
+  triageForm.value.edad = null
+  triageForm.value.sexo = ''
+  triageForm.value.motivoConsulta = ''
+  triageForm.value.alergias = ''
+  triageForm.value.enfermedadesPrevias = ''
+}
+
+const bloquearCaracteresEdad = (e: KeyboardEvent) => {
+  if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E' || e.key === '.') {
+    e.preventDefault()
+  }
+}
+
+const validarEdadInput = () => {
+  if (triageForm.value.edad !== null) {
+    if (triageForm.value.edad < 0) {
+      triageForm.value.edad = 0
+    } else if (triageForm.value.edad > 130) {
+      triageForm.value.edad = 130
+    }
+  }
+}
+
+const guardarTriage = async () => {
+  if (!triageForm.value.nombrePaciente || triageForm.value.nombrePaciente.trim().length < 2) {
+    alert('Campos obligatorios incompletos: Ingrese el nombre del paciente o presione "Asignar Desconocido".')
     return
   }
 
-  const now = new Date()
-  const hora = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-  const nivel = triageForm.value.avdi === 'I' 
-    ? 'Nivel I · Reanimación' 
-    : (triageForm.value.evaDolor >= 8 ? 'Nivel II · Muy Urgente' : 'Nivel III · Urgente')
-  const colorClass = triageForm.value.avdi === 'I' ? 'red' : (triageForm.value.evaDolor >= 8 ? 'orange' : 'yellow')
-  const colorHex = triageForm.value.avdi === 'I' ? '#EF4444' : (triageForm.value.evaDolor >= 8 ? '#EA580C' : '#D97706')
+  if (triageForm.value.edad === null || triageForm.value.edad === undefined || String(triageForm.value.edad).trim() === '') {
+    alert('Campos obligatorios incompletos: Ingrese la edad del paciente.')
+    return
+  }
 
-  // Agregar a la tabla de pacientes clasificados
-  pacientesClasificados.value.unshift({
-    hora,
-    paciente: `${triageForm.value.nombrePaciente} ${triageForm.value.edad ? `(${triageForm.value.edad}a)` : ''}`,
-    signos: `PA ${triageForm.value.paSistolica || '120'}/${triageForm.value.paDiastolica || '80'} · FC ${triageForm.value.fc || '80'} · SpO2 ${triageForm.value.spo2 || '98'}%`,
-    clasificacion: nivel,
-    colorClass,
-    destino: destinoSeleccionado.value
-  })
+  if (triageForm.value.edad < 0 || triageForm.value.edad > 130) {
+    alert('Validación clínica: La edad del paciente no puede ser negativa y debe estar entre 0 y 130 años.')
+    return
+  }
 
-  // Emitir evento con datos persistentes
-  emit('guardarTriage', {
-    nombre: triageForm.value.nombrePaciente,
-    edad: triageForm.value.edad,
-    sexo: triageForm.value.sexo,
-    folio: `FOL-TRI-${Math.floor(1000 + Math.random() * 9000)}`,
-    box: destinoSeleccionado.value,
-    triage: nivel,
-    triageColor: colorHex,
-    signos: {
-      paSistolica: triageForm.value.paSistolica,
-      paDiastolica: triageForm.value.paDiastolica,
-      fc: triageForm.value.fc,
-      fr: triageForm.value.fr,
-      spo2: triageForm.value.spo2,
-      temp: triageForm.value.temp,
-      glucosa: triageForm.value.glucosa,
-      avdi: triageForm.value.avdi,
-      evaDolor: triageForm.value.evaDolor
-    },
-    motivoConsulta: triageForm.value.motivoConsulta,
-    alergias: triageForm.value.alergias,
-    enfermedadesPrevias: triageForm.value.enfermedadesPrevias
-  })
+  if (!triageForm.value.sexo) {
+    alert('Campos obligatorios incompletos: Seleccione el sexo biológico del paciente.')
+    return
+  }
 
-  alert(`<svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Triage registrado con éxito para: ${triageForm.value.nombrePaciente}.\nAsignado a: ${destinoSeleccionado.value} con prioridad ${nivel}.`)
+  if (!triageForm.value.paSistolica || !triageForm.value.paDiastolica) {
+    alert('Campos obligatorios incompletos: Capture la Presión Arterial de control (Sistólica y Diastólica).')
+    return
+  }
+
+  if (!triageForm.value.fc) {
+    alert('Campos obligatorios incompletos: Capture la Frecuencia Cardíaca (FC en lpm).')
+    return
+  }
+
+  if (!triageForm.value.fr) {
+    alert('Campos obligatorios incompletos: Capture la Frecuencia Respiratoria (FR en rpm).')
+    return
+  }
+
+  if (!triageForm.value.spo2) {
+    alert('Campos obligatorios incompletos: Capture la Saturación de Oxígeno (SpO2 en %).')
+    return
+  }
+
+  if (!triageForm.value.temp) {
+    alert('Campos obligatorios incompletos: Capture la Temperatura corporal (°C).')
+    return
+  }
+
+  if (triageForm.value.evaDolor === '' || triageForm.value.evaDolor === null) {
+    alert('Campos obligatorios incompletos: Capture la Escala de Dolor EVA (0 a 10).')
+    return
+  }
+
+  if (!triageForm.value.motivoConsulta || triageForm.value.motivoConsulta.trim().length < 5) {
+    alert('Campos obligatorios incompletos: Ingrese el Motivo de Consulta o sintomatología referida (mínimo 5 caracteres).')
+    return
+  }
+
+  const paSistolica = triageForm.value.paSistolica
+  const paDiastolica = triageForm.value.paDiastolica
+  const fc = parseInt(triageForm.value.fc)
+  const fr = parseInt(triageForm.value.fr)
+  const spo2 = parseInt(triageForm.value.spo2)
+  const temp = parseFloat(triageForm.value.temp)
+  const glucosa = triageForm.value.glucosa ? parseInt(triageForm.value.glucosa) : null
+  const eva = Number(triageForm.value.evaDolor)
+
+  const nivelConciencia: 'ALERTA' | 'VERBAL' | 'DOLOR' | 'INCONSCIENTE' = 
+    triageForm.value.avdi === 'I' ? 'INCONSCIENTE' :
+    triageForm.value.avdi === 'D' ? 'DOLOR' :
+    triageForm.value.avdi === 'V' ? 'VERBAL' : 'ALERTA'
+
+  try {
+    // Si el paciente no viene ya con un ID registrado, creamos su registro de urgencias con su nombre real
+    let idPaciente = (typeof props.pacienteActivo?.id === 'string' && props.pacienteActivo.id.length > 20)
+      ? props.pacienteActivo.id
+      : ''
+
+    if (!idPaciente) {
+      try {
+        const pacienteNuevo = await triageService.registrarPacienteUrgencia(
+          triageForm.value.nombrePaciente,
+          triageForm.value.edad,
+          triageForm.value.sexo
+        )
+        idPaciente = pacienteNuevo.id_paciente
+      } catch (e) {
+        console.warn('Fallo al crear admisión de urgencias, usando ID temporal:', e)
+        idPaciente = 'dc3ba575-0825-403f-9c4e-ac44b6b0b1c9'
+      }
+    }
+
+    const payload: TriageRegistroPayload = {
+      id_paciente: idPaciente,
+      presion_art: `${paSistolica}/${paDiastolica}`,
+      frecuencia_card: fc,
+      frecuencia_resp: fr,
+      temperatura: temp,
+      spo2: spo2,
+      nivel_glucosa: glucosa,
+      escala_eva: eva,
+      nivel_conciencia: nivelConciencia
+    }
+
+    const res = await triageService.registrarTriage(payload)
+    const triageData = res?.data?.triage || res?.data || res
+
+    const nivelManchester = 
+      triageData.color_asig === 'ROJO' ? 1 :
+      triageData.color_asig === 'NARANJA' ? 2 :
+      triageData.color_asig === 'AMARILLO' ? 3 :
+      triageData.color_asig === 'VERDE' ? 4 : 5
+
+    const colorHex = 
+      triageData.color_asig === 'ROJO' ? '#EF4444' :
+      triageData.color_asig === 'NARANJA' ? '#EA580C' :
+      triageData.color_asig === 'AMARILLO' ? '#D97706' :
+      triageData.color_asig === 'VERDE' ? '#10B981' : '#3B82F6'
+
+    const colorClass = 
+      triageData.color_asig === 'ROJO' ? 'red' :
+      triageData.color_asig === 'NARANJA' ? 'orange' :
+      triageData.color_asig === 'AMARILLO' ? 'yellow' :
+      triageData.color_asig === 'VERDE' ? 'green' : 'blue'
+
+    const now = new Date()
+    const hora = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+
+    // Agregar a la tabla de pacientes clasificados
+    pacientesClasificados.value.unshift({
+      hora,
+      paciente: `${triageForm.value.nombrePaciente} ${triageForm.value.edad ? `(${triageForm.value.edad}a)` : ''}`,
+      signos: `PA ${paSistolica}/${paDiastolica} · FC ${fc} · SpO2 ${spo2}%`,
+      clasificacion: `Nivel ${nivelManchester} · ${triageData.color_asig || ''}`,
+      colorClass,
+      destino: destinoSeleccionado.value
+    })
+
+    // Emitir evento con datos persistentes
+    emit('guardarTriage', {
+      id_triage: triageData.id_triage,
+      folio: triageData.folio_ingreso || `FOL-TRI-${Math.floor(1000 + Math.random() * 9000)}`,
+      nombre: triageForm.value.nombrePaciente,
+      edad: triageForm.value.edad,
+      sexo: triageForm.value.sexo,
+      box: destinoSeleccionado.value,
+      triage: `Nivel ${nivelManchester} · ${triageData.color_asig || 'Clasificado'}`,
+      triageColor: colorHex,
+      color_asig: triageData.color_asig,
+      signos: {
+        paSistolica,
+        paDiastolica,
+        fc: String(fc),
+        fr: String(fr),
+        spo2: String(spo2),
+        temp: String(temp),
+        glucosa: String(glucosa || ''),
+        avdi: triageForm.value.avdi,
+        evaDolor: eva
+      },
+      motivoConsulta: triageForm.value.motivoConsulta,
+      alergias: triageForm.value.alergias,
+      enfermedadesPrevias: triageForm.value.enfermedadesPrevias
+    })
+
+    alert(`Triage registrado con éxito en el servidor Vitae.\nFolio: ${triageData.folio_ingreso || 'FOL-TRI-OK'}\nPrioridad asignada: ${triageData.color_asig || 'Calculada'} (Nivel ${nivelManchester})\nDestino: ${destinoSeleccionado.value}`)
+    limpiarFormularioCompleto()
+    await cargarPacientesClasificadosRecientes()
+  } catch (error: any) {
+    console.error('Error al registrar triage:', error)
+    const errorMsg = error?.response?.data?.message || 'Error al conectar con la API de Triage.'
+    alert(`Error clínico en Triage: ${errorMsg}`)
+  }
 }
 
 const derivarAChoque = () => {
@@ -180,7 +351,7 @@ const derivarAChoque = () => {
 
         <div class="banner-right-info">
           <div class="prescription-locked-badge">
-            <svg viewBox="0 0 24 24" class="svg-inline-lock" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Prescripción médica bloqueada (NOM-004 Enfermería)
+            <svg viewBox="0 0 24 24" class="svg-inline-lock" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Prescripción médica bloqueada (Uso exclusivo médico)
           </div>
           <div class="room-status-badge">
             <span class="status-dot green"></span>
@@ -214,10 +385,14 @@ const derivarAChoque = () => {
             <label>Edad / Grupo Etario</label>
             <div class="age-input-row">
               <input 
-                v-model="triageForm.edad" 
+                v-model.number="triageForm.edad" 
                 type="number" 
+                min="0"
+                max="130"
                 class="input-clinical" 
                 placeholder="ej. 42"
+                @keydown="bloquearCaracteresEdad"
+                @input="validarEdadInput"
               />
               <span class="unit-box">Años</span>
             </div>

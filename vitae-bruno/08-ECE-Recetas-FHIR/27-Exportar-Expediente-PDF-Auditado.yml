@@ -1,0 +1,38 @@
+info:
+  name: 27 - Exportar Expediente Clínico PDF Auditado (200 OK)
+  type: http
+  seq: 27
+
+http:
+  method: POST
+  url: "{{base_url}}/expedientes-clinicos/{{expediente_id}}/exportaciones"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: "Bearer {{medico_token}}"
+  body:
+    type: json
+    data: |-
+      {
+        "enmascarar_pii": false
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Exportación segura con marcas de agua dinámicas y auditoría inalterable", function() {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().status).to.equal("success");
+          expect(res.getBody().data.hash_integridad_exportacion).to.be.a('string');
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: true

@@ -1,0 +1,33 @@
+meta {
+  name: 25 - Activar Protocolo Break-the-Glass de Emergencia (201 Created)
+  type: http
+  seq: 25
+}
+
+post {
+  url: {{base_url}}/accesos-emergencia
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  Authorization: Bearer {{medico2_token}}
+}
+
+body:json {
+  {
+    "id_paciente": "{{paciente_id}}",
+    "motivo": "Urgencia médica vital: Paciente con dolor precordial intenso y signos de choque en ausencia del médico tratante."
+  }
+}
+
+tests {
+  test("Acceso Break-the-Glass concedido y auditoría interna reforzada activada", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.estado).to.equal("ACTIVO");
+    expect(res.getBody().data.expira_en).to.be.a('string');
+  });
+}
