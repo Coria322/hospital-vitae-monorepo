@@ -1,0 +1,24 @@
+info:
+  name: 07 - Aprobar RFC Admin (200 OK)
+  type: http
+  seq: 7
+
+http:
+  method: PATCH
+  url: "{{base_url}}/admin/rfcs/{{rfc_id}}/aprobar"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: Bearer {{admin_token}}
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Comité de Cambios / Administrador aprueba RFC formalmente (PROV-RN-012)", function() {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().status).to.equal("success");
+          expect(res.getBody().data.estado).to.equal("APROBADO");
+          expect(res.getBody().data.aprobado_por).to.equal("ADM-001");
+        });

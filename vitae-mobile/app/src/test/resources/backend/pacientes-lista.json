@@ -1,0 +1,83 @@
+{
+  "status": "success",
+  "data": {
+    "current_page": 1,
+    "data": [
+      {
+        "id_paciente": "fb7d76f1-3a30-43d2-bea0-8eb350b6dbb7",
+        "curp": "SINT900101HDFR01",
+        "nombre_completo": "Paciente Sintético Alfa",
+        "fecha_nacimiento": "1990-01-01T00:00:00.000000Z",
+        "sexo": "MASCULINO",
+        "domicilio": "Calle Ficticia 100, Sector Pruebas, CDMX",
+        "seguro_activo": true,
+        "estado_activo": true,
+        "identificado": true,
+        "folio_urgencias": null,
+        "representante_legal": null,
+        "created_at": "2026-11-08T15:08:17.000000Z",
+        "updated_at": "2026-11-08T15:08:17.000000Z"
+      },
+      {
+        "id_paciente": "eb681875-0278-402a-83eb-8d273872ac0a",
+        "curp": "SINT750515MDFR02",
+        "nombre_completo": "Paciente Sintética Beta",
+        "fecha_nacimiento": "1975-05-15T00:00:00.000000Z",
+        "sexo": "FEMENINO",
+        "domicilio": "Avenida Imaginaria 200, Sector Pruebas, CDMX",
+        "seguro_activo": true,
+        "estado_activo": true,
+        "identificado": true,
+        "folio_urgencias": null,
+        "representante_legal": null,
+        "created_at": "2026-11-08T15:08:17.000000Z",
+        "updated_at": "2026-11-08T15:08:17.000000Z"
+      },
+      {
+        "id_paciente": "3be717dd-6fe4-4bfa-9582-1848a371554e",
+        "curp": null,
+        "nombre_completo": "Paciente Desconocido Temporal",
+        "fecha_nacimiento": "2000-01-01T00:00:00.000000Z",
+        "sexo": "INDETERMINADO",
+        "domicilio": "Ubicación de rescate en vía pública",
+        "seguro_activo": false,
+        "estado_activo": true,
+        "identificado": false,
+        "folio_urgencias": "URG-NN-SINT01",
+        "representante_legal": null,
+        "created_at": "2026-11-08T15:08:17.000000Z",
+        "updated_at": "2026-11-08T15:08:17.000000Z"
+      }
+    ],
+    "first_page_url": "http://127.0.0.1:8080/api/v1/pacientes?page=1",
+    "from": 1,
+    "last_page": 1,
+    "last_page_url": "http://127.0.0.1:8080/api/v1/pacientes?page=1",
+    "links": [
+      {
+        "url": null,
+        "label": "&laquo; Previous",
+        "page": null,
+        "active": false
+      },
+      {
+        "url": "http://127.0.0.1:8080/api/v1/pacientes?page=1",
+        "label": "1",
+        "page": 1,
+        "active": true
+      },
+      {
+        "url": null,
+        "label": "Next &raquo;",
+        "page": null,
+        "active": false
+      }
+    ],
+    "next_page_url": null,
+    "path": "http://127.0.0.1:8080/api/v1/pacientes",
+    "per_page": 20,
+    "prev_page_url": null,
+    "to": 3,
+    "total": 3
+  }
+}

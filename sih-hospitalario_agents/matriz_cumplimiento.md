@@ -1,7 +1,7 @@
 # Matriz de Cumplimiento — Hospital Vitae SIH
-**Sprint Activo:** Sprint 5 (Auditoría AI-05 — Portal Móvil del Paciente, Estadística NOM-035 y QA Integral)  
+**Sprint Activo:** Sprint Final (Auditoría AI-06 — Quality Gate, Despliegue Inmutable Blue-Green, BCP/DRP y Cierre Definitivo)  
 **Fecha de Actualización:** 2026-11-08  
-**Rama:** `feature/sprint-5-portal-movil-backend`
+**Rama:** `feature/sprint-6-quality-gate-release`
 
 ---
 
@@ -149,3 +149,45 @@
 | **Recepción** (`AppointmentBookingSection.vue`) | Confirmar cita médica | 🟡 Mock | `confirmarCitaExpedirComprobante` (alerta) | `POST /api/v1/citas` (Agenda y Consultorios) |
 | **Recepción** (`BedCensusSection.vue`) | Asignación de cama | 🟡 Mock | `confirmarAsignacionCama` (local) | `POST /api/v1/camas/{id}/asignar` (Censo Hospitalario) |
 | **Recepción** (`WaitingRoomMonitorSection.vue`) | Monitor sala de espera | 🟡 Mock | `turnosPresenciales` (estático) | `GET /api/v1/triage/sala-espera` (`triageService.obtenerMonitorSalaEspera`) |
+
+---
+
+## 4. Matriz de Cumplimiento — Aplicación Móvil Android (`vitae-mobile` vs TASK-M & Requerimientos ERS)
+*Fecha de Diagnóstico: 2026-11-08 • Auditoría: AI-05 (Sprint 5) • Estado Global del Cliente Móvil: ❌ **INCOMPLETA (0% de desarrollo funcional)**.*
+
+### 4.1 Resumen del Diagnóstico
+1. **Disparidad Backend vs Frontend Móvil:**
+   - El **Backend (`vitae-backend`)** tiene su porción del Sprint 5 al **100% terminada y probada**: endpoints `/api/v1/mobile/*` (perfil, citas, recetas, resultados, expediente, consentimientos, ARCO), middleware de aislamiento anti-IDOR (`MobilePatientIsolation`), compatibilidad Android (`CheckClientVersion` >= API 29) y bloqueo estricto a mutaciones clínicas (HTTP 403).
+   - La **Aplicación Móvil (`vitae-mobile`)** se encuentra en estado de **plantilla base vacía (scaffold inicial generado por Android Studio)**. `MainActivity.kt` contiene únicamente un `Greeting("Android")`. No cuenta con pantallas, navegación, modelos, repositorios, cliente de red ni integración con la API.
+2. **Incumplimiento de Constraint RNF-006 (Android 10+ / API 29):**
+   - En `vitae-mobile/app/build.gradle.kts` se tiene configurado `minSdk = 34` (Android 14), lo cual excluye dispositivos con Android 10 (API 29), 11, 12 y 13, violando directamente la especificación normativa **RNF-006** que exige `minSdk = 29`.
+3. **Ausencia de Dependencias Clave:**
+   - No se encuentran integradas librerías de inyección de dependencias (Hilt), cliente HTTP (Retrofit/OkHttp con Certificate Pinning), almacenamiento seguro (`androidx.security:security-crypto`), navegación Compose (`androidx.navigation:navigation-compose`), ni detección de root (RootBeer).
+
+### 4.2 Tabla de Cumplimiento de Tareas Móviles (`TASK-M`)
+
+| ID Tarea | Requerimiento / Norma | Descripción Técnica | Estado Actual en `vitae-mobile` | Nivel de Brecha |
+| :--- | :--- | :--- | :--- | :---: |
+| `TASK-M-001` | RNF-006, ISO-25010 | Proyecto Kotlin con MVVM, minSdk 29, Compose y pipeline CI | Proyecto inicial generado con minSdk=34; sin arquitectura MVVM estructurada. | ❌ **Pendiente (0%)** |
+| `TASK-M-002` | PROV-UX-003, WCAG 2.1 AA | Tema Material 3 accesible (contraste >= 4.5:1, touch targets >= 48dp) | Tema default `PacientemovilTheme` sin tokens de accesibilidad ni estados de error/vacío. | ❌ **Pendiente (0%)** |
+| `TASK-M-003` | PROV-SEC-001, ISO-27001 | Login con correo y contraseña + verificación OTP de dispositivo nuevo | Inexistente. `MainActivity` no implementa pantalla de login ni captura de credenciales. | ❌ **Pendiente (0%)** |
+| `TASK-M-004` | PROV-SEC-002, OWASP ASVS | PKCE, almacenamiento Keystore/EncryptedSharedPreferences y refresh de sesión | Sin implementación de Keystore ni almacenamiento seguro de tokens. | ❌ **Pendiente (0%)** |
+| `TASK-M-005` | PROV-SEC-001, NOM-024 | Cierre de sesión automático por inactividad de 5 minutos | Inexistente en el cliente móvil. | ❌ **Pendiente (0%)** |
+| `TASK-M-006` | RNF-003, ISO-27001 | Capa de red OkHttp con TLS >= 1.2, certificate pinning e interceptor 401/403 | No existe capa de red ni Retrofit/OkHttp configurado. | ❌ **Pendiente (0%)** |
+| `TASK-M-007` | PROV-SEC-011, OWASP | Detección de Root/Magisk, `FLAG_SECURE` y ofuscación R8/ProGuard | `isMinifyEnabled = false`, sin `FLAG_SECURE` ni validaciones de integridad. | ❌ **Pendiente (0%)** |
+| `TASK-M-008` | RF-002, PROV-UI-003 | Pantallas de Inicio, Perfil de paciente y datos de aseguradora | Inexistentes. | ❌ **Pendiente (0%)** |
+| `TASK-M-009` | PROV-RF-002, RF-011 | Pantalla de citas (consulta de agenda de solo lectura y solicitud/cancelación) | Inexistente. | ❌ **Pendiente (0%)** |
+| `TASK-M-010` | RF-009, NOM-004 | Recetas médicas: listado y vista de detalle (MedicationRequest) con visor de QR | Inexistente. | ❌ **Pendiente (0%)** |
+| `TASK-M-011` | RF-010, NOM-004 | Resultados de laboratorio: listado y visualizador seguro de PDF/imagen | Inexistente. | ❌ **Pendiente (0%)** |
+| `TASK-M-012` | PROV-RN-008, LFPDPPP | Pantalla de Aviso de Privacidad y gestión de consentimientos | Inexistente. | ❌ **Pendiente (0%)** |
+| `TASK-M-013` | PROV-RN-009, LFPDPPP | Flujo de solicitud de derechos ARCO (Acceso, Rectificación, Cancelación, Oposición) | Inexistente. | ❌ **Pendiente (0%)** |
+| `TASK-M-014` | PROV-UI-003, ISO-25010 | Pantallas de estado: sin conexión, sesión expirada, dispositivo incompatible | Inexistente. | ❌ **Pendiente (0%)** |
+| `TASK-M-015` | RF-011, NOM-024 | Garantía de solo lectura en UI clínica (cero botones de edición/mutación) | Inexistente (no hay UI clínica implementada). | ❌ **Pendiente (0%)** |
+| `TASK-M-016` | RNF-006, ISO-25010 | Matriz de dispositivos Android >= 10 en múltiples resoluciones | Sin pruebas de compatibilidad ni emuladores probados. | ❌ **Pendiente (0%)** |
+| `TASK-M-017` | PROV-UX-003, WCAG 2.1 AA | Accesibilidad móvil: compatibilidad TalkBack y contraste validado | Inexistente. | ❌ **Pendiente (0%)** |
+| `TASK-M-018` | RNF-007, FHIR R4 | Pruebas de contrato y consumo de recursos FHIR R4 desde el cliente | Inexistente. | ❌ **Pendiente (0%)** |
+| `TASK-M-019` | RF-002.1, Anti-IDOR | Cobertura >= 80% y verificación de que la app jamás envíe `id_paciente` explícito | Inexistente (solo tests boilerplate vacíos). | ❌ **Pendiente (0%)** |
+| `TASK-M-020` | AI-05, Auditoría | Paquete de evidencias de pruebas instrumentadas y APK compilado para auditoría | Inexistente. | ❌ **Pendiente (0%)** |
+| `TASK-M-021` - `023` | PROV-RNF-005, AI-06 | Firma de APK v2+, SemVer, SBOM móvil y Quality Gate de distribución | Inexistente. | ❌ **Pendiente (0%)** |
+| `TASK-M-024` | RF-003 | Manejo cliente de códigos HTTP 401 (refresh/logout) vs 403 (genérico) | Inexistente. | ❌ **Pendiente (0%)** |
+| `TASK-M-025` | PROV-UI-003 | Configuración de NavHost y flujo base de navegación Compose | Inexistente. | ❌ **Pendiente (0%)** |

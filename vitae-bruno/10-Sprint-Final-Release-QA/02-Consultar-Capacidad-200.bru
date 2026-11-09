@@ -1,0 +1,25 @@
+meta {
+  name: 02-Consultar-Capacidad-200
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/admin/infraestructura/capacidad?umbral=85
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{admin_token}}
+}
+
+test {
+  test("Administrador consulta telemetría y métricas de capacidad (PROV-RNF-004)", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal('success');
+    expect(res.getBody().data.metricas.disco).to.be.an('object');
+    expect(res.getBody().data.metricas.memoria).to.be.an('object');
+    expect(res.getBody().data.metricas.bcp_drp.rto_objetivo_horas).to.equal(4);
+  });
+}

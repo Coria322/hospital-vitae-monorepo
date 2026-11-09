@@ -1,0 +1,25 @@
+meta {
+  name: 08-Consultar-Evidencias-Maestras-200
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{base_url}}/admin/auditoria/evidencias-maestras
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{admin_token}}
+}
+
+test {
+  test("Repositorio maestro de evidencias AI-01 a AI-06 consolidado al 100% (PROV-RN-013)", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal('success');
+    expect(res.getBody().data.resumen_cumplimiento.total_checkpoints).to.equal(6);
+    expect(res.getBody().data.resumen_cumplimiento.porcentaje_cumplimiento).to.equal(100);
+    expect(res.getBody().data.checksum_paquete_sha256).to.be.a('string');
+  });
+}

@@ -1,0 +1,35 @@
+info:
+  name: 06 - Rechazar RFC Sin Rollback (422 Unprocessable Entity)
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{base_url}}/admin/rfcs"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+    - name: Authorization
+      value: Bearer {{admin_token}}
+  body:
+    type: json
+    data: |-
+      {
+        "titulo": "Cambio no planificado",
+        "descripcion": "Sin plan de reversión",
+        "severidad": "P2",
+        "modulo": "farmacia",
+        "impacto_clinico": "Medio",
+        "analisis_riesgo": "Desconocido"
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Rechaza creación de RFC sin plan de reversión obligatorio con 422 (PROV-RN-012)", function() {
+          expect(res.getStatus()).to.equal(422);
+          expect(res.getBody().errors.plan_rollback).to.be.an("array");
+        });

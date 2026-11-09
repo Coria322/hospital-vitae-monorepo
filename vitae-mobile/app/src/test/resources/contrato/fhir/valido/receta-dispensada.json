@@ -1,0 +1,11 @@
+{
+  "resourceType": "MedicationRequest",
+  "id": "rec-demo-2",
+  "status": "completed",
+  "medicationCodeableConcept": { "text": "Amoxicilina 500 mg cápsulas" },
+  "dosageInstruction": [{ "text": "1 cápsula cada 8 horas", "route": { "text": "Oral" } }],
+  "extension": [
+    { "url": "urn:vitae:qr-codigo", "valueString": "QR-DEMO-0002" },
+    { "url": "urn:vitae:qr-estado", "valueString": "CONSUMIDO" }
+  ]
+}

@@ -1,3 +1,143 @@
 <resources>
-    <string name="app_name">pacientemovil</string>
+    <string name="app_name">Vitae</string>
+
+    <string name="pantalla_login">Iniciar sesión</string>
+    <string name="pantalla_otp">Verificación de dispositivo</string>
+    <string name="pantalla_aviso">Aviso de privacidad</string>
+    <string name="pantalla_paciente">Elegir paciente</string>
+    <string name="pantalla_inicio">Inicio</string>
+    <string name="pantalla_citas">Citas</string>
+    <string name="pantalla_recetas">Recetas</string>
+    <string name="pantalla_resultados">Resultados</string>
+    <string name="pantalla_perfil">Perfil y aseguradora</string>
+    <string name="pantalla_arco">Solicitud ARCO</string>
+    <string name="pantalla_sesion_expirada">Sesión expirada</string>
+    <string name="pantalla_incompatible">Dispositivo no compatible</string>
+    <string name="pantalla_root">Dispositivo no seguro</string>
+
+    <string name="pantalla_privacidad">Privacidad y consentimientos</string>
+    <string name="pantalla_receta_detalle">Receta</string>
+    <string name="pantalla_resultado_visor">Resultado</string>
+
+    <string name="inicio_cerrar_sesion">Cerrar sesión</string>
+    <string name="inicio_saludo">Hola, %1$s</string>
+
+    <string name="cargando">Cargando</string>
+    <string name="reintentar">Reintentar</string>
+    <string name="dato_no_disponible">No disponible</string>
+    <string name="error_carga">No pudimos cargar tu información. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="error_permisos">No tienes permiso para ver esta información.</string>
+    <string name="error_recurso">No pudimos mostrar tu información. Inténtalo de nuevo.</string>
+    <string name="error_no_disponible">Esta sección aún no está disponible en el servidor.</string>
+
+    <string name="abrir">Abrir</string>
+    <string name="volver">Volver</string>
+
+    <string name="resumen_proxima_cita">Próxima cita</string>
+    <string name="resumen_sin_cita">Sin citas próximas</string>
+    <string name="resumen_recetas_activas">Recetas activas</string>
+    <string name="resumen_ultimo_resultado">Último resultado</string>
+    <string name="resumen_sin_resultado">Sin resultados</string>
+
+    <string name="citas_vacio">No tienes citas programadas.</string>
+    <string name="cita_fecha">Fecha</string>
+    <string name="cita_hora">Hora</string>
+    <string name="cita_estado">Estado</string>
+
+    <string name="recetas_vacio">No tienes recetas.</string>
+    <string name="receta_medicamento">Medicamento</string>
+    <string name="receta_dosis">Dosis</string>
+    <string name="receta_via">Vía</string>
+    <string name="receta_duracion">Duración</string>
+    <string name="receta_estado">Estado</string>
+    <string name="receta_estado_activa">Activa</string>
+    <string name="receta_estado_dispensada">Dispensada</string>
+    <string name="receta_estado_cancelada">Cancelada</string>
+    <string name="receta_sin_qr">Esta receta no tiene código QR.</string>
+    <string name="receta_qr_desc">Código QR de la receta</string>
+    <string name="receta_qr_invalido">Código QR no válido</string>
+    <string name="receta_qr_invalido_desc">Código QR no válido: la receta ya no está activa</string>
+
+    <string name="resultados_vacio">No tienes resultados.</string>
+    <string name="resultado_estudio">Estudio</string>
+    <string name="resultado_fecha">Fecha</string>
+    <string name="resultado_archivo">Archivo</string>
+    <string name="resultado_pdf">PDF</string>
+    <string name="resultado_imagen">Imagen</string>
+    <string name="resultado_texto">Texto</string>
+    <string name="resultado_descargando">Descargando… %1$d%%</string>
+    <string name="visor_pagina_desc">Página %1$d de %2$d</string>
+    <string name="visor_imagen_desc">Imagen del resultado</string>
+
+    <string name="aviso_previo_texto">Hospital Vitae trata tus datos personales y de salud para identificarte, darte acceso a tus citas, recetas y resultados, y mantener segura tu cuenta. No los usamos para otros fines sin tu consentimiento, que es opcional y podrás dar o retirar cuando quieras. Puedes ejercer tus derechos de acceso, rectificación, cancelación y oposición (ARCO) desde la app. El aviso de privacidad integral explica todo con detalle.</string>
+    <string name="aviso_previo_continuar">Entendido, continuar</string>
+    <string name="aviso_version">Versión %1$s, vigente desde %2$s</string>
+    <string name="aviso_enlace_integral">Leer el aviso de privacidad integral</string>
+    <string name="aviso_finalidades">Finalidades opcionales</string>
+    <string name="aviso_finalidades_ayuda">Son opcionales: puedes usar la app sin aceptarlas y cambiarlas cuando quieras.</string>
+    <string name="aviso_aceptar">Aceptar y continuar</string>
+    <string name="aviso_no_acepto">No acepto (cerrar sesión)</string>
+    <string name="aviso_actualizar">Actualizar preferencias</string>
+    <string name="aviso_error_envio">No pudimos registrar tu decisión. Inténtalo de nuevo.</string>
+
+    <string name="arco_nueva">Nueva solicitud</string>
+    <string name="arco_elige">Elige el derecho que quieres ejercer.</string>
+    <string name="derecho_acceso">Acceso</string>
+    <string name="derecho_acceso_desc">Conocer qué datos personales tuyos tiene el hospital y cómo los usa.</string>
+    <string name="derecho_rectificacion">Rectificación</string>
+    <string name="derecho_rectificacion_desc">Corregir datos que sean inexactos o estén incompletos.</string>
+    <string name="derecho_cancelacion">Cancelación</string>
+    <string name="derecho_cancelacion_desc">Pedir que se supriman tus datos cuando proceda.</string>
+    <string name="derecho_oposicion">Oposición</string>
+    <string name="derecho_oposicion_desc">Oponerte al uso de tus datos para fines específicos.</string>
+    <string name="arco_enviar">Enviar solicitud</string>
+    <string name="arco_enviada">Solicitud enviada</string>
+    <string name="arco_error_envio">No pudimos enviar tu solicitud. Inténtalo de nuevo.</string>
+    <string name="arco_mis_solicitudes">Mis solicitudes</string>
+    <string name="arco_vacio">Aún no has enviado solicitudes.</string>
+    <string name="arco_folio">Folio</string>
+    <string name="arco_derecho">Derecho</string>
+    <string name="arco_estado">Estado</string>
+    <string name="arco_recibida">Fecha de recepción</string>
+    <string name="arco_plazo_respuesta">Plazo de respuesta</string>
+    <string name="arco_plazo_ejecucion">Plazo de ejecución</string>
+    <string name="arco_actualizar">Actualizar estado</string>
+
+    <string name="paciente_ayuda">Elige al paciente cuyos datos quieres consultar.</string>
+    <string name="paciente_vacio">No hay pacientes registrados.</string>
+    <string name="paciente_folio">Folio de urgencias</string>
+    <string name="paciente_seleccionar">Seleccionar</string>
+
+    <string name="perfil_nombre">Nombre</string>
+    <string name="perfil_curp">CURP</string>
+    <string name="perfil_fecha_nacimiento">Fecha de nacimiento</string>
+    <string name="perfil_seguro">Seguro</string>
+    <string name="perfil_seguro_activo">Activo</string>
+    <string name="perfil_seguro_inactivo">Sin seguro activo</string>
+
+    <string name="login_correo">Correo electrónico</string>
+    <string name="login_usuario">Usuario</string>
+    <string name="login_contrasena">Contraseña</string>
+    <string name="login_entrar">Entrar</string>
+    <string name="login_cargando">Verificando…</string>
+    <string name="login_error_credenciales">No fue posible iniciar sesión. Verifica tus datos e inténtalo de nuevo.</string>
+    <string name="login_error_red">No pudimos conectar con el servicio. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="login_error_incompatible">Esta versión de la app ya no es compatible. Actualízala para continuar.</string>
+
+    <string name="alerta_entendido">Entendido</string>
+    <string name="alerta_bloqueada_titulo">Cuenta bloqueada</string>
+    <string name="alerta_bloqueada_texto">Por seguridad tu cuenta fue bloqueada. Contacta a administración del hospital.</string>
+    <string name="alerta_sin_acceso_titulo">Acceso no disponible</string>
+    <string name="alerta_sin_acceso_texto">Acceso no disponible en la app</string>
+
+    <string name="otp_instruccion">Ingresa el código de %1$d dígitos para verificar este dispositivo.</string>
+    <string name="otp_codigo">Código</string>
+    <string name="otp_verificar">Verificar</string>
+    <string name="otp_error">Código incorrecto o vencido.</string>
+
+    <string name="bloqueo_incompatible_texto">Esta app no es compatible con este dispositivo o está desactualizada. Actualiza la app o tu sistema e inténtalo de nuevo.</string>
+    <string name="bloqueo_root_texto">Por seguridad, la app no funciona en dispositivos modificados. Usa un dispositivo sin modificaciones para consultar tu información.</string>
+    <string name="bloqueo_salir">Salir</string>
+
+    <string name="sesion_expirada_texto">Por seguridad cerramos tu sesión. Inicia sesión de nuevo para continuar.</string>
 </resources>

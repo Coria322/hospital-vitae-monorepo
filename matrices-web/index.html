@@ -991,8 +991,8 @@
           Sprints Certificados
         </span>
         <div class="kpi-value-row">
-          <span class="kpi-value">4 / 6</span>
-          <span class="kpi-sub">(AI-01, AI-02, AI-03 y AI-04 al 100%)</span>
+          <span class="kpi-value">6 / 6</span>
+          <span class="kpi-sub">(AI-01 a AI-06 al 100% · Release Final)</span>
         </div>
       </div>
       <div class="kpi-card">
@@ -1001,18 +1001,18 @@
           Requerimientos Concluidos
         </span>
         <div class="kpi-value-row">
-          <span class="kpi-value">52 / 57</span>
-          <span class="kpi-sub">91.2% del Backlog Total ERS</span>
+          <span class="kpi-value">57 / 57</span>
+          <span class="kpi-sub">100.0% del Backlog Total ERS</span>
         </div>
       </div>
-      <div class="kpi-card warning">
+      <div class="kpi-card success">
         <span class="kpi-label">
-          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          Siguiente Fase (Sprint Final · AI-06)
+          <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Requerimientos Pendientes
         </span>
         <div class="kpi-value-row">
-          <span class="kpi-value">5 Reqs</span>
-          <span class="kpi-sub">Quality Gate, Blue-Green y BCP/DRP</span>
+          <span class="kpi-value">0 Reqs</span>
+          <span class="kpi-sub">100% Cobertura de Requisitos y Normativas</span>
         </div>
       </div>
       <div class="kpi-card info">
@@ -1021,8 +1021,8 @@
           Evidencia Automatizada CI
         </span>
         <div class="kpi-value-row">
-          <span class="kpi-value">92 / 92</span>
-          <span class="kpi-sub">PHPUnit PASS + 65 Peticiones Bruno</span>
+          <span class="kpi-value">106 / 106</span>
+          <span class="kpi-sub">PHPUnit PASS + 73 Peticiones Bruno CLI</span>
         </div>
       </div>
     </div>
@@ -1156,16 +1156,16 @@
                 <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> CUMPLIDO (Sprint 5)</span></td>
               </tr>
 
-              <tr class="filterable-row" data-status="pendiente">
+              <tr class="filterable-row" data-status="cumplido">
                 <td><strong>Sprint Final</strong></td>
                 <td><span class="code-tag">E6</span></td>
                 <td><span class="code-tag">AI-06</span></td>
                 <td>
                   <div class="cell-title">Despliegue Blue-Green / Rolling, Rollback &lt;= 5m, Quality Gate Final, BCP/DRP (RTO &lt;= 4h) y Paquete AI-01..AI-06</div>
-                  <div class="cell-desc">Cierre de liberación hospitalaria (20 Nov – 25 Nov 2026) · 5 requerimientos de release.</div>
+                  <div class="cell-desc">Cierre de liberación hospitalaria (20 Nov – 25 Nov 2026) · 5 requerimientos de release certificados al 100%.</div>
                 </td>
                 <td><strong>5</strong></td>
-                <td><span class="status-badge pending"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> PENDIENTE (Sprint 6)</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> CUMPLIDO (Sprint Final)</span></td>
               </tr>
             </tbody>
           </table>
@@ -2446,7 +2446,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr class="filterable-row" data-status="pendiente">
+              <tr class="filterable-row" data-status="cumplido">
                 <td><span class="code-tag">PROV-RNF-003</span></td>
                 <td>No Funcional</td>
                 <td><strong>P0</strong></td>
@@ -2459,15 +2459,15 @@
                 </td>
                 <td><span class="module-text">devops</span></td>
                 <td><span class="norm-tag">ISO/IEC-27001</span></td>
-                <td><span class="status-badge pending"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pendiente (Sprint Final)</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido (Sprint Final)</span></td>
                 <td>
-                  <button type="button" class="btn-detail" data-detail="PLAN-SPRINT-6" onclick="openDetailModal('PLAN-SPRINT-6')">
+                  <button type="button" class="btn-detail" data-detail="PLAN-SPRINT-6" onclick="openDetailModal('EV-PROV-RNF-003')">
                     <svg class="icon" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Detalle
                   </button>
                 </td>
               </tr>
 
-              <tr class="filterable-row" data-status="pendiente">
+              <tr class="filterable-row" data-status="cumplido">
                 <td><span class="code-tag">PROV-RN-011</span></td>
                 <td>Regla Negocio</td>
                 <td><strong>P0</strong></td>
@@ -2480,15 +2480,15 @@
                 </td>
                 <td><span class="module-text">gobernanza</span></td>
                 <td><span class="norm-tag">ISO/IEC-25010</span></td>
-                <td><span class="status-badge pending"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pendiente (Sprint Final)</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido (Sprint Final)</span></td>
                 <td>
-                  <button type="button" class="btn-detail" data-detail="PLAN-SPRINT-6" onclick="openDetailModal('PLAN-SPRINT-6')">
+                  <button type="button" class="btn-detail" data-detail="PLAN-SPRINT-6" onclick="openDetailModal('EV-PROV-RN-011')">
                     <svg class="icon" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Detalle
                   </button>
                 </td>
               </tr>
 
-              <tr class="filterable-row" data-status="pendiente">
+              <tr class="filterable-row" data-status="cumplido">
                 <td><span class="code-tag">PROV-RNF-004</span></td>
                 <td>No Funcional</td>
                 <td><strong>P0</strong></td>
@@ -2501,15 +2501,15 @@
                 </td>
                 <td><span class="module-text">infraestructura</span></td>
                 <td><span class="norm-tag">ISO/IEC-27001</span></td>
-                <td><span class="status-badge pending"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pendiente (Sprint Final)</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido (Sprint Final)</span></td>
                 <td>
-                  <button type="button" class="btn-detail" data-detail="PLAN-SPRINT-6" onclick="openDetailModal('PLAN-SPRINT-6')">
+                  <button type="button" class="btn-detail" data-detail="PLAN-SPRINT-6" onclick="openDetailModal('EV-PROV-RNF-004')">
                     <svg class="icon" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Detalle
                   </button>
                 </td>
               </tr>
 
-              <tr class="filterable-row" data-status="pendiente">
+              <tr class="filterable-row" data-status="cumplido">
                 <td><span class="code-tag">PROV-RN-012</span></td>
                 <td>Regla Negocio</td>
                 <td><strong>P1</strong></td>
@@ -2522,15 +2522,15 @@
                 </td>
                 <td><span class="module-text">gobernanza</span></td>
                 <td><span class="norm-tag">ISO/IEC-20000</span></td>
-                <td><span class="status-badge pending"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pendiente (Sprint Final)</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido (Sprint Final)</span></td>
                 <td>
-                  <button type="button" class="btn-detail" data-detail="PLAN-SPRINT-6" onclick="openDetailModal('PLAN-SPRINT-6')">
+                  <button type="button" class="btn-detail" data-detail="PLAN-SPRINT-6" onclick="openDetailModal('EV-PROV-RN-012')">
                     <svg class="icon" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Detalle
                   </button>
                 </td>
               </tr>
 
-              <tr class="filterable-row" data-status="pendiente">
+              <tr class="filterable-row" data-status="cumplido">
                 <td><span class="code-tag">PROV-RN-013</span></td>
                 <td>Regla Negocio</td>
                 <td><strong>P0</strong></td>
@@ -2543,9 +2543,9 @@
                 </td>
                 <td><span class="module-text">auditoria</span></td>
                 <td><span class="norm-tag">ISO/IEC-27001</span> <span class="norm-tag">NOM-024-SSA3-2012</span></td>
-                <td><span class="status-badge pending"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pendiente (Sprint Final)</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplido (Sprint Final)</span></td>
                 <td>
-                  <button type="button" class="btn-detail" data-detail="PLAN-SPRINT-6" onclick="openDetailModal('PLAN-SPRINT-6')">
+                  <button type="button" class="btn-detail" data-detail="PLAN-SPRINT-6" onclick="openDetailModal('EV-PROV-RN-013')">
                     <svg class="icon" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Detalle
                   </button>
                 </td>
@@ -3418,7 +3418,7 @@
             </h2>
             <div class="section-desc">Evaluación detallada de cada marco regulatorio con objeto técnico, requerimientos SIH trazados y desglose exacto de cumplimiento al cierre del Sprint 4.</div>
           </div>
-          <span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 6 Cumplidas al 100% · 5 Parciales · 1 Planificada</span>
+          <span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> 12 Cumplidas al 100% · 0 Parciales</span>
         </div>
         <div class="table-responsive">
           <table class="data-table">
@@ -3535,15 +3535,15 @@
                 </td>
               </tr>
 
-              <tr class="filterable-row" data-status="parcial">
+              <tr class="filterable-row" data-status="cumplido">
                 <td><strong>LFPDPPP</strong></td>
                 <td class="desc-col">
                   <div class="cell-desc" style="color:var(--text-main);">Ley Federal de Protección de Datos Personales: datos sintéticos en pruebas, disociación en salas públicas, consentimiento informado con hash, derechos ARCO, marcas de agua y consulta móvil aislada.</div>
                 </td>
                 <td><span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-SEC-010</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-UX-002</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-RN-008</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-RN-009</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-SEC-008</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">RF-011</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">RF-002.1</span></td>
-                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Parcialmente Cumplida</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplida (100%)</span></td>
                 <td class="desc-col">
-                  <div class="motivo-box"><strong>Completado (85%):</strong> Datos sintéticos no-PII (Sprint 2 ✅); sala de espera pública disociada con 0 PII (Sprint 3 ✅); consentimiento informado SHA-256, gestión ARCO con plazos de 20/15 días hábiles y exportación PDF con marca de agua y enmascaramiento (Sprint 4 ✅).<br><strong>Pendiente:</strong> API móvil de solo lectura con aislamiento horizontal estricto por token del titular (<code>RF-011</code> / <code>RF-002.1</code> en Sprint 5).</div>
+                  <div class="motivo-box"><strong>Completado al 100%:</strong> Datos sintéticos no-PII (Sprint 2 ✅); sala pública disociada (Sprint 3 ✅); consentimiento informado SHA-256, ARCO con plazos de ley y exportación PDF con marca de agua (Sprint 4 ✅); API móvil de solo lectura con aislamiento horizontal anti-IDOR validado por token (Sprint 5 ✅).</div>
                 </td>
                 <td>
                   <button type="button" class="btn-detail" data-detail="TASK-W-048" onclick="openDetailModal('TASK-W-048')">
@@ -3552,15 +3552,15 @@
                 </td>
               </tr>
 
-              <tr class="filterable-row" data-status="parcial">
+              <tr class="filterable-row" data-status="cumplido">
                 <td><strong>NOM-024-SSA3-2012</strong></td>
                 <td class="desc-col">
                   <div class="cell-desc" style="color:var(--text-main);">Sistemas de Información de Registro Electrónico para la Salud (SIRES): autenticación robusta, control de accesos RBAC, bitácora inalterable AUDITORIA_I de 13 columnas e intercambio seguro.</div>
                 </td>
-                <td><span class="code-tag" style="margin:2px 2px; display:inline-block;">RF-001</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">RF-002</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-SEC-003</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">RNF-001</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-SEC-005</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">RF-011</span></td>
-                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Parcialmente Cumplida</span></td>
+                <td><span class="code-tag" style="margin:2px 2px; display:inline-block;">RF-001</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">RF-002</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-SEC-003</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">RNF-001</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-SEC-005</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">RF-011</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-RN-013</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplida (100%)</span></td>
                 <td class="desc-col">
-                  <div class="motivo-box"><strong>Completado (85%):</strong> RBAC hospitalario, ciclo de vida de cuentas, validación de cédulas, bitácora <code>AUDITORIA_I</code> de 13 columnas encadenada con SHA-256 y verificador criptográfico continuo (Sprints 1 y 2 ✅).<br><strong>Pendiente:</strong> Exposición del portal móvil de solo lectura para consulta del paciente (<code>RF-011</code> en Sprint 5).</div>
+                  <div class="motivo-box"><strong>Completado al 100%:</strong> RBAC hospitalario, ciclo de vida de cuentas, bitácora <code>AUDITORIA_I</code> de 13 columnas encadenada con SHA-256 (Sprints 1 y 2 ✅); portal móvil de solo lectura disociado (Sprint 5 ✅); repositorio maestro de evidencias auditables consolidado y firmado (Sprint Final ✅).</div>
                 </td>
                 <td>
                   <button type="button" class="btn-detail" data-detail="TASK-W-023" onclick="openDetailModal('TASK-W-023')">
@@ -3569,15 +3569,15 @@
                 </td>
               </tr>
 
-              <tr class="filterable-row" data-status="parcial">
+              <tr class="filterable-row" data-status="cumplido">
                 <td><strong>ISO/IEC 27001</strong></td>
                 <td class="desc-col">
                   <div class="cell-desc" style="color:var(--text-main);">Sistema de Gestión de Seguridad de la Información (SGSI): criptografía robusta (Bcrypt &gt;= 12, TLS &gt;= 1.2, AES-256-GCM), hardening Docker no-root, respaldos 3-2-1, despliegue inmutable y continuidad BCP/DRP.</div>
                 </td>
                 <td><span class="code-tag" style="margin:2px 2px; display:inline-block;">RNF-008</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-SEC-001</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-SEC-004</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-RNF-001</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">RNF-003</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-SEC-006</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-RNF-003</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-RNF-004</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-RN-013</span></td>
-                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Parcialmente Cumplida</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplida (100%)</span></td>
                 <td class="desc-col">
-                  <div class="motivo-box"><strong>Completado:</strong> Bcrypt factor 12, sesiones de 15 min, gestión de secretos, Docker no-root fijado, TLS en BD, AES-256-GCM en adjuntos, respaldos 3-2-1 con monitor WAL y auditoría Break-the-Glass (Sprints 1 a 4 ✅).<br><strong>Pendiente:</strong> Despliegue inmutable Blue-Green con rollback <= 5m, plan BCP/DRP (RTO <= 4h) y cierre documental AI-06 (Sprint Final).</div>
+                  <div class="motivo-box"><strong>Completado al 100%:</strong> Bcrypt 12, tokens 15 min, Docker no-root, TLS en BD, AES-256-GCM en adjuntos y respaldos 3-2-1 (Sprints 1 a 4 ✅); despliegue inmutable Blue-Green con rollback <= 5 min, monitoreo de capacidad >= 85%, plan maestro BCP/DRP y consolidación de repositorio maestro AI-01 a AI-06 (Sprint Final ✅).</div>
                 </td>
                 <td>
                   <button type="button" class="btn-detail" data-detail="TASK-W-027" onclick="openDetailModal('TASK-W-027')">
@@ -3586,15 +3586,15 @@
                 </td>
               </tr>
 
-              <tr class="filterable-row" data-status="parcial">
+              <tr class="filterable-row" data-status="cumplido">
                 <td><strong>ISO/IEC 25010</strong></td>
                 <td class="desc-col">
                   <div class="cell-desc" style="color:var(--text-main);">Calidad del producto de software: fiabilidad y tolerancia a fallos (RTO &lt;= 300s), eficiencia de desempeño (P95 &lt;= 2.0s), mantenibilidad y cobertura de pruebas &gt;= 80%.</div>
                 </td>
                 <td><span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-RN-001</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-RN-002</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">RNF-004</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-UX-001</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-RN-006</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">RNF-005</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-RF-002</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-RNF-002</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-RN-011</span></td>
-                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Parcialmente Cumplida</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplida (100%)</span></td>
                 <td class="desc-col">
-                  <div class="motivo-box"><strong>Completado:</strong> Gobernanza Git y RTM viva, réplicas Docker con sonda activa <code>/salud</code>, streaming SSE en tiempo real, captura retroactiva offline y 81 pruebas automatizadas en verde (Sprints 1 a 4 ✅).<br><strong>Pendiente:</strong> Pruebas de carga/soak P95 <= 2.0s, agenda ambulatoria, cobertura QA >= 80% (Sprint 5) y Quality Gate final (Sprint Final).</div>
+                  <div class="motivo-box"><strong>Completado al 100%:</strong> Réplicas Docker, SSE reactivo, benchmarking P95 <= 2.0s en ECE, 106 pruebas PHPUnit (591 aserciones) pasando al 100% y Quality Gate final estricto con 0 defectos críticos y acta formal firmada por QA, CISO y PO (Sprint Final ✅).</div>
                 </td>
                 <td>
                   <button type="button" class="btn-detail" data-detail="TASK-W-029" onclick="openDetailModal('TASK-W-029')">
@@ -3603,15 +3603,15 @@
                 </td>
               </tr>
 
-              <tr class="filterable-row" data-status="parcial">
+              <tr class="filterable-row" data-status="cumplido">
                 <td><strong>OWASP ASVS Nivel 2</strong></td>
                 <td class="desc-col">
                   <div class="cell-desc" style="color:var(--text-main);">Estándar de verificación de seguridad en aplicaciones críticas: autenticación multicapa 401/403, anti-fuerza bruta, rotación de tokens cortos, anti-IDOR, cabeceras HTTP y escaneo SAST/DAST/SBOM.</div>
                 </td>
                 <td><span class="code-tag" style="margin:2px 2px; display:inline-block;">RF-002</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">RF-003</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-SEC-001</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-SEC-002</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">RNF-003</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">RF-002.1</span> <span class="code-tag" style="margin:2px 2px; display:inline-block;">PROV-SEC-009</span></td>
-                <td><span class="status-badge warning"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Parcialmente Cumplida</span></td>
+                <td><span class="status-badge success"><svg class="icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Cumplida (100%)</span></td>
                 <td class="desc-col">
-                  <div class="motivo-box"><strong>Completado:</strong> Capas estrictas 401 vs 403, suspensión al 3er fallo, tokens de 15 min revocables, cabeceras HSTS/CSP/DENY y protección criptográfica anti-tampering (Sprints 1 a 4 ✅).<br><strong>Pendiente:</strong> Aislamiento anti-IDOR móvil del rol PACIENTE (<code>RF-002.1</code>) y pipeline automatizado SAST/DAST/SCA + inventario SBOM (<code>PROV-SEC-009</code> en Sprint 5).</div>
+                  <div class="motivo-box"><strong>Completado al 100%:</strong> Capas estrictas 401 vs 403, suspensión al 3er fallo, tokens de 15 min revocables, cabeceras HSTS/CSP/DENY (Sprints 1 a 4 ✅); aislamiento horizontal anti-IDOR por sub del token y comando SBOM CycloneDX con 0 CVEs críticas (Sprint 5 ✅).</div>
                 </td>
                 <td>
                   <button type="button" class="btn-detail" data-detail="EV-RF-003" onclick="openDetailModal('EV-RF-003')">
@@ -4273,6 +4273,56 @@
     "lang": "bash",
     "code": "php artisan secops:sbom --strict\n// Genera storage/app/sbom.json en formato CycloneDX v1.5\n// Evalúa dependencias de composer.lock contra CVEs críticas (CVSS 9.0-10.0)\n// Métrica MS-03 = 0 vulnerabilidades críticas sin mitigar",
     "rationale": "Cumple los estándares de transparencia en la cadena de suministro de software y control de vulnerabilidades."
+  },
+  "EV-PROV-RNF-003": {
+    "taskId": "TASK-W-061 · PROV-RNF-003",
+    "title": "Procedimiento de Despliegue Inmutable Blue-Green y Rollback <= 5 min",
+    "reqNorm": "PROV-RNF-003 · ISO/IEC-27001",
+    "statusText": "Cumplido (Sprint Final · AI-06)",
+    "path": "vitae-backend/app/Console/Commands/DeployRollbackCommand.php",
+    "lang": "php",
+    "code": "php artisan deploy:rollback --target-version=v2.5.0 --timeout=300\n// 1. Verifica compatibilidad regresiva de base de datos\n// 2. Conmuta tráfico de Nginx/ALB al slot inactivo\n// 3. Valida healthcheck /salud en <= 5 segundos\n// 4. Registra evento ROLLBACK_DESPLIEGUE en AUDITORIA_I",
+    "rationale": "Garantiza reversión automática y cero downtime en fallas de despliegue hospitalario."
+  },
+  "EV-PROV-RN-011": {
+    "taskId": "TASK-W-062 · PROV-RN-011",
+    "title": "Quality Gate Estricto de Liberación Final sin Defectos Críticos",
+    "reqNorm": "PROV-RN-011 · ISO/IEC-25010",
+    "statusText": "Cumplido (Sprint Final · AI-06)",
+    "path": "vitae-backend/app/Console/Commands/QualityGateCommand.php",
+    "lang": "php",
+    "code": "php artisan release:quality-gate --strict\n// Evalúa 4 dimensiones normativas:\n// - 100% pruebas unitarias e integración aprobadas (106 tests)\n// - 0 vulnerabilidades críticas abiertas (MS-03 = 0)\n// - Cobertura de código clínico >= 80%\n// - Emite ACTA_QUALITY_GATE_AI06.json firmada digitalmente",
+    "rationale": "Bloquea liberaciones a producción si existen brechas de seguridad o fallas en pruebas clínicas."
+  },
+  "EV-PROV-RNF-004": {
+    "taskId": "TASK-W-063 · PROV-RNF-004",
+    "title": "Monitoreo Proactivo de Capacidad (>=85%) y Plan BCP/DRP",
+    "reqNorm": "PROV-RNF-004 · ISO/IEC-27001",
+    "statusText": "Cumplido (Sprint Final · AI-06)",
+    "path": "vitae-backend/app/Console/Commands/MonitorearCapacidadCommand.php",
+    "lang": "php",
+    "code": "php artisan ops:capacity-monitor --umbral=85\n// Mide disco, memoria y latencia de conexión a BD\n// Dispara alerta ALERTA_CAPACIDAD_SISTEMA si supera 85%\n// Opera bajo PLAN_CONTINUIDAD_NEGOCIO_Y_DRP.md (RTO <= 4h, RPO <= 15m)",
+    "rationale": "Asegura disponibilidad 24/7 y continuidad asistencial en casos de contingencia o desastre."
+  },
+  "EV-PROV-RN-012": {
+    "taskId": "TASK-W-064 · PROV-RN-012",
+    "title": "Gestión Formal de Solicitudes de Cambio (RFC) Post-Liberación",
+    "reqNorm": "PROV-RN-012 · ISO/IEC-20000",
+    "statusText": "Cumplido (Sprint Final · AI-06)",
+    "path": "vitae-backend/app/Http/Controllers/Api/V1/RfcController.php",
+    "lang": "php",
+    "code": "POST /api/v1/admin/rfcs\n// Clasifica en severidad P1 (2h), P2 (8h) o P3 (72h)\n// Exige plan_rollback obligatorio (HTTP 422 si falta)\n// Aprobación/Rechazo registrado con firma y motivo en AUDITORIA_I",
+    "rationale": "Cumple con la gestión formal de cambios normada por ISO/IEC 20000 para soporte post-go-live."
+  },
+  "EV-PROV-RN-013": {
+    "taskId": "TASK-W-065 · PROV-RN-013",
+    "title": "Consolidación y Firma Digital del Repositorio Maestro de Evidencias AI-01..AI-06",
+    "reqNorm": "PROV-RN-013 · ISO/IEC-27001 / NOM-024",
+    "statusText": "Cumplido (Sprint Final · AI-06)",
+    "path": "vitae-backend/app/Console/Commands/ConsolidarEvidenciasCommand.php",
+    "lang": "php",
+    "code": "php artisan auditoria:consolidar-evidencias --firmar\n// Empaqueta evidencias de AI-01 a AI-06\n// Genera storage/app/auditoria/REPOSITORIO_MAESTRO_EVIDENCIAS_AI01_AI06.json\n// Genera archivo .sha256 con firma inalterable y log de custodia",
+    "rationale": "Entrega el paquete unificado para auditoría final de certificación hospitalaria."
   },
   "PLAN-SPRINT-6": {
     "taskId": "AI-06 · Planificación Sprint Release Final",

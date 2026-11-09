@@ -1,0 +1,6 @@
+# Reglas de R8 (AGP las combina todas desde src/main/keepRules).
+#
+# Sin reglas propias a propósito: Retrofit, OkHttp y kotlinx.serialization traen las suyas como consumer rules, y el
+# resto del código no usa reflexión. Añadir una regla solo con un fallo en pantalla que la justifique, y comprobarlo
+# con una compilación minificada: ./gradlew assembleDebug -Pvitae.minificarDebug=true
+# (los repositorios remotos de release aún no existen: al escribirlos, repetir esa comprobación con ellos).

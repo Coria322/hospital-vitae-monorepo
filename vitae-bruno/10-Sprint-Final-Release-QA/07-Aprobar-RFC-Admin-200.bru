@@ -1,0 +1,24 @@
+meta {
+  name: 07-Aprobar-RFC-Admin-200
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{base_url}}/admin/rfcs/{{rfc_id}}/aprobar
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{admin_token}}
+}
+
+test {
+  test("Comité de Cambios / Administrador aprueba RFC formalmente (PROV-RN-012)", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal('success');
+    expect(res.getBody().data.estado).to.equal('APROBADO');
+    expect(res.getBody().data.aprobado_por).to.equal('ADM-001');
+  });
+}
