@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import type { Paciente, Doctor } from '../types'
+import api from '@/services/api'
+import { eceService } from '@/services/eceService'
 
 const props = defineProps<{
   doctor: Doctor
@@ -120,13 +122,98 @@ const vincularMonitor = () => {
   }
 }
 
-// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/ece/notas (Sprint 4 ECE)
-const onGuardarFirmar = () => {
-  emit('guardarYFirmar')
-  alert('Nota Médica ECE guardada y firmada digitalmente con e.firma (NOM-004-SSA3-2012).')
+const guardando = ref(false)
+
+// Conexión oficial con endpoint real POST /api/v1/expedientes-clinicos/{id}/notas (Sprint 4 ECE)
+const onGuardarFirmar = async () => {
+  if (!props.pacienteSeleccionado) {
+    alert('Atención: Seleccione un paciente de la lista de urgencias antes de asentar la nota médica.')
+    return
+  }
+
+  if (!anamnesis.value || anamnesis.value.trim().length < 10) {
+    alert('Validación clínica: La anamnesis y evolución debe contener al menos 10 caracteres.')
+    return
+  }
+
+  guardando.value = true
+  try {
+    let idExp = props.pacienteSeleccionado.id_expediente
+    
+    // Si no tiene id_expediente pero tampoco id_paciente, resolverlo por CURP o Nombre
+    if (!idExp && !props.pacienteSeleccionado.id_paciente) {
+      const termino = props.pacienteSeleccionado.curp || props.pacienteSeleccionado.nombre
+      if (termino) {
+        try {
+          const res = await api.get('/pacientes', { params: { q: termino } })
+          const lista = res.data?.data?.data || res.data?.data || []
+          if (Array.isArray(lista) && lista.length > 0) {
+            props.pacienteSeleccionado.id_paciente = lista[0].id_paciente || lista[0].id
+            if (lista[0].expediente?.id_expediente) {
+              idExp = lista[0].expediente.id_expediente
+              props.pacienteSeleccionado.id_expediente = idExp
+            }
+          }
+        } catch (e) {
+          console.warn('Error resolviendo paciente en NuevaNotaEce:', e)
+        }
+      }
+    }
+
+    if (!idExp && props.pacienteSeleccionado.id_paciente) {
+      try {
+        const pacData = await eceService.consultarPaciente(props.pacienteSeleccionado.id_paciente)
+        if (pacData?.expediente?.id_expediente) {
+          idExp = pacData.expediente.id_expediente
+        } else {
+          const nuevo = await eceService.crearExpediente({
+            id_paciente: props.pacienteSeleccionado.id_paciente,
+            motivo_consulta: anamnesis.value || 'Ingreso por triage de urgencias',
+            diagnostico: busquedaCie.value || undefined
+          })
+          idExp = nuevo.id_expediente
+        }
+      } catch (eExp: any) {
+        if (eExp?.response?.data?.id_expediente_existente) {
+          idExp = eExp.response.data.id_expediente_existente
+        }
+      }
+      if (idExp) {
+        props.pacienteSeleccionado.id_expediente = idExp
+      }
+    }
+
+    if (!idExp) {
+      alert('Error: No se pudo localizar ni aperturar el expediente clínico del paciente.')
+      return
+    }
+
+    const contenidoNota = `[SUBJETIVO/ANAMNESIS]: ${anamnesis.value}\n[EXPLORACIÓN FÍSICA]: TA ${signos.value.ta || 'N/R'}, FC ${signos.value.fc || 'N/R'}, Temp ${signos.value.temp || 'N/R'}°C, SpO2 ${signos.value.spo2 || 'N/R'}%. ${exploracionSegmentaria.value || 'Sin hallazgos agudos agregados.'}\n[RAZONAMIENTO CLÍNICO]: ${razonamientoClinico.value || 'Evolución estable.'}`
+
+    const res = await eceService.guardarNotaMedica(idExp, {
+      tipo: 'EVOLUCION',
+      contenido: contenidoNota,
+      diagnostico_cie: busquedaCie.value ? busquedaCie.value.substring(0, 10) : undefined,
+      plan_tratamiento: `${indicacionesMedicas.value || ''} ${planSeguimiento.value || ''}`.trim() || undefined
+    })
+
+    alert(`Nota médica inmutable registrada y firmada con e.firma.\n\nID Nota: ${res.id_nota}\nHash SHA-256: ${res.hash_sha256?.substring(0, 32)}...\nEstado: Cerrada (Inalterable conforme a NOM-004-SSA3-2012)`)
+
+    emit('guardarYFirmar')
+
+    // Limpieza de campos tras asentar nota médica
+    anamnesis.value = ''
+    exploracionSegmentaria.value = ''
+    razonamientoClinico.value = ''
+    indicacionesMedicas.value = ''
+    planSeguimiento.value = ''
+  } catch (err: any) {
+    alert('Error al registrar nota médica: ' + (err?.response?.data?.message || err.message))
+  } finally {
+    guardando.value = false
+  }
 }
 
-// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/ece/borradores
 const onGuardarBorrador = () => {
   emit('guardarBorrador')
   alert('Borrador de nota médica guardado localmente.')

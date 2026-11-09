@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import api from '@/services/api'
 
 const emit = defineEmits<{
   (e: 'cambiarSeccion', sec: 'curp' | 'registrar' | 'agendar'): void
@@ -44,37 +45,87 @@ const curpValidaSintaxis = computed(() => {
   return regex.test(inputCurp.value.toUpperCase().trim())
 })
 
-// TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/pacientes?curp=... (Validación RENAPO)
-const ejecutarBusquedaCurp = () => {
-  if (!inputCurp.value) {
-    alert('Ingrese una clave CURP de 18 caracteres para realizar la consulta.')
+const buscando = ref(false)
+
+const calcularEdadDesdeFecha = (fechaStr: string): number => {
+  if (!fechaStr) return 0
+  const nac = new Date(fechaStr)
+  if (isNaN(nac.getTime())) return 0
+  const hoy = new Date()
+  let edad = hoy.getFullYear() - nac.getFullYear()
+  const m = hoy.getMonth() - nac.getMonth()
+  if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) {
+    edad--
+  }
+  return Math.max(0, edad)
+}
+
+const consultarPacientePorTermino = async (termino: string) => {
+  busquedaRealizada.value = true
+  buscando.value = true
+
+  try {
+    const response = await api.get('/pacientes', { params: { q: termino } })
+    const lista = response.data?.data?.data || response.data?.data || []
+
+    if (Array.isArray(lista) && lista.length > 0) {
+      const terminoUpper = termino.toUpperCase()
+      const cleanTermino = terminoUpper.replace(/^#?EXP[-_#\s]*/i, '')
+
+      const p = lista.find((item: any) =>
+        (item.curp && item.curp.toUpperCase() === terminoUpper) ||
+        (item.folio_urgencias && item.folio_urgencias.toUpperCase() === terminoUpper) ||
+        (item.id_paciente && (item.id_paciente.toUpperCase().includes(cleanTermino) || cleanTermino.includes(item.id_paciente.substring(0, 8).toUpperCase()))) ||
+        (item.nombre_completo && item.nombre_completo.toUpperCase().includes(terminoUpper))
+      ) || lista[0]
+
+      const edadCalc = calcularEdadDesdeFecha(p.fecha_nacimiento)
+      const folioExpediente = p.folio_urgencias || (p.id_paciente ? `EXP-${String(p.id_paciente).substring(0, 8).toUpperCase()}` : '#EXP-2026-9042')
+
+      pacienteEncontrado.value = {
+        cupe: folioExpediente,
+        verificadaRenapo: Boolean(p.identificado),
+        moduloArchivo: 'Módulo Central Archivo Clínico',
+        derechohabiencia: p.seguro_activo ? 'Vigente en Padrón' : 'Sin Póliza Vigente',
+        regimen: 'IMSS Régimen Ordinario',
+        poliza: p.nss ? `NSS: ${p.nss}` : '#VIG-2026 · Al corriente',
+        nombreCompleto: p.nombre_completo || 'Sin nombre registrado',
+        curp: p.curp || 'S/N',
+        sexo: p.sexo || 'No especificado',
+        edad: edadCalc,
+        fechaNacimiento: p.fecha_nacimiento || 'No registrada',
+        domicilio: p.domicilio || 'Domicilio conocido',
+        cp: 'Verificado',
+        contactoFamiliar: p.representante_legal || 'No asignado',
+        parentesco: p.representante_legal ? 'Representante Legal' : 'No especificado',
+        telefonoContacto: p.telefono || 'Sin teléfono registrado',
+        citasActivas: false,
+        ultimoIngreso: p.created_at ? new Date(p.created_at).toLocaleDateString('es-MX') : 'Reciente'
+      }
+
+      if (pacienteEncontrado.value) {
+        agregarAlHistorial(pacienteEncontrado.value)
+      }
+    } else {
+      pacienteEncontrado.value = null
+      alert(`No se encontró ningún paciente con el criterio "${termino}". Puede registrarlo en la pestaña "Registrar Nuevo Paciente".`)
+    }
+  } catch (error) {
+    console.error('Error buscando paciente:', error)
+    pacienteEncontrado.value = null
+    alert(`No se encontró el paciente o hubo un error al consultar el servicio. Verifique los datos ingresados.`)
+  } finally {
+    buscando.value = false
+  }
+}
+
+const ejecutarBusquedaCurp = async () => {
+  const termino = inputCurp.value.trim().toUpperCase()
+  if (!termino) {
+    alert('Ingrese un término de búsqueda (CURP, nombre o folio) para realizar la consulta.')
     return
   }
-  busquedaRealizada.value = true
-  if (inputCurp.value.toUpperCase().startsWith('MORA')) {
-    cargarPacienteDemoBusqueda()
-  } else {
-    pacienteEncontrado.value = {
-      cupe: '#EXP-2026-9042',
-      verificadaRenapo: true,
-      moduloArchivo: 'Módulo B-4',
-      derechohabiencia: 'Vigente',
-      regimen: 'IMSS Régimen Ordinario',
-      poliza: '#99482-B2 · Al corriente',
-      nombreCompleto: 'Morales Rivas, Laura Elena',
-      curp: inputCurp.value.toUpperCase(),
-      sexo: 'Femenino',
-      edad: 36,
-      fechaNacimiento: '15 de abril de 1988 (CDMX)',
-      domicilio: 'Av. Insurgentes Sur 1420, Int. 402, Col. Actipan, Benito Juárez, CDMX',
-      cp: '03230 · Verificado CFE 2026',
-      contactoFamiliar: 'Roberto Rivas Méndez',
-      parentesco: 'Hermano',
-      telefonoContacto: '+52 55 4912 8840 · Notificación autorizada',
-      citasActivas: false,
-      ultimoIngreso: '12 ago 2025 (Consulta Externa)'
-    }
-  }
+  await consultarPacientePorTermino(termino)
 }
 
 const agendarCitaConPaciente = () => {
@@ -95,33 +146,15 @@ const actualizarDatosConPaciente = () => {
 
 const limpiarBusquedaCurp = () => {
   inputCurp.value = ''
+  busquedaCupeInput.value = ''
+  busquedaNombreForm.value = {
+    primerApellido: '',
+    segundoApellido: '',
+    nombres: '',
+    fechaNacimiento: ''
+  }
   busquedaRealizada.value = false
   pacienteEncontrado.value = null
-}
-
-const cargarPacienteDemoBusqueda = () => {
-  inputCurp.value = 'MORA880415MDFRRL03'
-  busquedaRealizada.value = true
-  pacienteEncontrado.value = {
-    cupe: '#EXP-2026-9042',
-    verificadaRenapo: true,
-    moduloArchivo: 'Módulo B-4',
-    derechohabiencia: 'Vigente',
-    regimen: 'IMSS Régimen Ordinario',
-    poliza: '#99482-B2 · Al corriente',
-    nombreCompleto: 'Morales Rivas, Laura Elena',
-    curp: 'MORA880415MDFRRL03',
-    sexo: 'Femenino',
-    edad: 36,
-    fechaNacimiento: '15 de abril de 1988 (CDMX)',
-    domicilio: 'Av. Insurgentes Sur 1420, Int. 402, Col. Actipan, Benito Juárez, CDMX',
-    cp: '03230 · Verificado CFE 2026',
-    contactoFamiliar: 'Roberto Rivas Méndez',
-    parentesco: 'Hermano',
-    telefonoContacto: '+52 55 4912 8840 · Notificación autorizada',
-    citasActivas: false,
-    ultimoIngreso: '12 ago 2025 (Consulta Externa)'
-  }
 }
 
 const busquedaNombreForm = ref({
@@ -131,59 +164,116 @@ const busquedaNombreForm = ref({
   fechaNacimiento: ''
 })
 
-const ejecutarBusquedaPorNombre = () => {
-  if (!busquedaNombreForm.value.primerApellido && !busquedaNombreForm.value.nombres) {
-    alert('Ingrese al menos el primer apellido o nombre para realizar la búsqueda fonética.')
+const ejecutarBusquedaPorNombre = async () => {
+  const partes = [
+    busquedaNombreForm.value.primerApellido,
+    busquedaNombreForm.value.segundoApellido,
+    busquedaNombreForm.value.nombres
+  ].filter(Boolean)
+  const termino = partes.join(' ').trim()
+  if (!termino) {
+    alert('Ingrese al menos el primer apellido o nombre para realizar la búsqueda.')
     return
   }
-  cargarPacienteDemoBusqueda()
+  await consultarPacientePorTermino(termino)
 }
 
 const busquedaCupeInput = ref('')
 
-const ejecutarBusquedaPorCupe = () => {
-  if (!busquedaCupeInput.value) {
+const ejecutarBusquedaPorCupe = async () => {
+  const termino = busquedaCupeInput.value.trim()
+  if (!termino) {
     alert('Ingrese el folio de Expediente (CUPE) para buscar.')
     return
   }
-  cargarPacienteDemoBusqueda()
+  await consultarPacientePorTermino(termino)
 }
 
-const simularEscaneoIne = () => {
-  inputCurp.value = 'MORA880415MDFRRL03'
-  ejecutarBusquedaCurp()
-  alert('[SCANNER] Código bidimensional PDF417 de Credencial INE decodificado exitosamente con RENAPO.')
-}
-
-const historialConsultas = ref([
-  {
-    hora: '10:32 h',
-    paciente: 'G. L., Carlos Alberto',
-    curp: 'GOLC740921******',
-    folio: 'EXP-2024-8114',
-    vigencia: 'IMSS Vigente',
-    tipoVigencia: 'imss'
-  },
-  {
-    hora: '10:14 h',
-    paciente: 'V. C., Mariana',
-    curp: 'VACM951103******',
-    folio: 'EXP-2026-9038',
-    vigencia: 'Particular / GNP',
-    tipoVigencia: 'particular'
-  },
-  {
-    hora: '09:48 h',
-    paciente: 'S. T., Fernando',
-    curp: 'SATF620310******',
-    folio: 'EXP-2019-3301',
-    vigencia: 'ISSSTE Activo',
-    tipoVigencia: 'issste'
+const simularEscaneoIne = async () => {
+  try {
+    const res = await api.get('/pacientes?per_page=1')
+    const primero = res.data?.data?.data?.[0] || res.data?.data?.[0]
+    if (primero?.curp) {
+      inputCurp.value = primero.curp
+      await ejecutarBusquedaCurp()
+      alert(`[SCANNER] Código PDF417 de INE decodificado. CURP: ${primero.curp}`)
+    } else {
+      alert('No hay pacientes con CURP registrados en la base de datos para escanear.')
+    }
+  } catch {
+    alert('Error al acceder al padrón para simular escaneo.')
   }
-])
+}
+
+const historialConsultas = ref<Array<{
+  hora: string
+  paciente: string
+  curp: string
+  curpReal?: string
+  folio: string
+  vigencia: string
+  tipoVigencia: string
+}>>([])
+
+const agregarAlHistorial = (p: PacienteEncontrado) => {
+  if (!p) return
+  const hora = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) + ' h'
+  const partes = (p.nombreCompleto || '').trim().split(/\s+/)
+  const p0 = partes[0] || ''
+  const p1 = partes[1] || ''
+  const formatoNombre = partes.length >= 2 ? `${p0.charAt(0)}. ${p1.charAt(0)}., ${partes.slice(2).join(' ')}` : p.nombreCompleto
+  const curpMask = p.curp.length >= 10 ? `${p.curp.substring(0, 10)}******` : p.curp
+
+  // Evitar duplicado inmediato en la cima
+  const yaExiste = historialConsultas.value.findIndex(h => (h.curpReal || h.curp) === p.curp)
+  if (yaExiste !== -1) {
+    historialConsultas.value.splice(yaExiste, 1)
+  }
+
+  historialConsultas.value.unshift({
+    hora,
+    paciente: formatoNombre,
+    curp: curpMask,
+    curpReal: p.curp,
+    folio: p.cupe,
+    vigencia: p.derechohabiencia || 'Vigente en Padrón',
+    tipoVigencia: 'imss'
+  })
+}
+
+const cargarPacientesRecientes = async () => {
+  try {
+    const res = await api.get('/pacientes', { params: { per_page: 8 } })
+    const lista = res.data?.data?.data || res.data?.data || []
+    if (Array.isArray(lista) && lista.length > 0) {
+      historialConsultas.value = lista.map((p: any) => {
+        const partes = (p.nombre_completo || '').split(' ')
+        const formato = partes.length >= 2 ? `${partes[0][0]}. ${partes[1][0]}., ${partes.slice(2).join(' ')}` : p.nombre_completo
+        const hora = p.created_at ? new Date(p.created_at).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) + ' h' : 'Reciente'
+        const curpStr = p.curp || 'SIN-CURP'
+        const curpMask = curpStr.length >= 10 ? `${curpStr.substring(0, 10)}******` : curpStr
+        return {
+          hora,
+          paciente: formato || 'Paciente Registrado',
+          curp: curpMask,
+          curpReal: curpStr,
+          folio: p.folio_urgencias || `#EXP-${p.id_paciente ? String(p.id_paciente).substring(0, 8).toUpperCase() : '2026'}`,
+          vigencia: p.seguro_activo ? 'IMSS Vigente' : 'Póliza Activa',
+          tipoVigencia: p.seguro_activo ? 'imss' : 'particular'
+        }
+      })
+    }
+  } catch (err) {
+    console.warn('Aviso cargando pacientes recientes en recepcion:', err)
+  }
+}
+
+onMounted(() => {
+  cargarPacientesRecientes()
+})
 
 const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
-  inputCurp.value = item.curp.replace(/\*/g, '0')
+  inputCurp.value = item.curpReal || item.curp.replace(/\*/g, '')
   ejecutarBusquedaCurp()
 }
 </script>

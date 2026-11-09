@@ -516,6 +516,37 @@ class Sprint3TriageTest extends TestCase
         $this->assertEquals('ATENDIDO', $triage->estado_atencion);
     }
 
+    public function test_iniciar_atencion_marca_en_atencion_y_actualiza_sala(): void
+    {
+        $triage = Triage::create([
+            'id_triage' => 'TRG-ATN001',
+            'id_paciente' => $this->pacientePrueba->id_paciente,
+            'id_usuario' => 'ENF-TEST',
+            'presion_art' => '120/80',
+            'frecuencia_card' => 85,
+            'nivel_conciencia' => 'ALERTA',
+            'escala_eva' => 4,
+            'color_asig' => 'AMARILLO',
+            'color_original' => 'AMARILLO',
+            'fecha_hora_ingreso' => Carbon::now('UTC'),
+            'folio_ingreso' => 'FOL-ATN-001',
+            'sla_vencimiento_en' => Carbon::now('UTC')->addMinutes(60),
+            'estado_atencion' => 'EN_ESPERA',
+        ]);
+
+        $response = $this->actingAs($this->medico, 'sanctum')
+            ->postJson("/api/v1/triages/{$triage->id_triage}/atender", [
+                'box_nombre' => 'Box 04',
+            ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('status', 'success')
+            ->assertJsonPath('data.triage.estado_atencion', 'EN_ATENCION');
+
+        $triage->refresh();
+        $this->assertEquals('EN_ATENCION', $triage->estado_atencion);
+    }
+
     public function test_nom004_prohibido_delete_fisico_en_triage(): void
     {
         $triage = Triage::create([

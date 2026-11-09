@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
+import api from '@/services/api'
 
 type SeccionRecepcion = 'curp' | 'registrar' | 'agendar' | 'consentimiento' | 'monitor' | 'censo'
 
@@ -127,8 +128,9 @@ const cargarDemoRegistro = () => {
   }
 }
 
-// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/pacientes (NOM-024 / Admisión Hospitalaria)
-const completarRegistroExpediente = () => {
+const guardando = ref(false)
+
+const completarRegistroExpediente = async () => {
   if (!nuevoRegistroForm.value.primerApellido || !nuevoRegistroForm.value.nombres) {
     alert('NOM-024-SSA3-2012: Ingrese al menos el Primer Apellido y Nombre(s) del paciente.')
     return
@@ -137,7 +139,47 @@ const completarRegistroExpediente = () => {
     alert('Debe marcar la casilla de Aceptación de Consentimiento Informado Administrativo.')
     return
   }
-  alert('Paciente registrado exitosamente. Se ha generado la Clave Única de Expediente (CUPE) con Folio ADM-2026-10492.')
+
+  const curpLimpia = (nuevoRegistroForm.value.curpIngresada || '').trim().toUpperCase()
+  if (curpLimpia.length !== 18) {
+    alert('La CURP debe tener exactamente 18 caracteres alfanuméricos según la norma oficial.')
+    return
+  }
+
+  const nombreCompleto = [
+    nuevoRegistroForm.value.primerApellido,
+    nuevoRegistroForm.value.segundoApellido,
+    nuevoRegistroForm.value.nombres
+  ].filter(Boolean).join(' ')
+
+  const payload = {
+    identificado: true,
+    curp: curpLimpia,
+    nombre_completo: nombreCompleto,
+    fecha_nacimiento: nuevoRegistroForm.value.fechaNacimiento || '1990-01-01',
+    sexo: nuevoRegistroForm.value.sexoBiologico || 'Masculino',
+    domicilio: [
+      nuevoRegistroForm.value.calleNumero,
+      nuevoRegistroForm.value.colonia,
+      nuevoRegistroForm.value.municipioAlcaldia,
+      nuevoRegistroForm.value.entidadFederativa
+    ].filter(Boolean).join(', ') || 'No especificado',
+    seguro_activo: true
+  }
+
+  try {
+    guardando.value = true
+    const response = await api.post('/pacientes', payload)
+    const paciente = response.data?.data || response.data
+    alert(`Paciente registrado exitosamente conforme a NOM-024. Clave Única / Folio: ${paciente.folio_urgencias || paciente.id_paciente || 'Generado'}`)
+    limpiarFormularioRegistro()
+  } catch (error: any) {
+    console.error('Error registrando paciente:', error)
+    const mensaje = error.response?.data?.message || 'Error al registrar el paciente en el sistema.'
+    alert(`Error en el registro: ${mensaje}`)
+  } finally {
+    guardando.value = false
+  }
 }
 
 // Datos de la cola de espera de admisión

@@ -106,6 +106,9 @@ Route::prefix('v1')->group(function () {
     Route::get('/sala-espera', [\App\Http\Controllers\Api\V1\SalaEsperaController::class, 'publica']);
     Route::get('/triage/stream', [\App\Http\Controllers\Api\V1\SalaEsperaController::class, 'stream']);
 
+    // Catálogo institucional de médicos para agendamiento de citas y asignaciones
+    Route::get('/medicos', [\App\Http\Controllers\Api\V1\UsuarioController::class, 'medicos']);
+
     // Interoperabilidad HL7 FHIR R4 (RNF-007 / NOM-024)
     Route::prefix('fhir')->group(function () {
         Route::get('/Patient/{id}', [\App\Http\Controllers\Api\V1\FhirController::class, 'getPatient']);
@@ -134,6 +137,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/triages/{id}', [\App\Http\Controllers\Api\V1\TriageController::class, 'show']);
         Route::post('/triages/{id}/reclasificaciones', [\App\Http\Controllers\Api\V1\TriageController::class, 'reclasificar'])
             ->middleware('role:MEDICO,ADMINISTRADOR,ENFERMERIA');
+        Route::post('/triages/{id}/atender', [\App\Http\Controllers\Api\V1\TriageController::class, 'iniciarAtencion'])
+            ->middleware('role:MEDICO,ENFERMERIA,ADMINISTRADOR');
         Route::post('/triages/{id}/egreso', [\App\Http\Controllers\Api\V1\TriageController::class, 'egreso'])
             ->middleware('role:ENFERMERIA,MEDICO,ADMINISTRADOR');
 
@@ -165,9 +170,14 @@ Route::prefix('v1')->group(function () {
         Route::get('/recetas/{id}/pdf', [\App\Http\Controllers\Api\V1\RecetaController::class, 'descargarPdf']);
 
         // SPRINT 4: Solicitudes y Resultados de Laboratorio e Imagen (RF-010 / RNF-003)
+        Route::get('/solicitudes-estudio/kpis', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'kpis']);
         Route::post('/solicitudes-estudio', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'storeSolicitud'])
             ->middleware('role:MEDICO');
         Route::get('/solicitudes-estudio', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'indexSolicitudes']);
+        Route::post('/solicitudes-estudio/{id}/procesar', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'marcarEnProceso'])
+            ->middleware('role:LABORATORISTA,ADMINISTRADOR');
+        Route::post('/solicitudes-estudio/{id}/rechazo', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'rechazarMuestra'])
+            ->middleware('role:LABORATORISTA,ADMINISTRADOR');
         Route::post('/solicitudes-estudio/{id}/resultados', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'storeResultado'])
             ->middleware('role:LABORATORISTA,ADMINISTRADOR');
         Route::get('/solicitudes-estudio/{id}/resultados', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'showResultado']);
@@ -230,12 +240,18 @@ Route::prefix('v1')->group(function () {
         // Endpoints administrativos protegidos por rol ADMINISTRADOR
         Route::middleware(['role:ADMINISTRADOR'])->group(function () {
             Route::get('/usuarios', [UsuarioController::class, 'index']);
+            Route::get('/usuarios/proximo-id', [UsuarioController::class, 'proximoId']);
             Route::post('/usuarios', [UsuarioController::class, 'store']);
             Route::get('/usuarios/{id}', [UsuarioController::class, 'show']);
+            Route::put('/usuarios/{id}', [UsuarioController::class, 'update']);
+            Route::delete('/usuarios/{id}', [UsuarioController::class, 'baja']);
             Route::post('/usuarios/{id}/baja', [UsuarioController::class, 'baja']);
+            Route::post('/usuarios/{id}/bloquear', [UsuarioController::class, 'bloquear']);
             Route::post('/usuarios/{id}/reactivar', [UsuarioController::class, 'reactivar']);
+            Route::post('/usuarios/{id}/reset-password', [UsuarioController::class, 'resetPassword']);
 
             // Bitácora inalterable AUDITORIA_I (NOM-024 / AI-02)
+            Route::get('/auditoria/verificar-cadena', [\App\Http\Controllers\Api\V1\AuditoriaIController::class, 'verificarCadena']);
             Route::get('/auditoria', [\App\Http\Controllers\Api\V1\AuditoriaIController::class, 'index']);
             Route::match(['post', 'put', 'patch', 'delete'], '/auditoria/{id?}', [\App\Http\Controllers\Api\V1\AuditoriaIController::class, 'methodNotAllowed']);
         });

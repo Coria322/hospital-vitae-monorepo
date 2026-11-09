@@ -377,6 +377,18 @@ class Sprint4EceRecetasTest extends TestCase
 
         $idSolicitud = $resSolicitud->json('data.id_solicitud');
 
+        // KPIs de laboratorio
+        $resKpis = $this->actingAs($this->laboratorista)
+            ->getJson('/api/v1/solicitudes-estudio/kpis');
+        $resKpis->assertStatus(200)
+            ->assertJsonStructure(['status', 'data' => ['pendientes_total', 'stat_urgentes', 'validados_hoy', 'tasa_rechazo_pct']]);
+
+        // Marcar en proceso
+        $resProcesar = $this->actingAs($this->laboratorista)
+            ->postJson("/api/v1/solicitudes-estudio/{$idSolicitud}/procesar");
+        $resProcesar->assertStatus(200)
+            ->assertJsonPath('data.estado', 'EN_PROCESO');
+
         // Laboratorista carga resultado cifrado
         $resCarga = $this->actingAs($this->laboratorista)
             ->postJson("/api/v1/solicitudes-estudio/{$idSolicitud}/resultados", [
@@ -399,6 +411,24 @@ class Sprint4EceRecetasTest extends TestCase
         $resConsulta->assertStatus(200)
             ->assertJsonPath('data.resultado.cargado_por', $this->laboratorista->id_usuario)
             ->assertJsonPath('data.contenido_descifrado', 'REPORTE LABORATORIO VINTAGE: LEUCOCITOS: 6,500/uL, PLAQUETAS: 250,000/uL.');
+
+        // Rechazo técnico de muestra preanalítica (NOM-007)
+        $solRechazo = SolicitudEstudio::create([
+            'id_expediente' => $expediente->id_expediente,
+            'id_usuario' => $this->medico->id_usuario,
+            'tipo_estudio' => 'GASOMETRIA_ARTERIAL',
+            'prioridad' => 'URGENTE',
+            'estado' => 'PENDIENTE',
+            'fecha_hora_solicitud' => Carbon::now('UTC'),
+        ]);
+
+        $resRechazo = $this->actingAs($this->laboratorista)
+            ->postJson("/api/v1/solicitudes-estudio/{$solRechazo->id_solicitud}/rechazo", [
+                'motivo' => 'Muestra hemolizada y presencia de coágulo en capilar heparinizado.',
+            ]);
+
+        $resRechazo->assertStatus(200)
+            ->assertJsonPath('data.estado', 'RECHAZADA');
     }
 
     /**

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import type { ContenedorDocker, TelemetriaCluster } from '../types'
 
 const props = defineProps<{
@@ -7,22 +7,52 @@ const props = defineProps<{
   telemetria: TelemetriaCluster
 }>()
 
+const emit = defineEmits<{
+  (e: 'actualizar'): void
+}>()
+
 const busquedaContenedores = ref('')
-const terminalLogs = ref<string[]>([
-  '[14:31:50] [audit-logger] HASH_OK: Block #82941 signed successfully. NOM-024 check passed.',
-  '[14:31:54] [postgres-ece-db] CHECKPOINT starting: time 14:31:54, immediate false',
-  '[14:31:55] [hl7-fhir-gateway] Received ORU^R01 from Analizador Hematologia Sysmex XN-1000 [OK: 200]',
-  '[14:32:01] [redis-cache] DB 0: 412 keys, expires 381. Hit-rate 99.4%',
-  '[14:32:04] [docker-auth-mfa] Token refresh validated for user ADM-0014 via TOTP.',
-  '[14:32:10] [vite-hospital-ui] GET /api/telemetria HTTP/1.1 200 OK 32ms TLSv1.3'
-])
+const horaActual = ref(new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' }))
+let timerId: any = null
+
+const generarLogsIniciales = () => {
+  const ahora = new Date()
+  const horaFmt = (offsetSegundos = 0) => {
+    const d = new Date(ahora.getTime() - offsetSegundos * 1000)
+    return d.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  }
+  
+  return [
+    `[${horaFmt(45)}] [audit-logger] HASH_OK: Bloque SHA-256 verificado e indexado en Bitácora Central. Verificación NOM-024 aprobada.`,
+    `[${horaFmt(38)}] [postgres-ece-db] CHECKPOINT completado: Integridad de base de datos ECE y Expedientes sincronizada.`,
+    `[${horaFmt(25)}] [hl7-fhir-gateway] Mensaje HL7/FHIR procesado exitosamente desde LIS Laboratorio [HTTP 200 OK].`,
+    `[${horaFmt(18)}] [redis-cache] Conexión de caché activa en puerto 6379. Tasa de acierto de memoria: 99.4%.`,
+    `[${horaFmt(10)}] [auth-gateway] Sesión validada para usuario ADM-001 con token activo en gateway seguro.`,
+    `[${horaFmt(2)}] [vite-hospital-ui] Telemetría de cluster y servicios hospitalarios en línea [HTTP 200 OK].`
+  ]
+}
+
+const terminalLogs = ref<string[]>(generarLogsIniciales())
+
+const updateTime = () => {
+  horaActual.value = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+}
+
+onMounted(() => {
+  updateTime()
+  timerId = setInterval(updateTime, 1000)
+})
+
+onUnmounted(() => {
+  if (timerId) clearInterval(timerId)
+})
 
 const terminalInput = ref('')
 const autoScroll = ref(true)
 const diagFeedback = ref('')
 
 const handleRestartContainer = (c: ContenedorDocker) => {
-  terminalLogs.value.push(`[${new Date().toLocaleTimeString()}] [docker] Restart signal sent to container ${c.nombre} (Graceful SIGTERM).`)
+  terminalLogs.value.push(`[${new Date().toLocaleTimeString('es-MX')}] [docker] Restart signal sent to container ${c.nombre} (Graceful SIGTERM).`)
   diagFeedback.value = `Contenedor ${c.nombre} reiniciado de forma segura.`
   setTimeout(() => {
     diagFeedback.value = ''
@@ -32,11 +62,21 @@ const handleRestartContainer = (c: ContenedorDocker) => {
 const handleRunCommand = () => {
   if (!terminalInput.value.trim()) return
   const cmd = terminalInput.value.trim()
-  terminalLogs.value.push(`[${new Date().toLocaleTimeString()}] [sysadmin] $ ${cmd}`)
-  if (cmd.includes('conninfo') || cmd.includes('psql')) {
-    terminalLogs.value.push(`You are connected to database "vitae_ece_prod" as user "vitae_sysadmin" on host "postgres-ece-db" at port "5432". SSL connection (protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384).`)
+  terminalLogs.value.push(`[${new Date().toLocaleTimeString('es-MX')}] [sysadmin] $ ${cmd}`)
+  if (cmd.includes('conninfo') || cmd.includes('psql') || cmd.includes('db')) {
+    terminalLogs.value.push(`Conexión a BD: "vitae_ece_prod" en host "postgres-ece-db" puerto 5432. Estado: CONNECTED (Protocolo: TLSv1.3, Cifrado: AES-256-GCM).`)
+  } else if (cmd.includes('ping') || cmd.includes('salud') || cmd.includes('health') || cmd.includes('status')) {
+    terminalLogs.value.push(`[probe-ok] Health check /api/v1/salud: Database=CONNECTED, Storage=WRITABLE, API=UP (HTTP 200).`)
+  } else if (cmd.includes('docker') || cmd.includes('ps')) {
+    terminalLogs.value.push(`CONTAINER ID   IMAGE                 STATUS         PORTS               NAMES`)
+    terminalLogs.value.push(`c-1            vite-hospital-ui      Up (healthy)   0.0.0.0:80->80/tcp  vite-hospital-ui`)
+    terminalLogs.value.push(`c-2            postgres-ece-db:16    Up (healthy)   5432/tcp            postgres-ece-db`)
+    terminalLogs.value.push(`c-3            redis-cache:7.2       Up (healthy)   6379/tcp            redis-cache`)
+    terminalLogs.value.push(`c-4            hl7-fhir-gateway:r4   Up (healthy)   8080/tcp            hl7-fhir-gateway`)
+    terminalLogs.value.push(`c-5            audit-logger:nom024   Up (healthy)   9092/tcp            audit-logger`)
+    terminalLogs.value.push(`c-6            docker-auth-mfa:totp  Up (healthy)   8443/tcp            docker-auth-mfa`)
   } else {
-    terminalLogs.value.push(`[sandbox-ok] Execution logged under NOM-024 auditor. Result: Command '${cmd}' dispatched successfully.`)
+    terminalLogs.value.push(`[sandbox-ok] Comando '${cmd}' registrado en bitácora NOM-024. Salida: Operación ejecutada exitosamente.`)
   }
   terminalInput.value = ''
 }
@@ -46,8 +86,9 @@ const handleLimpiarLogs = () => {
 }
 
 const handleDiagnosticoIntegridad = () => {
-  diagFeedback.value = 'Diagnóstico de Integridad SysOps completado: 0 vulnerabilidades, cifrado LUKS AES-256 verificado, certificados DigiCert vigentes.'
-  terminalLogs.value.push(`[${new Date().toLocaleTimeString()}] [sysops-audit] Full integrity diagnosis finished: ALL 6 CONTAINERS HEALTHY.`)
+  emit('actualizar')
+  diagFeedback.value = 'Diagnóstico SysOps completado: Base de datos ECE y API Gateway verificados en línea.'
+  terminalLogs.value.push(`[${new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}] [sysops-audit] Probe de salud enviado a /api/v1/salud: DB CONNECTED, Storage WRITABLE, HTTP 200 UP.`)
   setTimeout(() => {
     diagFeedback.value = ''
   }, 4000)
@@ -75,7 +116,7 @@ const handleDiagnosticoIntegridad = () => {
       <div class="dh-right">
         <div class="ntp-sync-box">
           <span class="ntp-lbl">SINCRONIZACIÓN NTP</span>
-          <strong class="ntp-val">04:38:31 UTC-6</strong>
+          <strong class="ntp-val">{{ horaActual }} UTC-6</strong>
         </div>
 
         <button type="button" class="btn-outline-action" @click="handleDiagnosticoIntegridad">

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 defineProps<{
-  activeTab: 'usuarios' | 'bloqueos' | 'bitacora' | 'docker'
+  activeTab: 'usuarios' | 'bloqueos' | 'bitacora' | 'docker' | 'zonas'
   bloqueosCount: number
   totalUsuarios: number
 }>()
 
 const emit = defineEmits<{
-  (e: 'select-tab', tab: 'usuarios' | 'bloqueos' | 'bitacora' | 'docker'): void
+  (e: 'select-tab', tab: 'usuarios' | 'bloqueos' | 'bitacora' | 'docker' | 'zonas'): void
 }>()
 </script>
 
@@ -112,6 +112,23 @@ const emit = defineEmits<{
             <span class="nav-label">Estado del Sistema</span>
           </div>
           <span class="key-shortcut">[Alt+S]</span>
+        </button>
+
+        <button
+          type="button"
+          class="nav-item"
+          :class="{ active: activeTab === 'zonas' }"
+          @click="emit('select-tab', 'zonas')"
+        >
+          <div class="nav-left">
+            <svg viewBox="0 0 24 24" class="nav-svg" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M3 9h18"/>
+              <path d="M9 21V9"/>
+            </svg>
+            <span class="nav-label">Asignación de Guardias</span>
+          </div>
+          <span class="key-shortcut">[Alt+Z]</span>
         </button>
       </nav>
     </div>

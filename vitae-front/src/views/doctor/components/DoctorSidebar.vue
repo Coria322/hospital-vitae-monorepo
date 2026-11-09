@@ -1,16 +1,26 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Paciente } from '../types'
 
-defineProps<{
+const props = defineProps<{
   seccionActiva: 'atencion' | 'nota' | 'receta' | 'lab' | 'triage' | 'cola'
   pacientesCola: Paciente[]
   pacienteSeleccionado: Paciente | null
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'cambiarSeccion', sec: 'atencion' | 'nota' | 'receta' | 'lab' | 'triage' | 'cola'): void
   (e: 'seleccionarPaciente', paciente: Paciente): void
 }>()
+
+const esConsultaExterna = computed(() => {
+  if (!props.pacienteSeleccionado) return false
+  return Boolean(
+    props.pacienteSeleccionado.id_cita ||
+    !props.pacienteSeleccionado.id_triage ||
+    props.pacienteSeleccionado.triage?.toLowerCase().includes('consulta externa')
+  )
+})
 </script>
 
 <template>
@@ -96,7 +106,8 @@ defineEmits<{
 
       <button 
         class="tool-btn" 
-        :class="{ active: seccionActiva === 'triage' }"
+        :class="{ active: seccionActiva === 'triage', 'tool-btn-muted': esConsultaExterna }"
+        :title="esConsultaExterna ? 'Protocolo Triage aplica solo a Urgencias. Paciente en Consulta Externa.' : 'Reclasificar Triage Manchester'"
         @click="$emit('cambiarSeccion', 'triage')"
       >
         <span class="tool-icon">
@@ -105,7 +116,8 @@ defineEmits<{
           </svg>
         </span>
         <span class="tool-label">Reclasificar Triage</span>
-        <kbd>Alt+T</kbd>
+        <span v-if="esConsultaExterna" class="badge-no-aplica">No aplica</span>
+        <kbd v-else>Alt+T</kbd>
       </button>
 
       <button 
@@ -411,5 +423,20 @@ kbd {
   width: 14px;
   height: 14px;
   color: #0284c7;
+}
+
+.tool-btn-muted {
+  opacity: 0.85;
+}
+
+.badge-no-aplica {
+  background-color: #F1F5F9;
+  color: #64748B;
+  border: 1px solid #CBD5E1;
+  border-radius: 4px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.1rem 0.35rem;
+  letter-spacing: 0.02em;
 }
 </style>

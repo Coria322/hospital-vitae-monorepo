@@ -40,8 +40,8 @@ class AuditoriaIController extends Controller
             $query->where('resultado', strtoupper($request->input('resultado')));
         }
 
-        $perPage = min(max((int) $request->input('per_page', 15), 1), 100);
-        $registros = $query->orderBy('id_auditoria', 'desc')->paginate($perPage);
+        $perPage = min(max((int) $request->input('per_page', 50), 1), 100);
+        $registros = $query->orderBy('fecha_hora', 'desc')->orderBy('id_auditoria', 'desc')->paginate($perPage);
 
         // Auto-auditoría obligatoria: cada consulta genera su propio evento
         AuditLogger::log(
@@ -57,6 +57,62 @@ class AuditoriaIController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => $registros,
+        ], 200);
+    }
+
+    /**
+     * Verificación matemática de la cadena de bloques SHA-256 (NOM-024 / PROV-SEC-005).
+     */
+    public function verificarCadena(): JsonResponse
+    {
+        $registros = AuditoriaI::orderBy('id_auditoria', 'asc')->get();
+
+        if ($registros->isEmpty()) {
+            return response()->json([
+                'status' => 'success',
+                'integra' => true,
+                'total_verificados' => 0,
+                'mensaje' => 'La bitacora AUDITORIA_I esta vacia. Cadena en estado genesis.',
+            ], 200);
+        }
+
+        $prevHash = str_repeat('0', 64);
+        $totalVerificados = 0;
+
+        foreach ($registros as $registro) {
+            $canonico = AuditoriaI::buildCanonico($registro->getAttributes());
+            $hashCalculado = hash('sha256', $canonico . $prevHash);
+
+            if ($registro->huella_integridad !== $hashCalculado) {
+                AuditLogger::log(
+                    tipoMovimiento: 'RUPTURA_INTEGRIDAD',
+                    tablaAfectada: 'auditoria_i',
+                    registroId: (string) $registro->id_auditoria,
+                    valorAnterior: $registro->huella_integridad,
+                    valorNuevo: $hashCalculado,
+                    resultado: 'FALLIDO',
+                    motivo: "Ruptura detectada en bloque #{$registro->id_auditoria}"
+                );
+
+                return response()->json([
+                    'status' => 'error',
+                    'integra' => false,
+                    'bloque_afectado' => $registro->id_auditoria,
+                    'total_verificados' => $totalVerificados,
+                    'mensaje' => "Ruptura de integridad detectada en el registro ID #{$registro->id_auditoria}",
+                ], 409);
+            }
+
+            $prevHash = $registro->huella_integridad;
+            $totalVerificados++;
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'integra' => true,
+            'total_verificados' => $totalVerificados,
+            'ultimo_hash' => $prevHash,
+            'mensaje' => "Cadena 100% integra: {$totalVerificados} bloques verificados con exito conforme a NOM-024-SSA3-2012.",
         ], 200);
     }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { CuentaBloqueada } from '../types'
 
 const props = defineProps<{
@@ -11,30 +11,41 @@ const emit = defineEmits<{
   (e: 'ir-bitacora'): void
 }>()
 
-const cuentaSeleccionada = ref<CuentaBloqueada>(props.cuentasBloqueadas[0] || {
-  id: 'bloq-1',
-  id_usuario: 'MED-8831',
-  nombre: 'Dra. Sofía Delgado',
-  iniciales: 'SD',
-  rol: 'Médico Urgenciólogo',
-  servicio: 'Urgencias Box 02',
-  correo: 'urgencias.box02@hospitalvitae.mx',
-  terminal: 'Terminal Urgencias Box 02',
-  ip: '192.168.10.45',
-  hora_bloqueo: '10:15 h',
-  tiempo_transcurrido: 'hace 24 min',
-  intentos_fallidos: 3,
-  motivo_bloqueo: '#ERR-PW-CONSEC',
-  pacientes_en_espera: 4,
-  impacto_clinico: 'ALTO'
+const cuentaSeleccionada = ref<CuentaBloqueada | null>(null)
+const busquedaBloqueo = ref('')
+
+const cuentasFiltradas = computed(() => {
+  if (!busquedaBloqueo.value.trim()) return props.cuentasBloqueadas
+  const q = busquedaBloqueo.value.toLowerCase().trim()
+  return props.cuentasBloqueadas.filter(c =>
+    c.id_usuario.toLowerCase().includes(q) ||
+    c.nombre.toLowerCase().includes(q) ||
+    c.servicio.toLowerCase().includes(q) ||
+    c.correo.toLowerCase().includes(q)
+  )
 })
 
-const motivoDesbloqueo = ref('Olvido de clave en cambio de turno urgente, validado presencialmente en Urgencias Box 02 con Jefe de Servicio.')
+watch(
+  () => props.cuentasBloqueadas,
+  (nuevas) => {
+    if (nuevas && nuevas.length > 0) {
+      if (!cuentaSeleccionada.value || !nuevas.some(c => c.id === cuentaSeleccionada.value?.id)) {
+        cuentaSeleccionada.value = nuevas[0] || null
+      }
+    } else {
+      cuentaSeleccionada.value = null
+    }
+  },
+  { immediate: true, deep: true }
+)
+
+const motivoDesbloqueo = ref('Olvido de clave en cambio de turno urgente, validado presencialmente en Urgencias con Jefe de Servicio.')
 const medidaSeguridad = ref<'CAMBIO_CLAVE' | 'TOKEN_SMS'>('CAMBIO_CLAVE')
 const confirmacionIdentidad = ref(true)
 const feedbackAction = ref('')
 
 const handleConfirmarDesbloqueo = () => {
+  if (!cuentaSeleccionada.value) return
   if (!motivoDesbloqueo.value.trim()) {
     alert('Debe especificar el motivo institucional obligatorio del desbloqueo.')
     return
@@ -58,6 +69,36 @@ const handleConfirmarDesbloqueo = () => {
 
 const handleSeleccionarCuenta = (cuenta: CuentaBloqueada) => {
   cuentaSeleccionada.value = cuenta
+}
+
+const handleBuscarBloqueo = () => {
+  if (cuentasFiltradas.value.length > 0) {
+    cuentaSeleccionada.value = cuentasFiltradas.value[0] || null
+  }
+}
+
+const handleAtenderPendientes = () => {
+  if (props.cuentasBloqueadas.length > 0) {
+    cuentaSeleccionada.value = props.cuentasBloqueadas[0] || null
+  }
+}
+
+const handleVerificarOtp = (cuenta: CuentaBloqueada) => {
+  cuentaSeleccionada.value = cuenta
+  medidaSeguridad.value = 'TOKEN_SMS'
+  feedbackAction.value = `Protocolo OTP activado para ${cuenta.nombre}. Se despachará token criptográfico por canal seguro.`
+  setTimeout(() => {
+    feedbackAction.value = ''
+  }, 4000)
+}
+
+const handleForzarPassword = (cuenta: CuentaBloqueada) => {
+  cuentaSeleccionada.value = cuenta
+  medidaSeguridad.value = 'CAMBIO_CLAVE'
+  feedbackAction.value = `Política fijada para ${cuenta.nombre}: Se forzará renovación de contraseña en próximo inicio de sesión.`
+  setTimeout(() => {
+    feedbackAction.value = ''
+  }, 4000)
 }
 </script>
 
@@ -96,7 +137,7 @@ const handleSeleccionarCuenta = (cuenta: CuentaBloqueada) => {
         </div>
       </div>
 
-      <button type="button" class="btn-attend-pending">
+      <button type="button" class="btn-attend-pending" @click="handleAtenderPendientes">
         <svg viewBox="0 0 24 24" class="btn-svg" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="9 11 12 14 22 4"/>
           <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
@@ -124,13 +165,15 @@ const handleSeleccionarCuenta = (cuenta: CuentaBloqueada) => {
           <line x1="15" y1="12" x2="17" y2="12"/>
         </svg>
         <input
+          v-model="busquedaBloqueo"
           type="text"
           placeholder="Escaneo de gafete RFID institucional o ingrese ID de usuario (ej. MED-8831)..."
           class="rfid-input"
+          @keyup.enter="handleBuscarBloqueo"
         />
       </div>
 
-      <button type="button" class="btn-find-account">
+      <button type="button" class="btn-find-account" @click="handleBuscarBloqueo">
         <svg viewBox="0 0 24 24" class="btn-svg" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"/>
           <line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -146,7 +189,7 @@ const handleSeleccionarCuenta = (cuenta: CuentaBloqueada) => {
         <div class="list-header-row">
           <div class="lh-left">
             <span class="lh-title">Listado Prioritario de Contención</span>
-            <span class="badge-count">{{ cuentasBloqueadas.length }}</span>
+            <span class="badge-count">{{ cuentasFiltradas.length }}</span>
           </div>
           <span class="live-pulse-text">
             <span class="dot-blue"></span>
@@ -155,11 +198,20 @@ const handleSeleccionarCuenta = (cuenta: CuentaBloqueada) => {
         </div>
 
         <div class="cards-list">
+          <div v-if="cuentasFiltradas.length === 0" class="empty-locked-box" style="padding: 3rem 1.5rem; text-align: center; background-color: #ffffff; border: 1px dashed #cbd5e1; border-radius: 8px; color: #64748b;">
+            <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="#10b981" stroke-width="2" style="margin: 0 auto 0.75rem auto; display: block;">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <polyline points="9 12 11 14 15 10"/>
+            </svg>
+            <strong style="display: block; color: #0f172a; font-size: 1rem; margin-bottom: 0.25rem;">Sin Incidentes de Bloqueo Activos</strong>
+            <span style="font-size: 0.8rem;">Todas las identidades y terminales operativas del hospital se encuentran activas y en cumplimiento de la NOM-024.</span>
+          </div>
+
           <div
-            v-for="cuenta in cuentasBloqueadas"
+            v-for="cuenta in cuentasFiltradas"
             :key="cuenta.id"
             class="locked-user-card"
-            :class="{ selected: cuentaSeleccionada.id === cuenta.id }"
+            :class="{ selected: cuentaSeleccionada && cuentaSeleccionada.id === cuenta.id }"
             @click="handleSeleccionarCuenta(cuenta)"
           >
             <!-- CABECERA DE USUARIO BLOQUEADO -->
@@ -217,7 +269,7 @@ const handleSeleccionarCuenta = (cuenta: CuentaBloqueada) => {
 
             <!-- BOTONES DE ACCIÓN RÁPIDA -->
             <div class="card-action-btns">
-              <button type="button" class="btn-sec-action">
+              <button type="button" class="btn-sec-action" @click.stop="handleVerificarOtp(cuenta)">
                 <svg viewBox="0 0 24 24" class="btn-svg-sm" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
                   <line x1="12" y1="18" x2="12.01" y2="18"/>
@@ -225,7 +277,7 @@ const handleSeleccionarCuenta = (cuenta: CuentaBloqueada) => {
                 <span>Verificar por Código OTP</span>
               </button>
 
-              <button type="button" class="btn-sec-action">
+              <button type="button" class="btn-sec-action" @click.stop="handleForzarPassword(cuenta)">
                 <svg viewBox="0 0 24 24" class="btn-svg-sm" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                   <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -276,7 +328,7 @@ const handleSeleccionarCuenta = (cuenta: CuentaBloqueada) => {
       <!-- COLUMNA DERECHA: PROTOCOLO DE REACTIVACIÓN E HISTORIAL DEL TURNO -->
       <div class="protocol-sidebar-col">
         <!-- PROTOCOLO DE REACTIVACIÓN -->
-        <div class="protocol-card">
+        <div v-if="cuentaSeleccionada" class="protocol-card">
           <div class="protocol-header">
             <div class="ph-left">
               <svg viewBox="0 0 24 24" class="ph-svg" fill="none" stroke="currentColor" stroke-width="2">
@@ -296,7 +348,7 @@ const handleSeleccionarCuenta = (cuenta: CuentaBloqueada) => {
                 <strong>{{ cuentaSeleccionada.nombre }}</strong>
                 <span>ID: {{ cuentaSeleccionada.id_usuario }} • {{ cuentaSeleccionada.servicio }}</span>
               </div>
-              <span class="target-status">Activo</span>
+              <span class="target-status">Bloqueado</span>
             </div>
 
             <!-- MOTIVO INSTITUCIONAL -->
@@ -357,6 +409,15 @@ const handleSeleccionarCuenta = (cuenta: CuentaBloqueada) => {
               <span>Confirmar Reactivación Inmediata [Ctrl+Enter]</span>
             </button>
           </div>
+        </div>
+
+        <div v-else class="protocol-card" style="padding: 3rem 1.5rem; text-align: center; color: #64748b;">
+          <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#94a3b8" stroke-width="2" style="margin: 0 auto 0.75rem auto; display: block;">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <strong style="display: block; color: #334155; font-size: 0.95rem; margin-bottom: 0.25rem;">Ninguna Cuenta Seleccionada</strong>
+          <span style="font-size: 0.8rem;">Seleccione una cuenta del listado de contención para ejecutar el protocolo pericial de reactivación.</span>
         </div>
 
         <!-- HISTORIAL DE REACTIVACIONES DEL TURNO -->

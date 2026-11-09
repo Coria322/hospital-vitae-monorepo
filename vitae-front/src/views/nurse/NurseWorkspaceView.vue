@@ -7,16 +7,27 @@ import ReclasificarTriageSection from './components/ReclasificarTriageSection.vu
 import SalaEsperaMonitoreoSection from './components/SalaEsperaMonitoreoSection.vue'
 import NotaEnfermeriaSection from './components/NotaEnfermeriaSection.vue'
 import authService from '@/services/authService'
+import guardiasService from '@/services/guardiasService'
 
 //import servicio de la cola viva
 import triageService from '@/services/triageService'
 
 // --- DATOS DEL PERSONAL DE ENFERMERÍA EN SESIÓN (DESDE API SI EXISTE) ---
 const usuarioAuth = authService.getUsuario()
+const boxInicialEnfermero = guardiasService.obtenerBoxAsignadoEnfermero(
+  usuarioAuth?.id_usuario,
+  usuarioAuth?.nombre_completo
+)
+const tieneBoxAsignado = ref(guardiasService.estaPersonalAsignado(
+  usuarioAuth?.id_usuario,
+  usuarioAuth?.nombre_completo,
+  'ENFERMERIA',
+  usuarioAuth?.cedula || undefined
+))
 const enfermera = ref({
   nombre: usuarioAuth?.nombre_completo || 'Lic. Gabriela Ramos',
   cedula: usuarioAuth?.cedula ? `CÉD. ${usuarioAuth.cedula}` : 'CÉD. ENF-049821',
-  servicio: 'Urgencias · Box de Triage'
+  servicio: boxInicialEnfermero || 'Sin Box Asignado (Bloqueado)'
 })
 
 // --- RELOJ Y FECHA EN TIEMPO REAL ---
@@ -164,11 +175,6 @@ const obtenerHexColor = (color: string) => {
   }
 }
 
-onMounted(() => {
-  updateClock()
-  cargarColaUrgencias()
-})
-
 // --- NAVEGACIÓN ENTRE PANTALLAS DE ENFERMERÍA ---
 // Al ingresar al sistema debe ubicar en Sala de Espera y Monitoreo
 const seccionActiva = ref<'triage' | 'reclasificar' | 'sala' | 'nota'>('sala')
@@ -291,17 +297,30 @@ const handleKeyboardShortcuts = (e: KeyboardEvent) => {
   }
 }
 
+let cerrarStreamSse: (() => void) | null = null
+
 onMounted(() => {
   updateClock()
   timerId = window.setInterval(updateClock, 1000)
   window.addEventListener('keydown', handleKeyboardShortcuts)
   // Cargar pacientes de urgencias al abrir la vista
   cargarColaUrgencias()
+  try {
+    cerrarStreamSse = triageService.conectarStream(() => {
+      cargarColaUrgencias()
+    })
+  } catch (e) {
+    console.warn('SSE stream no disponible en enfermeria:', e)
+  }
 })
 
 onUnmounted(() => {
   if (timerId) clearInterval(timerId)
   window.removeEventListener('keydown', handleKeyboardShortcuts)
+  if (cerrarStreamSse) {
+    cerrarStreamSse()
+    cerrarStreamSse = null
+  }
 })
 </script>
 
@@ -312,6 +331,22 @@ onUnmounted(() => {
       :enfermera="enfermera"
       :currentDateTimeStr="currentDateTimeStr"
     />
+
+    <!-- BANNER DE ADVERTENCIA: SIN BOX ASIGNADO -->
+    <div v-if="!tieneBoxAsignado" class="session-warning-banner-nurse">
+      <div class="warning-icon-box">
+        <svg viewBox="0 0 24 24" class="svg-warning" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <div class="warning-text-block">
+        <strong>ESTADO EN ADVERTENCIA: ACCESO CLÍNICO RESTRINGIDO</strong>
+        <p>El personal de enfermería {{ enfermera.nombre }} no cuenta con box o puesto asignado en el turno actual. Las acciones asistenciales de triage y evaluación fisiológica se encuentran restringidas hasta que Administración le asigne puesto físico.</p>
+      </div>
+    </div>
+
 
     <!-- 2. WORKSPACE DE 2 COLUMNAS (SIDEBAR IZQUIERDA + CONTENIDO CENTRAL) -->
     <div class="nurse-grid">
@@ -395,4 +430,46 @@ onUnmounted(() => {
     grid-template-columns: 1fr;
   }
 }
+
+.session-warning-banner-nurse {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: #fff1f2;
+  border-bottom: 2px solid #e11d48;
+  padding: 0.85rem 1.5rem;
+  box-shadow: 0 2px 4px rgba(225, 29, 72, 0.08);
+}
+
+.warning-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: #fee2e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e11d48;
+  flex-shrink: 0;
+}
+
+.warning-icon-box svg {
+  width: 20px;
+  height: 20px;
+}
+
+.warning-text-block strong {
+  display: block;
+  font-size: 0.85rem;
+  color: #9f1239;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.warning-text-block p {
+  margin: 0.15rem 0 0 0;
+  font-size: 0.78rem;
+  color: #be123c;
+}
+
 </style>

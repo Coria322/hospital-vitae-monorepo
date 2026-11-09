@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { Paciente, Doctor } from '../types'
 
 const props = defineProps<{
@@ -41,73 +41,41 @@ interface PacienteColaItem {
   asignadoAMiBox: boolean
 }
 
-const listaCola = ref<PacienteColaItem[]>([
-  {
-    id: 'PAC-1',
-    nombre: 'Carlos Mendoza Ruiz',
-    edad: 42,
-    sexo: 'Masculino',
-    folioTriage: 'TRI-2026-0891',
-    triageNivel: 'II',
-    triageNombre: 'NIVEL II · MUY URGENTE',
-    triageColor: '#DC2626',
-    esperaMin: 48,
-    metaMin: 15,
-    excedidoMin: 33,
-    motivo: 'Dolor torácico opresivo precordial',
-    constantes: 'TA: 145/95 · FC: 98 lpm · SpO2: 95%',
-    destinoAsignado: 'Box 04 (Dr. Carlos Mendoza)',
-    asignadoAMiBox: true
-  },
-  {
-    id: 'PAC-2',
-    nombre: 'Mateo Ruiz',
-    edad: 35,
-    sexo: 'Masculino',
-    folioTriage: 'TRI-2026-0892',
-    triageNivel: 'III',
-    triageNombre: 'NIVEL III · URGENTE (AMARILLO)',
-    triageColor: '#D97706',
-    esperaMin: 32,
-    metaMin: 60,
-    motivo: 'Dolor abdominal agudo en fosa ilíaca derecha',
-    constantes: 'TA: 120/80 · FC: 82 lpm · EVA: 6/10',
-    alergias: 'Sin alergias medicamentosas declaradas',
-    asignadoAMiBox: true
-  },
-  {
-    id: 'PAC-3',
-    nombre: 'Ana Solís',
-    edad: 28,
-    sexo: 'Femenino',
-    folioTriage: 'TRI-2026-0893',
-    triageNivel: 'IV',
-    triageNombre: 'NIVEL IV · ESTÁNDAR (VERDE)',
-    triageColor: '#059669',
-    esperaMin: 21,
-    metaMin: 120,
-    motivo: 'Esguince de tobillo derecho tras caída mecánica',
-    constantes: '',
-    observacionTriage: 'Edema moderado, marcha claudicante, sensibilidad distal conservada',
-    asignadoAMiBox: false
-  },
-  {
-    id: 'PAC-4',
-    nombre: 'Pablo Vega',
-    edad: 54,
-    sexo: 'Masculino',
-    folioTriage: 'TRI-2026-0894',
-    triageNivel: 'V',
-    triageNombre: 'NIVEL V · NO URGENTE (AZUL)',
-    triageColor: '#2563EB',
-    esperaMin: 14,
-    metaMin: 240,
-    motivo: 'Control post-quirúrgico menor y retiro de material de sutura',
-    constantes: '',
-    tiempoGuardia: 'Ingreso por recepción general - Documentación completa',
-    asignadoAMiBox: false
+const listaCola = ref<PacienteColaItem[]>([])
+
+watch(() => props.pacientesCola, (nuevos) => {
+  if (nuevos && nuevos.length > 0) {
+    const mapeados: PacienteColaItem[] = nuevos.map((p, idx) => {
+      const triageStr = (p.triage || '').toUpperCase()
+      const nivel: 'I' | 'II' | 'III' | 'IV' | 'V' =
+        triageStr.includes('ROJO') || triageStr.includes('NIVEL 1') ? 'I' :
+        triageStr.includes('NARANJA') || triageStr.includes('NIVEL 2') ? 'II' :
+        triageStr.includes('AMARILLO') || triageStr.includes('NIVEL 3') ? 'III' :
+        triageStr.includes('VERDE') || triageStr.includes('NIVEL 4') ? 'IV' : 'V'
+
+      return {
+        id: p.id || `PAC-${idx}`,
+        nombre: p.nombre,
+        edad: p.edad || 35,
+        sexo: p.sexo || 'Indeterminado',
+        folioTriage: p.folio || `TRI-2026-${idx + 100}`,
+        triageNivel: nivel,
+        triageNombre: p.triage || 'Triage Urgencias',
+        triageColor: p.triageColor || '#3B82F6',
+        esperaMin: p.transcurridosMin || 5,
+        metaMin: nivel === 'I' ? 0 : nivel === 'II' ? 15 : nivel === 'III' ? 60 : nivel === 'IV' ? 120 : 240,
+        excedidoMin: p.limiteSla?.includes('VENCIDO') ? (p.transcurridosMin || 1) : undefined,
+        motivo: p.motivo || 'Valoracion clinica de urgencias',
+        constantes: p.signos ? `TA: ${p.signos.pa} · FC: ${p.signos.fc} lpm · SpO2: ${p.signos.spo2}%` : 'Constantes en registro',
+        destinoAsignado: p.box || 'Box Urgencias',
+        asignadoAMiBox: true
+      }
+    })
+    listaCola.value = mapeados
+  } else {
+    listaCola.value = []
   }
-])
+}, { immediate: true })
 
 // Filtrado de pacientes
 const pacientesFiltrados = computed(() => {
@@ -131,16 +99,21 @@ const llamarSiguiente = () => {
   const primero = listaCola.value[0]
   if (primero) {
     pacienteLlamadoEnMonitor.value = primero.nombre
-    alert(`[SISTEMA VITAE] � LLAMANDO EN ALTAVOZ Y MONITOR: ${primero.nombre} a Box 04 · Urgencia Adultos`)
+    alert(`[SISTEMA VITAE] LLAMANDO EN ALTAVOZ Y MONITOR: ${primero.nombre} a Box 04 · Urgencia Adultos`)
   }
 }
 
 const reLlamarAltavoz = (p: PacienteColaItem) => {
   pacienteLlamadoEnMonitor.value = p.nombre
-  alert(`[SISTEMA VITAE] � Re-llamando en pantalla y altavoz a ${p.nombre} a Box 04`)
+  alert(`[SISTEMA VITAE] Re-llamando en pantalla y altavoz a ${p.nombre} a Box 04`)
 }
 
 const ingresarConsulta = (p: PacienteColaItem) => {
+  const pacOriginal = props.pacientesCola.find(orig => orig.id === p.id || orig.folio === p.folioTriage)
+  if (pacOriginal) {
+    emit('ingresarConsulta', pacOriginal)
+    return
+  }
   // Convertir a estructura Paciente
   const pacienteObj: Paciente = {
     id: p.id,
@@ -205,7 +178,7 @@ const ingresarConsulta = (p: PacienteColaItem) => {
       <div class="kpi-card">
         <div class="kpi-header">
           <span class="kpi-label">PACIENTES EN COLA</span>
-          <span class="blue-dot">●</span>
+          <span class="blue-dot">•</span>
         </div>
         <div class="kpi-body">
           <strong class="kpi-number">{{ String(listaCola.length).padStart(2, '0') }}</strong>
@@ -227,7 +200,7 @@ const ingresarConsulta = (p: PacienteColaItem) => {
           <span class="kpi-unit">minutos</span>
         </div>
         <div class="kpi-footer text-blue">
-          <span>● Meta institucional: &lt; 30 min</span>
+          <span>• Meta institucional: &lt; 30 min</span>
         </div>
       </div>
 
@@ -438,7 +411,7 @@ const ingresarConsulta = (p: PacienteColaItem) => {
           <div class="monitor-header">
             <span class="monitor-screen-icon"><svg viewBox="0 0 24 24" class="svg-inline-screen" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg></span>
             <h4>MONITOR PÚBLICO DE PASILLO</h4>
-            <span class="badge-live">● En vivo</span>
+            <span class="badge-live">• En vivo</span>
           </div>
 
           <div class="monitor-screen-body">
@@ -1226,3 +1199,4 @@ const ingresarConsulta = (p: PacienteColaItem) => {
   }
 }
 </style>
+
