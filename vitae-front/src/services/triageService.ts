@@ -102,6 +102,18 @@ export const triageService = {
   },
 
   /**
+   * Inicia la atención clínica de un paciente (cambia estado a EN_ATENCION y asigna consultorio/box)
+   */
+  async iniciarAtencion(idTriage: string, idSala?: string, boxNombre?: string, motivo?: string) {
+    const response = await api.post(`/triages/${idTriage}/atender`, {
+      id_sala: idSala,
+      box_nombre: boxNombre,
+      motivo: motivo || 'Inicio de atención clínica en consultorio/box'
+    })
+    return response.data
+  },
+
+  /**
    * Da de egreso hospitalario a un paciente retirándolo de la cola de espera y liberando recursos
    */
   async egresarPaciente(idTriage: string, motivo?: string) {

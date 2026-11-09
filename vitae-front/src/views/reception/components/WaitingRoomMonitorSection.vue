@@ -1,5 +1,6 @@
-<script setup lang="ts">
-import { ref, computed } from 'vue'
+﻿<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import triageService from '@/services/triageService'
 
 const props = withDefaults(
   defineProps<{
@@ -41,105 +42,11 @@ const filtroTurnos = ref<'todos' | 'admision' | 'triage' | 'caja'>('todos')
 const altavozConectado = ref(true)
 const hdmiActivo = ref(true)
 
-// TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/triage/sala-espera (triageService.obtenerMonitorSalaEspera)
-// Lista de turnos presenciales pre-cargada conforme a la captura oficial
-const turnosPresenciales = ref<TurnoPresencial[]>([
-  {
-    folio: 'FOL-9482',
-    iniciales: 'M.R.',
-    llegada: '10:18 h',
-    espera: '30 min',
-    esperaMin: 30,
-    alertaEspera: false,
-    destino: 'Módulo 01 (Admisión)',
-    categoria: 'admision',
-    estatus: 'En Ventanilla',
-    modulo: 'Módulo 01',
-    responsable: 'Lic. Morales'
-  },
-  {
-    folio: 'FOL-9483',
-    iniciales: 'A.P.',
-    llegada: '10:24 h',
-    espera: '24 min',
-    esperaMin: 24,
-    alertaEspera: true,
-    destino: 'Módulo 02 (Admisión)',
-    categoria: 'admision',
-    estatus: 'En Espera',
-    modulo: 'Módulo 02',
-    responsable: 'Lic. Estrada'
-  },
-  {
-    folio: 'FOL-9484',
-    iniciales: 'J.G.',
-    llegada: '10:31 h',
-    espera: '17 min',
-    esperaMin: 17,
-    destino: 'Triage Respiratorio',
-    categoria: 'triage',
-    estatus: 'En Espera',
-    modulo: 'Triage 01'
-  },
-  {
-    folio: 'FOL-9485',
-    iniciales: 'L.H.',
-    llegada: '10:35 h',
-    espera: '13 min',
-    esperaMin: 13,
-    destino: 'Ventanilla Caja 01',
-    categoria: 'caja',
-    estatus: 'En Espera',
-    modulo: 'Caja 01'
-  },
-  {
-    folio: 'FOL-9486',
-    iniciales: 'S.C.',
-    llegada: '10:39 h',
-    espera: '9 min',
-    esperaMin: 9,
-    destino: 'Módulo 03 (Admisión)',
-    categoria: 'admision',
-    estatus: 'En Espera',
-    modulo: 'Módulo 03'
-  },
-  {
-    folio: 'FOL-9487',
-    iniciales: 'V.N.',
-    llegada: '10:41 h',
-    espera: '7 min',
-    esperaMin: 7,
-    destino: 'Triage Adultos',
-    categoria: 'triage',
-    estatus: 'En Espera',
-    modulo: 'Triage 02'
-  },
-  {
-    folio: 'FOL-9488',
-    iniciales: 'E.D.',
-    llegada: '10:44 h',
-    espera: '4 min',
-    esperaMin: 4,
-    destino: 'Módulo 04 (Seguros)',
-    categoria: 'admision',
-    estatus: 'En Espera',
-    modulo: 'Módulo 04'
-  },
-  {
-    folio: 'FOL-9489',
-    iniciales: 'R.Z.',
-    llegada: '10:46 h',
-    espera: '2 min',
-    esperaMin: 2,
-    destino: 'Ventanilla Caja 02',
-    categoria: 'caja',
-    estatus: 'En Espera',
-    modulo: 'Caja 02'
-  }
-])
+// Lista de turnos presenciales (inicia vacía, carga de la sala de espera de triage)
+const turnosPresenciales = ref<TurnoPresencial[]>([])
 
-const turnoActualLlamado = ref<TurnoPresencial | null>(turnosPresenciales.value[0] || null)
-const siguienteTurno = ref<TurnoPresencial | null>(turnosPresenciales.value[1] || null)
+const turnoActualLlamado = ref<TurnoPresencial | null>(null)
+const siguienteTurno = ref<TurnoPresencial | null>(null)
 
 const turnosFiltrados = computed(() => {
   if (filtroTurnos.value === 'todos') return turnosPresenciales.value
@@ -151,6 +58,55 @@ const conteoPorCategoria = (cat: 'todos' | 'admision' | 'triage' | 'caja') => {
   return turnosPresenciales.value.filter(t => t.categoria === cat).length
 }
 
+let cerrarStream: (() => void) | null = null
+
+const cargarTurnosReales = async () => {
+  try {
+    const data = await triageService.obtenerSalaEsperaPublica()
+    if (data && Array.isArray(data.pacientes) && data.pacientes.length > 0) {
+      const turnosMapeados: TurnoPresencial[] = data.pacientes.map((item, idx) => ({
+        folio: item.folio || `TURNO-${idx + 1}`,
+        iniciales: item.iniciales || 'P.N.',
+        llegada: 'Urgencias',
+        espera: `${item.posicion * 8} min`,
+        esperaMin: item.posicion * 8,
+        alertaEspera: item.sla_vencido,
+        destino: item.sala || `Modulo Triage (${item.color})`,
+        categoria: 'triage',
+        estatus: item.estado_atencion === 'EN_ATENCION' ? 'En Ventanilla' : 'En Espera',
+        modulo: item.sala || 'Sala Triage',
+        responsable: `Prioridad ${item.color}`
+      }))
+
+      turnosPresenciales.value = turnosMapeados
+      const enVentanilla = turnosMapeados.find(t => t.estatus === 'En Ventanilla') || turnosMapeados[0] || null
+      turnoActualLlamado.value = enVentanilla
+      const siguiente = turnosMapeados.find(t => t !== enVentanilla && t.estatus === 'En Espera') || null
+      siguienteTurno.value = siguiente
+    }
+  } catch (error) {
+    console.error('Error cargando sala de espera:', error)
+  }
+}
+
+onMounted(() => {
+  cargarTurnosReales()
+  try {
+    cerrarStream = triageService.conectarStream(() => {
+      cargarTurnosReales()
+    })
+  } catch (e) {
+    console.warn('SSE stream no disponible en sala de espera recepcion:', e)
+  }
+})
+
+onUnmounted(() => {
+  if (cerrarStream) {
+    cerrarStream()
+    cerrarStream = null
+  }
+})
+
 const llamarSiguienteTurnoFila = () => {
   const enEspera = turnosPresenciales.value.find(t => t.estatus === 'En Espera')
   if (enEspera) {
@@ -161,7 +117,7 @@ const llamarSiguienteTurnoFila = () => {
     turnoActualLlamado.value = enEspera
     const next = turnosPresenciales.value.find(t => t !== enEspera && t.estatus === 'En Espera')
     siguienteTurno.value = next || null
-    mostrarAlerta(`� Llamando turno ${enEspera.folio} (${enEspera.iniciales}) a ${enEspera.destino}. Altavoz activado en sala.`)
+    mostrarAlerta(`Llamando turno ${enEspera.folio} (${enEspera.iniciales}) a ${enEspera.destino}. Altavoz activado en sala.`)
   } else {
     mostrarAlerta('No hay más turnos en espera para llamar.')
   }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import adminService from '@/services/adminService'
 import type { UsuarioAdmin, RolHospitalario } from '../types'
 
 const props = defineProps<{
@@ -7,24 +8,131 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'crear-usuario', usuario: Partial<UsuarioAdmin>): void
+  (e: 'crear-usuario', usuario: Partial<UsuarioAdmin> & { password?: string; id_usuario?: string }): void
+  (e: 'actualizar-usuario', usuario: {
+    id: string
+    nombre_completo: string
+    rol: string
+    cedula?: string | null
+    departamento?: string
+    estado_cuenta?: string
+    password?: string
+  }): void
+  (e: 'eliminar-usuario', id: string): void
   (e: 'toggle-bloqueo', id: string): void
   (e: 'reset-password', usuario: UsuarioAdmin): void
 }>()
+
+// Modal de edición de usuario
+const modalEditarAbierto = ref(false)
+const editId = ref('')
+const editNombre = ref('')
+const editRol = ref<RolHospitalario>('MEDICO')
+const editCedula = ref('')
+const editDept = ref('Urgencias Adultos')
+const editEstado = ref('ACTIVO')
+const editPassword = ref('')
+
+const handleAbrirEditar = (user: UsuarioAdmin) => {
+  editId.value = user.id
+  editNombre.value = user.nombre_completo
+  editRol.value = user.rol
+  editCedula.value = user.cedula_matricula && user.cedula_matricula !== user.id && user.cedula_matricula !== 'S/N' ? user.cedula_matricula : ''
+  editDept.value = user.departamento || 'Urgencias Adultos'
+  editEstado.value = user.estado || 'ACTIVO'
+  editPassword.value = ''
+  modalEditarAbierto.value = true
+}
+
+const handleCerrarEditar = () => {
+  modalEditarAbierto.value = false
+}
+
+const handleGuardarEdicion = () => {
+  if (!editNombre.value.trim()) {
+    alert('El nombre del usuario no puede estar vacío.')
+    return
+  }
+  if (editRol.value === 'MEDICO') {
+    const ced = editCedula.value.trim()
+    if (!ced || ced.length !== 10) {
+      alert('Validación NOM-024: La cédula profesional de 10 dígitos es obligatoria para el personal médico.')
+      return
+    }
+  }
+
+  const estadoBackend = editEstado.value === 'ACTIVO' ? 'ACTIVA' : editEstado.value === 'INACTIVO' ? 'INACTIVA' : 'BLOQUEADA'
+
+  emit('actualizar-usuario', {
+    id: editId.value,
+    nombre_completo: editNombre.value.trim(),
+    rol: editRol.value,
+    cedula: editCedula.value.trim() || null,
+    departamento: editDept.value,
+    estado_cuenta: estadoBackend,
+    password: editPassword.value.trim() || undefined
+  })
+
+  modalEditarAbierto.value = false
+}
+
+const handleConfirmarEliminar = (user: UsuarioAdmin) => {
+  if (confirm(`¿Está seguro de eliminar / dar de baja al usuario ${user.nombre_completo} (${user.id})? Sus sesiones activas serán revocadas conforme a la NOM-024.`)) {
+    emit('eliminar-usuario', user.id)
+  }
+}
 
 // Filtros de categoría y texto
 const filtroRol = ref<string>('TODOS')
 const busquedaTexto = ref('')
 const feedbackMsg = ref('')
 
-// Formulario de nuevo usuario
+// Formulario de nuevo usuario con ID corto para login rápido
+const formIdUsuario = ref('Cargando...')
 const formNombre = ref('')
 const formCedula = ref('')
+const formPassword = ref('password123')
 const formCurp = ref('')
 const formCorreo = ref('')
 const formDept = ref('Urgencias Adultos')
 const formRol = ref<RolHospitalario>('MEDICO')
 const formMfa = ref('TOTP')
+
+const actualizarProximoId = async (rol: string) => {
+  try {
+    const rolBackend = rol === 'LABORATORIO' ? 'LABORATORISTA' : rol
+    const proximo = await adminService.obtenerProximoId(rolBackend)
+    if (proximo) {
+      formIdUsuario.value = proximo
+    } else {
+      const prefixMap: Record<string, string> = {
+        MEDICO: 'MED',
+        ENFERMERIA: 'ENF',
+        RECEPCION: 'REC',
+        LABORATORIO: 'LAB',
+        ADMINISTRADOR: 'ADM'
+      }
+      formIdUsuario.value = `${prefixMap[rol] || 'USR'}-001`
+    }
+  } catch {
+    const prefixMap: Record<string, string> = {
+      MEDICO: 'MED',
+      ENFERMERIA: 'ENF',
+      RECEPCION: 'REC',
+      LABORATORIO: 'LAB',
+      ADMINISTRADOR: 'ADM'
+    }
+    formIdUsuario.value = `${prefixMap[rol] || 'USR'}-001`
+  }
+}
+
+watch(formRol, (newRol) => {
+  actualizarProximoId(newRol)
+})
+
+onMounted(() => {
+  actualizarProximoId(formRol.value)
+})
 
 const usuariosFiltrados = computed(() => {
   return props.usuarios.filter(u => {
@@ -43,6 +151,28 @@ const usuariosFiltrados = computed(() => {
   })
 })
 
+// Paginación reactiva de la tabla de usuarios
+const paginaUsuarios = ref(1)
+const porPaginaUsuarios = ref(8)
+
+const totalPaginasUsuarios = computed(() => {
+  return Math.ceil(usuariosFiltrados.value.length / porPaginaUsuarios.value) || 1
+})
+
+const usuariosPaginados = computed(() => {
+  const inicio = (paginaUsuarios.value - 1) * porPaginaUsuarios.value
+  return usuariosFiltrados.value.slice(inicio, inicio + porPaginaUsuarios.value)
+})
+
+const irPaginaUsuarios = (p: number) => {
+  if (p < 1 || p > totalPaginasUsuarios.value) return
+  paginaUsuarios.value = p
+}
+
+watch([filtroRol, busquedaTexto], () => {
+  paginaUsuarios.value = 1
+})
+
 const countMedicos = computed(() => props.usuarios.filter(u => u.rol === 'MEDICO').length)
 const countEnf = computed(() => props.usuarios.filter(u => u.rol === 'ENFERMERIA').length)
 const countRecep = computed(() => props.usuarios.filter(u => u.rol === 'RECEPCION').length)
@@ -57,7 +187,29 @@ const handleSincronizarLdap = () => {
 }
 
 const handleExportarCsv = () => {
-  feedbackMsg.value = 'Exportando catálogo institucional de usuarios en CSV firmado con sello de tiempo...'
+  const encabezados = ['ID_USUARIO', 'NOMBRE_COMPLETO', 'ROL', 'CEDULA_PROFESIONAL', 'DEPARTAMENTO', 'ESTADO_CUENTA', 'ULTIMO_ACCESO']
+  const filas = props.usuarios.map(u => [
+    `"${u.id}"`,
+    `"${u.nombre_completo.replace(/"/g, '""')}"`,
+    `"${u.rol}"`,
+    `"${u.cedula_matricula || 'S/N'}"`,
+    `"${u.departamento}"`,
+    `"${u.estado}"`,
+    `"${u.ultimo_acceso_fecha}"`
+  ].join(','))
+
+  const csvContenido = '\uFEFF' + [encabezados.join(','), ...filas].join('\r\n')
+  const blob = new Blob([csvContenido], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `padron_usuarios_hospital_vitae_${new Date().toISOString().slice(0, 10)}.csv`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+
+  feedbackMsg.value = `Catálogo institucional exportado exitosamente (${props.usuarios.length} registros en CSV firmado).`
   setTimeout(() => {
     feedbackMsg.value = ''
   }, 3500)
@@ -68,6 +220,7 @@ const handleLimpiarForm = () => {
   formCedula.value = ''
   formCurp.value = ''
   formCorreo.value = ''
+  actualizarProximoId(formRol.value)
 }
 
 const handleGuardarUsuario = () => {
@@ -76,17 +229,34 @@ const handleGuardarUsuario = () => {
     return
   }
 
+  if (!formIdUsuario.value.trim()) {
+    alert('Por favor ingrese el identificador de usuario para el login.')
+    return
+  }
+
+  if (formRol.value === 'MEDICO') {
+    const ced = formCedula.value.trim()
+    if (!ced || ced.length !== 10) {
+      alert('Validación NOM-024: La cédula profesional de 10 dígitos es obligatoria para el personal médico. Ejemplo: 1234567890')
+      return
+    }
+  }
+
   const partes = formNombre.value.trim().split(' ')
   const ini = partes.length >= 2 && partes[0] && partes[1]
     ? `${partes[0].charAt(0)}${partes[1].charAt(0)}`.toUpperCase()
     : 'US'
 
+  const idCorto = formIdUsuario.value.trim().toUpperCase()
+
   emit('crear-usuario', {
-    nombre_completo: formNombre.value,
+    id_usuario: idCorto,
+    password: formPassword.value.trim() || 'password123',
+    nombre_completo: formNombre.value.trim(),
     iniciales: ini,
-    cedula_matricula: formCedula.value || 'S/N',
-    curp: formCurp.value || 'CURP-PENDIENTE',
-    correo_institucional: formCorreo.value || `${ini.toLowerCase()}@hospitalvitae.mx`,
+    cedula_matricula: formCedula.value.trim() || idCorto,
+    curp: formCurp.value.trim() || idCorto,
+    correo_institucional: formCorreo.value.trim() || `${idCorto.toLowerCase()}@hospitalvitae.mx`,
     departamento: formDept.value,
     rol: formRol.value,
     rol_etiqueta: formRol.value === 'MEDICO' ? 'Médico ECE' : formRol.value === 'ENFERMERIA' ? 'Enfermería Operativa' : formRol.value === 'LABORATORIO' ? 'Laboratorio / Imagen' : formRol.value === 'RECEPCION' ? 'Admisión / Cajas' : 'Administrador TI',
@@ -97,7 +267,7 @@ const handleGuardarUsuario = () => {
     terminal_origen: 'Consola Central'
   })
 
-  feedbackMsg.value = `¡Usuario ${formNombre.value} creado con credenciales provisionales emitidas!`
+  feedbackMsg.value = `¡Usuario ${formNombre.value} (${idCorto}) creado con éxito!`
   handleLimpiarForm()
   setTimeout(() => {
     feedbackMsg.value = ''
@@ -226,10 +396,8 @@ const handleGuardarUsuario = () => {
       </div>
     </div>
 
-    <!-- FORMULARIO DE ALTA Y MATRIZ RBAC -->
-    <div class="form-matrix-grid">
-      <!-- FORMULARIO DE ALTA / EDICIÓN -->
-      <div class="card-form-box">
+    <!-- FORMULARIO DE ALTA Y GESTIÓN DE IDENTIDADES -->
+    <div class="card-form-box">
         <div class="form-header-bar">
           <div class="fh-left">
             <svg viewBox="0 0 24 24" class="fh-svg" fill="none" stroke="currentColor" stroke-width="2">
@@ -253,49 +421,81 @@ const handleGuardarUsuario = () => {
               <input
                 v-model="formNombre"
                 type="text"
-                placeholder="Nombre completo del colaborador (ej. Dr. Carlos Mendoza)"
+                maxlength="100"
+                placeholder="Nombre completo del colaborador (ej. Dr. Carlos Rivera)"
                 class="finput"
               />
-              <span class="fhint">Conforme a identificación oficial y registro de recursos humanos.</span>
+              <span class="fhint">Conforme a identificación oficial y registro de recursos humanos. ({{ formNombre.length }}/100 caracteres)</span>
             </div>
 
             <div class="fg">
-              <label class="flbl">Cédula Profesional / Matrícula <span class="opc">(Opcional para admin)</span></label>
-              <input
-                v-model="formCedula"
-                type="text"
-                placeholder="Cédula profesional / Matrícula hospitalaria"
-                class="finput"
-              />
-              <span class="fhint">Requerida para facultades de prescripción según Ley General de Salud.</span>
+              <label class="flbl">ID de Usuario para Login Rápido <span style="color: #0284C7; font-weight: 700;">(Autogenerado por el Sistema)</span></label>
+              <div style="position: relative; display: flex; align-items: center;">
+                <input
+                  v-model="formIdUsuario"
+                  type="text"
+                  maxlength="10"
+                  placeholder="Calculando próximo ID..."
+                  class="finput mono"
+                  style="font-weight: 700; color: #0284C7; background-color: #F8FAFC; padding-right: 2.25rem;"
+                  readonly
+                />
+                <button
+                  type="button"
+                  @click="actualizarProximoId(formRol)"
+                  title="Recalcular siguiente identificador disponible"
+                  style="position: absolute; right: 8px; background: none; border: none; cursor: pointer; color: #64748B; padding: 4px;"
+                >
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="23 4 23 10 17 10"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+                  </svg>
+                </button>
+              </div>
+              <span class="fhint">Identificador correlativo único para acceso rápido asignado automáticamente.</span>
             </div>
           </div>
 
           <div class="form-row-2">
             <div class="fg">
-              <label class="flbl">CURP / Identificador Fiscal *</label>
-              <input
-                v-model="formCurp"
-                type="text"
-                placeholder="CURP / IDENTIFICADOR FISCAL (18 CARACTERES)"
-                class="finput mono"
-              />
-              <span class="fhint">Clave unívoca nacional para desambiguación en registros de auditoría.</span>
+              <label class="flbl">Rol Funcional de Acceso *</label>
+              <select v-model="formRol" class="fselect">
+                <option value="MEDICO">Médico ECE (Prescriptor)</option>
+                <option value="ENFERMERIA">Enfermería Operativa (Kardex)</option>
+                <option value="RECEPCION">Admisión / Cajas (Demográfico)</option>
+                <option value="LABORATORIO">Laboratorio / Imagen (LIS/RIS)</option>
+                <option value="ADMINISTRADOR">Administrador TI (SysAdmin)</option>
+              </select>
+              <span class="fhint">Determina permisos RBAC y acceso al módulo correspondiente.</span>
             </div>
 
             <div class="fg">
-              <label class="flbl">Correo Electrónico Institucional *</label>
+              <label class="flbl">Cédula Profesional <span v-if="formRol === 'MEDICO'" style="color: #DC2626; font-weight: 700;">* Obligatoria (10 dígitos)</span><span v-else class="opc">(Opcional)</span></label>
               <input
-                v-model="formCorreo"
-                type="email"
-                placeholder="Correo institucional corporativo (@hospitalvitae.mx)"
-                class="finput"
+                v-model="formCedula"
+                type="text"
+                maxlength="10"
+                placeholder="Ej. 1234567890 (10 dígitos)"
+                class="finput mono"
               />
-              <span class="fhint">Medio verificado para despacho de llaves temporales y tokens MFA.</span>
+              <span class="fhint">Requerida para facultades de prescripción según Ley General de Salud. ({{ formCedula.length }}/10 caracteres)</span>
             </div>
           </div>
 
-          <div class="form-row-3">
+          <div class="form-row-2">
+            <div class="fg">
+              <label class="flbl">Contraseña Provisional de Acceso *</label>
+              <input
+                v-model="formPassword"
+                type="text"
+                minlength="8"
+                maxlength="32"
+                placeholder="Mínimo 8 caracteres (ej. password123)"
+                class="finput mono"
+              />
+              <span class="fhint">Credencial inicial generada con Bcrypt factor 12. ({{ formPassword.length }}/32 caracteres, mín. 8)</span>
+            </div>
+
             <div class="fg">
               <label class="flbl">Servicio / Departamento *</label>
               <select v-model="formDept" class="fselect">
@@ -307,18 +507,35 @@ const handleGuardarUsuario = () => {
                 <option value="Seguridad y Sistemas">Seguridad y Sistemas TI</option>
               </select>
             </div>
+          </div>
 
+          <div class="form-row-2">
             <div class="fg">
-              <label class="flbl">Rol Funcional de Acceso *</label>
-              <select v-model="formRol" class="fselect">
-                <option value="MEDICO">Médico ECE (Prescriptor)</option>
-                <option value="ENFERMERIA">Enfermería Operativa (Kardex)</option>
-                <option value="RECEPCION">Admisión / Cajas (Demográfico)</option>
-                <option value="LABORATORIO">Laboratorio / Imagen (LIS/RIS)</option>
-                <option value="ADMINISTRADOR">Administrador TI (SysAdmin)</option>
-              </select>
+              <label class="flbl">CURP / Identificador Fiscal</label>
+              <input
+                v-model="formCurp"
+                type="text"
+                maxlength="18"
+                placeholder="CURP (18 CARACTERES)"
+                class="finput mono"
+              />
+              <span class="fhint">Clave para desambiguación en registros de auditoría. ({{ formCurp.length }}/18 caracteres)</span>
             </div>
 
+            <div class="fg">
+              <label class="flbl">Correo Electrónico Institucional</label>
+              <input
+                v-model="formCorreo"
+                type="email"
+                maxlength="80"
+                placeholder="correo@hospitalvitae.mx"
+                class="finput"
+              />
+              <span class="fhint">Medio para despacho de credenciales. ({{ formCorreo.length }}/80 caracteres)</span>
+            </div>
+          </div>
+
+          <div class="form-row-2">
             <div class="fg">
               <label class="flbl">Autenticación Secundaria (MFA) *</label>
               <select v-model="formMfa" class="fselect">
@@ -363,105 +580,6 @@ const handleGuardarUsuario = () => {
           </div>
         </div>
       </div>
-
-      <!-- MATRIZ DE PRIVILEGIOS RBAC Y LDAP EN TIEMPO REAL -->
-      <div class="card-matrix-col">
-        <!-- MATRIZ RBAC -->
-        <div class="matrix-card">
-          <div class="matrix-header">
-            <div class="mh-left">
-              <svg viewBox="0 0 24 24" class="matrix-svg" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
-              <h4>Matriz de Privilegios RBAC</h4>
-            </div>
-            <span class="badge-nom-mini">NOM-024</span>
-          </div>
-
-          <div class="matrix-body">
-            <span class="matrix-hint">
-              Niveles de acceso concedidos de manera atómica según el rol institucional seleccionado (<strong>{{ formRol }}</strong>):
-            </span>
-
-            <div class="rbac-role-block" :class="{ highlighted: formRol === 'MEDICO' }">
-              <div class="role-block-title">
-                <strong>Médico ECE</strong>
-                <span class="badge-active-perm">Firma Electrónica Avanzada</span>
-              </div>
-              <div class="perm-chips">
-                <span class="perm-chip green">Lectura/Escritura ECE</span>
-                <span class="perm-chip green">Prescripción Farmacéutica</span>
-                <span class="perm-chip green">Interconsultas y Órdenes</span>
-                <span class="perm-chip red">Config. Sistemas TI</span>
-              </div>
-            </div>
-
-            <div class="rbac-role-block" :class="{ highlighted: formRol === 'ENFERMERIA' }">
-              <div class="role-block-title">
-                <strong>Enfermería Operativa</strong>
-                <span class="badge-sub-role">Registro Asistencial</span>
-              </div>
-              <div class="perm-chips">
-                <span class="perm-chip green">Captura Signos Vitales</span>
-                <span class="perm-chip green">Hoja de Medicación</span>
-                <span class="perm-chip blue">Diagnóstico Definitivo (R/O)</span>
-                <span class="perm-chip green">Alta Hospitalaria Asistida</span>
-              </div>
-            </div>
-
-            <div class="rbac-role-block" :class="{ highlighted: formRol === 'RECEPCION' }">
-              <div class="role-block-title">
-                <strong>Admisión / Cajas</strong>
-                <span class="badge-sub-role">Datos Administrativos</span>
-              </div>
-              <div class="perm-chips">
-                <span class="perm-chip green">Padrón Demográfico</span>
-                <span class="perm-chip green">Facturación y Pagos</span>
-                <span class="perm-chip red">Notas Clínicas (Ciego)</span>
-                <span class="perm-chip red">Laboratorios</span>
-              </div>
-            </div>
-
-            <div class="rbac-role-block" :class="{ highlighted: formRol === 'ADMINISTRADOR' }">
-              <div class="role-block-title">
-                <strong>Administrador TI</strong>
-                <span class="badge-danger-role">Cero Acceso Clínico</span>
-              </div>
-              <div class="perm-chips">
-                <span class="perm-chip green">Auditoría y Logs</span>
-                <span class="perm-chip green">Gestión de Cuentas</span>
-                <span class="perm-chip red">ECE Bloqueado (Disociado)</span>
-                <span class="perm-chip green">Parches y Docker</span>
-              </div>
-            </div>
-
-            <div class="encryption-notice">
-              <svg viewBox="0 0 24 24" class="enc-svg" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
-              <span>Cifrado AES-256 en reposo con separación de llaves HSM.</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- WIDGET SINCRONIZACIÓN LDAP -->
-        <div class="ldap-card">
-          <div class="ldap-header">
-            <h4>Sincronización LDAP</h4>
-            <span class="dot-online"></span>
-          </div>
-          <div class="ldap-body">
-            <div class="ldap-metric-circle">98%</div>
-            <div class="ldap-meta">
-              <strong>AD-CORP-DC01.vitae.local</strong>
-              <span>Último pulso: hace 2 min</span>
-              <span class="tls-status">TLS 1.3 Seguro</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- TABLA GENERAL DE COLABORADORES E IDENTIDADES -->
     <div class="users-table-card">
@@ -544,7 +662,7 @@ const handleGuardarUsuario = () => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="user in usuariosFiltrados" :key="user.id">
+          <tr v-for="user in usuariosPaginados" :key="user.id">
             <td class="cell-user">
               <div class="user-avatar-tag" :class="user.rol.toLowerCase()">
                 {{ user.iniciales }}
@@ -584,7 +702,8 @@ const handleGuardarUsuario = () => {
                 <button
                   type="button"
                   class="btn-row-action"
-                  title="Editar permisos de identidad"
+                  title="Editar información y permisos del usuario"
+                  @click="handleAbrirEditar(user)"
                 >
                   <svg viewBox="0 0 24 24" class="row-svg" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 20h9"/>
@@ -620,6 +739,20 @@ const handleGuardarUsuario = () => {
                     <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
                   </svg>
                 </button>
+
+                <button
+                  type="button"
+                  class="btn-row-action danger btn-delete"
+                  title="Eliminar usuario del sistema (Baja Lógica)"
+                  @click="handleConfirmarEliminar(user)"
+                >
+                  <svg viewBox="0 0 24 24" class="row-svg" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                    <line x1="10" y1="11" x2="10" y2="17"/>
+                    <line x1="14" y1="11" x2="14" y2="17"/>
+                  </svg>
+                </button>
               </div>
             </td>
           </tr>
@@ -628,12 +761,138 @@ const handleGuardarUsuario = () => {
 
       <!-- PAGINACIÓN -->
       <div class="table-footer-pagination">
-        <span class="pagination-text">Mostrando registros 1 a {{ usuariosFiltrados.length }} de {{ usuarios.length }} • Filtro activo: {{ filtroRol }}</span>
+        <span class="pagination-text">
+          Página {{ paginaUsuarios }} de {{ totalPaginasUsuarios }} ({{ usuariosPaginados.length > 0 ? (paginaUsuarios - 1) * porPaginaUsuarios + 1 : 0 }} - {{ (paginaUsuarios - 1) * porPaginaUsuarios + usuariosPaginados.length }} de {{ usuariosFiltrados.length }} usuarios) • Filtro activo: {{ filtroRol }}
+        </span>
         <div class="pagination-controls">
-          <button type="button" class="btn-pg" disabled>Anterior</button>
-          <span class="pg-num active">1</span>
-          <span class="pg-sep">/ 31</span>
-          <button type="button" class="btn-pg">Siguiente</button>
+          <button
+            type="button"
+            class="btn-pg"
+            :disabled="paginaUsuarios <= 1"
+            @click="irPaginaUsuarios(paginaUsuarios - 1)"
+          >
+            Anterior
+          </button>
+          <button
+            v-for="p in totalPaginasUsuarios"
+            :key="p"
+            type="button"
+            class="btn-pg"
+            :class="{ active: paginaUsuarios === p }"
+            @click="irPaginaUsuarios(p)"
+          >
+            {{ p }}
+          </button>
+          <button
+            type="button"
+            class="btn-pg"
+            :disabled="paginaUsuarios >= totalPaginasUsuarios"
+            @click="irPaginaUsuarios(paginaUsuarios + 1)"
+          >
+            Siguiente
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL EDITAR USUARIO -->
+    <div v-if="modalEditarAbierto" class="modal-overlay" @click.self="handleCerrarEditar">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <h3 class="modal-title">Editar Identidad y Permisos Institucionales</h3>
+            <span class="mono" style="color: #0284c7; font-weight: 700; font-size: 0.85rem;">Identificador: {{ editId }}</span>
+          </div>
+          <button type="button" class="btn-close-modal" @click="handleCerrarEditar">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="fg">
+            <label class="flbl">Nombre Completo Institucional *</label>
+            <input
+              v-model="editNombre"
+              type="text"
+              maxlength="100"
+              class="finput"
+              placeholder="Nombre completo del colaborador"
+            />
+            <span class="fhint">{{ editNombre.length }}/100 caracteres</span>
+          </div>
+
+          <div class="form-row-2">
+            <div class="fg">
+              <label class="flbl">Rol Funcional *</label>
+              <select v-model="editRol" class="fselect">
+                <option value="MEDICO">Médico ECE (Prescriptor)</option>
+                <option value="ENFERMERIA">Enfermería Operativa (Kardex)</option>
+                <option value="RECEPCION">Admisión / Cajas (Demográfico)</option>
+                <option value="LABORATORIO">Laboratorio / Imagen (LIS/RIS)</option>
+                <option value="ADMINISTRADOR">Administrador TI (SysAdmin)</option>
+              </select>
+            </div>
+
+            <div class="fg">
+              <label class="flbl">Cédula Profesional <span v-if="editRol === 'MEDICO'" style="color: #DC2626; font-weight: 700;">* (10 dígitos)</span><span v-else class="opc">(Opcional)</span></label>
+              <input
+                v-model="editCedula"
+                type="text"
+                maxlength="10"
+                class="finput mono"
+                placeholder="10 dígitos"
+              />
+              <span class="fhint">{{ editCedula.length }}/10 caracteres</span>
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="fg">
+              <label class="flbl">Servicio / Departamento *</label>
+              <select v-model="editDept" class="fselect">
+                <option value="Urgencias Adultos">Urgencias Adultos</option>
+                <option value="Triage y Choque">Triage y Choque</option>
+                <option value="Laboratorio Clínico">Laboratorio Clínico e Imagen</option>
+                <option value="Consulta Externa">Consulta Externa</option>
+                <option value="Recepción y Cajas">Recepción y Admisión</option>
+                <option value="Seguridad y Sistemas">Seguridad y Sistemas TI</option>
+              </select>
+            </div>
+
+            <div class="fg">
+              <label class="flbl">Estado de la Cuenta *</label>
+              <select v-model="editEstado" class="fselect">
+                <option value="ACTIVO">ACTIVO (Acceso Autorizado)</option>
+                <option value="INACTIVO">INACTIVO (Baja Administrativa)</option>
+                <option value="BLOQUEADO">BLOQUEADO (Seguridad Preventiva)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="fg">
+            <label class="flbl">Restablecer Contraseña (Opcional)</label>
+            <input
+              v-model="editPassword"
+              type="text"
+              minlength="8"
+              maxlength="32"
+              class="finput mono"
+              placeholder="Dejar vacío para conservar la contraseña actual"
+            />
+            <span class="fhint">Si se introduce un valor, debe tener mínimo 8 caracteres ({{ editPassword.length }}/32).</span>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-clear" @click="handleCerrarEditar">
+            Cancelar
+          </button>
+          <button type="button" class="btn-submit-user" @click="handleGuardarEdicion">
+            Guardar Cambios
+          </button>
         </div>
       </div>
     </div>
@@ -1573,8 +1832,95 @@ const handleGuardarUsuario = () => {
   cursor: not-allowed;
 }
 
+.btn-pg.active {
+  background-color: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  font-weight: 700;
+}
+
 .pg-num.active {
   font-weight: 800;
   color: #0f172a;
+}
+
+/* MODAL DE EDICIÓN */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 620px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid #cbd5e1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.btn-close-modal {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+
+.btn-close-modal:hover {
+  color: #0f172a;
+  background-color: #e2e8f0;
+}
+
+.modal-body {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-row-action.btn-delete:hover {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
 }
 </style>

@@ -42,7 +42,7 @@ onUnmounted(() => {
 // --- ACCIONES DE AUTENTICACIÓN CON API ---
 const handleLogin = async () => {
   if (!cedula.value || !password.value) {
-    errorMessage.value = 'Por favor ingrese su Cédula / Matrícula y su contraseña.'
+    errorMessage.value = 'Por favor ingrese su Usuario / Identificador y su contraseña.'
     return
   }
 
@@ -193,10 +193,10 @@ const handleTriageEmergencia = () => {
               </div>
             </div>
 
-            <!-- Campo: Cédula / Matrícula -->
+            <!-- Campo: Identificador de Usuario -->
             <div class="form-group">
               <div class="field-header">
-                <label for="cedula">Cédula Profesional o Matrícula Institucional</label>
+                <label for="cedula">Usuario / Identificador Institucional</label>
                 <button type="button" class="btn-link">
                   <svg viewBox="0 0 24 24" class="mini-icon" fill="currentColor">
                     <path d="M20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4V6h16v12zm-8-2h6v-2h-6v2zm0-4h6v-2h-6v2zm-2-4H6v8h4V6z"/>
@@ -214,7 +214,7 @@ const handleTriageEmergencia = () => {
                   id="cedula" 
                   v-model="cedula" 
                   type="text" 
-                  placeholder="Ej. MED-849201" 
+                  placeholder="Ej. MED-001, ENF-001, ADM-001" 
                   required
                 />
               </div>

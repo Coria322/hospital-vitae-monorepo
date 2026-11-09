@@ -245,4 +245,21 @@ class Sprint2AuditoriaTest extends TestCase
             ->expectsOutputToContain('100% íntegra')
             ->assertExitCode(0);
     }
+
+    public function test_endpoint_verificar_cadena_retorna_200_y_valida_hashes(): void
+    {
+        $token = $this->admin->createToken('admin-token')->plainTextToken;
+
+        AuditLogger::log('INSERT', 'usuario', 'U1', null, ['a' => 1]);
+        AuditLogger::log('INSERT', 'usuario', 'U2', null, ['a' => 2]);
+
+        $res = $this->withHeader('Authorization', "Bearer {$token}")
+            ->getJson('/api/v1/auditoria/verificar-cadena');
+
+        $res->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+                'integra' => true,
+            ]);
+    }
 }

@@ -119,21 +119,43 @@ class AdmisionService
                 'id_paciente' => $idDefinitivo,
             ]);
 
-            // Reasignar expedientes si existieran
+            // Reasignar consentimientos, accesos de emergencia y solicitudes ARCO
+            \App\Models\Consentimiento::where('id_paciente', $idTemporal)->update(['id_paciente' => $idDefinitivo]);
+            \App\Models\AccesoEmergencia::where('id_paciente', $idTemporal)->update(['id_paciente' => $idDefinitivo]);
+            \App\Models\SolicitudArco::where('id_paciente', $idTemporal)->update(['id_paciente' => $idDefinitivo]);
+
+            // Reasignar expedientes si existieran y consolidar antecedentes, notas, recetas y laboratorios
             $expedientesAfectados = ExpedienteClinico::where('id_paciente', $idTemporal)->count();
             if ($expedientesAfectados > 0) {
-                // Si el definitivo ya tiene expediente, actualizamos fecha del último acto médico
                 $expedienteDefinitivo = ExpedienteClinico::where('id_paciente', $idDefinitivo)->first();
-                if ($expedienteDefinitivo) {
-                    $expedienteTemporal = ExpedienteClinico::where('id_paciente', $idTemporal)->first();
+                $expedienteTemporal = ExpedienteClinico::where('id_paciente', $idTemporal)->first();
+
+                if ($expedienteDefinitivo && $expedienteTemporal) {
+                    // 1. Reasignar Antecedentes Clínicos
+                    \App\Models\AntecedenteClinico::where('id_expediente', $expedienteTemporal->id_expediente)
+                        ->update(['id_expediente' => $expedienteDefinitivo->id_expediente]);
+
+                    // 2. Reasignar Notas Médicas
+                    \App\Models\NotaMedica::where('id_expediente', $expedienteTemporal->id_expediente)
+                        ->update(['id_expediente' => $expedienteDefinitivo->id_expediente]);
+
+                    // 3. Reasignar Recetas Médicas
+                    \App\Models\Receta::where('id_expediente', $expedienteTemporal->id_expediente)
+                        ->update(['id_expediente' => $expedienteDefinitivo->id_expediente]);
+
+                    // 4. Reasignar Solicitudes de Estudio de Laboratorio e Imagen
+                    \App\Models\SolicitudEstudio::where('id_expediente', $expedienteTemporal->id_expediente)
+                        ->update(['id_expediente' => $expedienteDefinitivo->id_expediente]);
+
                     $expedienteDefinitivo->update([
                         'fecha_ultimo_acto_medico' => now('UTC'),
-                        'motivo_consulta' => $expedienteDefinitivo->motivo_consulta . "\n[FUSIÓN DE EXPEDIENTE N.N.]: " . ($expedienteTemporal?->motivo_consulta ?? ''),
+                        'motivo_consulta' => $expedienteDefinitivo->motivo_consulta . "\n[FUSION DE EXPEDIENTE N.N.]: " . ($expedienteTemporal->motivo_consulta ?? ''),
                     ]);
+
                     // Baja lógica del expediente temporal
-                    $expedienteTemporal?->update(['estado_activo' => false]);
-                } else {
-                    ExpedienteClinico::where('id_paciente', $idTemporal)->update([
+                    $expedienteTemporal->update(['estado_activo' => false]);
+                } elseif (!$expedienteDefinitivo && $expedienteTemporal) {
+                    $expedienteTemporal->update([
                         'id_paciente' => $idDefinitivo,
                     ]);
                 }

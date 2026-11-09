@@ -9,6 +9,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'select-order', order: EstudioDiagnostico): void
   (e: 'cargar-estudio', order: EstudioDiagnostico): void
+  (e: 'refrescar'): void
 }>()
 
 const filtroCategoria = ref<string>('TODOS')
@@ -57,7 +58,7 @@ const countImg = computed(() => props.orders.filter(o => o.categoria === 'IMAGEN
       </div>
 
       <div class="topbar-right">
-        <button type="button" class="btn-refresh" title="Actualizar bandeja de entrada">
+        <button type="button" class="btn-refresh" title="Actualizar bandeja de entrada" @click="$emit('refrescar')">
           <svg viewBox="0 0 24 24" class="btn-icon" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="23 4 23 10 17 10"/>
             <polyline points="1 20 1 14 7 14"/>

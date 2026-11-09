@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import type { Paciente, Doctor } from '../types'
+import api from '@/services/api'
+import { eceService } from '@/services/eceService'
 
 const props = defineProps<{
   doctor: Doctor
@@ -104,18 +106,115 @@ const tipoPrescripcion = ref<'urgencias' | 'ordinaria' | 'controlada'>('urgencia
 const dispensacionFarmacia = ref(true)
 const impresionVolanteQr = ref(false)
 const envioCifrado = ref(false)
+const guardandoReceta = ref(false)
 
-// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/recetas (Sprint 4 Farmacia/Recetas)
-const firmarYEmitir = () => {
+// Conexión oficial con endpoint real POST /api/v1/recetas y POST /api/v1/recetas/{id}/firma
+const firmarYEmitir = async () => {
   if (medicamentosAgregados.value.length === 0 && !medicamento.value) {
-    alert('Agregue al menos un medicamento a la receta antes de firmarla.')
+    alert('Atención: Agregue al menos un medicamento a la receta antes de firmarla.')
     return
   }
   if (medicamento.value && medicamentosAgregados.value.length === 0) {
     agregarMedicamento()
   }
-  emit('emitirReceta')
-  alert('Receta médica firmada digitalmente con e.firma y enviada a Farmacia Hospitalaria con SHA-256.')
+
+  if (!props.pacienteSeleccionado) {
+    alert('Atención: Debe seleccionar un paciente para emitir la receta médica.')
+    return
+  }
+
+  guardandoReceta.value = true
+  try {
+    let idExp = props.pacienteSeleccionado.id_expediente
+    
+    // Si no tiene id_expediente pero tampoco id_paciente, resolverlo por CURP o Nombre
+    if (!idExp && !props.pacienteSeleccionado.id_paciente) {
+      const termino = props.pacienteSeleccionado.curp || props.pacienteSeleccionado.nombre
+      if (termino) {
+        try {
+          const res = await api.get('/pacientes', { params: { q: termino } })
+          const lista = res.data?.data?.data || res.data?.data || []
+          if (Array.isArray(lista) && lista.length > 0) {
+            props.pacienteSeleccionado.id_paciente = lista[0].id_paciente || lista[0].id
+            if (lista[0].expediente?.id_expediente) {
+              idExp = lista[0].expediente.id_expediente
+              props.pacienteSeleccionado.id_expediente = idExp
+            }
+          }
+        } catch (e) {
+          console.warn('Error resolviendo paciente en EmitirReceta:', e)
+        }
+      }
+    }
+
+    if (!idExp && props.pacienteSeleccionado.id_paciente) {
+      try {
+        const pacData = await eceService.consultarPaciente(props.pacienteSeleccionado.id_paciente)
+        if (pacData?.expediente?.id_expediente) {
+          idExp = pacData.expediente.id_expediente
+        } else {
+          const nuevo = await eceService.crearExpediente({
+            id_paciente: props.pacienteSeleccionado.id_paciente,
+            motivo_consulta: 'Prescripción médica de urgencias'
+          })
+          idExp = nuevo.id_expediente
+        }
+      } catch (eExp: any) {
+        if (eExp?.response?.data?.id_expediente_existente) {
+          idExp = eExp.response.data.id_expediente_existente
+        }
+      }
+      if (idExp) {
+        props.pacienteSeleccionado.id_expediente = idExp
+      }
+    }
+
+    if (!idExp) {
+      alert('Error: No se encontró expediente clínico activo para el paciente.')
+      return
+    }
+
+    const medicamentosTexto = medicamentosAgregados.value.map(m => 
+      `${m.medicamento} ${m.dosis} (${m.via || 'Oral'}) cada ${m.frecuencia || '8h'} x ${m.duracion || '5 días'} [${m.cantidad || '1 caja'}]`
+    ).join(' | ')
+
+    const indicacionesTexto = `${indicaciones.value || ''} ${instruccionesGenerales.value || ''}`.trim() || 'Tomar según prescripción médica con alimentos.'
+
+    const fraccion = tipoPrescripcion.value === 'controlada' ? 'II' : 'NINGUNA'
+
+    // 1. Emitir receta en backend
+    const recetaCreada = await eceService.emitirReceta({
+      id_expediente: idExp,
+      fraccion,
+      medicamentos: medicamentosTexto,
+      indicaciones: indicacionesTexto
+    })
+
+    // 2. Firmar con e.firma y activar QR único
+    const recetaFirmada = await eceService.firmarReceta(recetaCreada.id_receta, {
+      firma_electronica: `EFIRMA-${props.doctor.cedula}-${Date.now()}`
+    })
+
+    alert(`Receta Médica (${recetaFirmada.folio}) emitida y firmada con e.firma.\n\nCódigo QR de un solo uso activado para surtido en Farmacia Hospitalaria.\nHash SHA-256: ${recetaFirmada.hash_sha256?.substring(0, 32)}...\nFracción: ${recetaFirmada.fraccion}`)
+
+    emit('emitirReceta')
+
+    // Limpiar formulario tras emisión
+    medicamentosAgregados.value = []
+    medicamento.value = ''
+    dosis.value = ''
+    forma.value = ''
+    via.value = ''
+    frecuencia.value = ''
+    duracionValor.value = ''
+    cantidadDispensar.value = ''
+    indicaciones.value = ''
+    instruccionesGenerales.value = ''
+  } catch (err: any) {
+    alert('Error al emitir y firmar receta: ' + (err?.response?.data?.message || err.message))
+  } finally {
+    guardandoReceta.value = false
+  }
 }
 
 // TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/recetas/borradores

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import type { EstudioDiagnostico } from '../types'
+import { laboratorioService } from '@/services/laboratorioService'
 
 const props = defineProps<{
   activeStudy: EstudioDiagnostico
+  todosEstudios?: EstudioDiagnostico[]
 }>()
 
 const emit = defineEmits<{
@@ -13,14 +15,92 @@ const emit = defineEmits<{
 }>()
 
 const modoBusqueda = ref<'FOLIO' | 'TUBO' | 'PACIENTE'>('FOLIO')
-const terminoBusqueda = ref('EST-2026-9041')
+const terminoBusqueda = ref('')
 const scanFeedback = ref('')
+const errorBusqueda = ref('')
+const estudioActual = ref<EstudioDiagnostico>(props.activeStudy)
+
+watch(() => props.activeStudy, (n) => {
+  if (n) estudioActual.value = n
+}, { immediate: true })
 
 const handleTestLector = () => {
-  scanFeedback.value = 'Lectura de código de barras simulada: BC-HEP-88190-OK'
-  setTimeout(() => {
-    scanFeedback.value = ''
-  }, 3500)
+  if (props.todosEstudios && props.todosEstudios.length > 0) {
+    const ordenRandom = props.todosEstudios[0]
+    if (ordenRandom) {
+      terminoBusqueda.value = ordenRandom.codigo_tubo || ordenRandom.folio
+      ejecutarBusqueda()
+    }
+  } else {
+    scanFeedback.value = 'Lectura de código de barras simulada: BC-HEP-88190-OK'
+    setTimeout(() => { scanFeedback.value = '' }, 3500)
+  }
+}
+
+const ejecutarBusqueda = async () => {
+  errorBusqueda.value = ''
+  scanFeedback.value = ''
+  const q = terminoBusqueda.value.trim().toLowerCase()
+  if (!q) {
+    errorBusqueda.value = 'Ingrese un folio de estudio, código de tubo o nombre para buscar.'
+    return
+  }
+
+  // 1. Buscar en lista unificada
+  const lista = props.todosEstudios || []
+  const match = lista.find(e =>
+    e.folio.toLowerCase().includes(q) ||
+    (e.id && e.id.toLowerCase().includes(q)) ||
+    (e.codigo_tubo && e.codigo_tubo.toLowerCase().includes(q)) ||
+    e.paciente_nombre.toLowerCase().includes(q) ||
+    e.paciente_iniciales.toLowerCase().includes(q) ||
+    e.estudio_requerido.toLowerCase().includes(q)
+  )
+
+  if (match) {
+    estudioActual.value = match
+    scanFeedback.value = `Estudio localizado: ${match.folio} (${match.estudio_requerido}) • ${match.estado}`
+    return
+  }
+
+  // 2. Buscar en el backend LIS
+  try {
+    const res = await laboratorioService.obtenerSolicitudes({ per_page: 100 })
+    const items = res.data || res
+    if (Array.isArray(items)) {
+      const apiMatch = items.find((s: any) =>
+        s.id_solicitud.toLowerCase().includes(q) ||
+        (s.tipo_estudio && s.tipo_estudio.toLowerCase().includes(q)) ||
+        (s.expediente?.paciente?.nombre_completo && s.expediente.paciente.nombre_completo.toLowerCase().includes(q))
+      )
+      if (apiMatch) {
+        const pacNombre = apiMatch.expediente?.paciente?.nombre_completo || 'Paciente'
+        const esStat = apiMatch.prioridad === 'STAT' || apiMatch.prioridad === 'URGENTE'
+        estudioActual.value = {
+          id: apiMatch.id_solicitud,
+          folio: `EST-${apiMatch.id_solicitud.substring(0, 8).toUpperCase()}`,
+          codigo_tubo: `BC-${apiMatch.id_solicitud.substring(0, 8).toUpperCase()}`,
+          paciente_nombre: pacNombre,
+          paciente_iniciales: pacNombre.split(' ').map((n: string) => n[0]).join('').substring(0, 4).toUpperCase(),
+          paciente_edad: 35,
+          paciente_sexo: apiMatch.expediente?.paciente?.sexo === 'F' ? 'F' : 'M',
+          prioridad: esStat ? 'STAT' : 'ORDINARIA',
+          codigo_color: esStat ? 'ROJO' : 'GRIS',
+          estado: apiMatch.estado === 'COMPLETADA' ? 'VALIDADO' : (apiMatch.estado === 'RECHAZADA' ? 'RECHAZADO' : 'PENDIENTE'),
+          categoria: 'LABORATORIO',
+          estudio_requerido: apiMatch.tipo_estudio,
+          servicio_solicitante: apiMatch.indicaciones_clinicas || 'Servicio Hospitalario',
+          medico_prescriptor: apiMatch.medico_solicitante?.nombre_completo || 'Dr. Médico Adscrito',
+          sla_restante_min: 15,
+          hora_solicitud: '10:00'
+        }
+        scanFeedback.value = `Estudio localizado en base de datos LIS: ${estudioActual.value.folio} • Estado: ${estudioActual.value.estado}`
+        return
+      }
+    }
+  } catch (_) {}
+
+  errorBusqueda.value = `No se localizó ningún estudio registrado para el término "${terminoBusqueda.value}". Verifique el folio oficial o código de tubo.`
 }
 </script>
 
@@ -118,7 +198,7 @@ const handleTestLector = () => {
             v-model="terminoBusqueda"
             type="text"
             placeholder="Escriba el folio oficial ej. EST-2026-9041 o acerque el escáner..."
-            class="main-search-input"
+            class="main-search-input" @keyup.enter="ejecutarBusqueda"
           />
           <button type="button" class="btn-scan-trigger" @click="handleTestLector">
             <svg viewBox="0 0 24 24" class="scan-mini-svg" fill="none" stroke="currentColor" stroke-width="2">
@@ -131,7 +211,7 @@ const handleTestLector = () => {
           </button>
         </div>
 
-        <button type="button" class="btn-submit-search">
+        <button type="button" class="btn-submit-search" @click="ejecutarBusqueda">
           <svg viewBox="0 0 24 24" class="btn-search-svg" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="11" cy="11" r="8"/>
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -145,6 +225,10 @@ const handleTestLector = () => {
           <polyline points="20 6 9 17 4 12"/>
         </svg>
         <span>{{ scanFeedback }}</span>
+      </div>
+
+      <div v-if="errorBusqueda" class="scan-error-banner">
+        <span>{{ errorBusqueda }}</span>
       </div>
     </div>
 
@@ -177,12 +261,12 @@ const handleTestLector = () => {
 
             <div class="study-found-info">
               <div class="folio-priority-row">
-                <span class="found-folio">{{ activeStudy.folio }}</span>
+                <span class="found-folio">{{ estudioActual.folio }}</span>
                 <span class="badge-red-stat">STAT CÓDIGO ROJO</span>
               </div>
               <div class="patient-id-row">
                 <span class="patient-nom">
-                  Identificador NOM-024: <strong>{{ activeStudy.paciente_iniciales }}</strong> ({{ activeStudy.paciente_edad }} años, Femenino)
+                  Identificador NOM-024: <strong>{{ estudioActual.paciente_iniciales }}</strong> ({{ estudioActual.paciente_edad }} años, Femenino)
                 </span>
                 <span class="barcode-pill">
                   <svg viewBox="0 0 24 24" class="barcode-mini-svg" fill="none" stroke="currentColor" stroke-width="2">
@@ -314,7 +398,7 @@ const handleTestLector = () => {
               <button
                 type="button"
                 class="btn-action-primary"
-                @click="emit('cargar-estudio', activeStudy)"
+                @click="emit('cargar-estudio', estudioActual)"
               >
                 <svg viewBox="0 0 24 24" class="btn-svg" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -327,7 +411,7 @@ const handleTestLector = () => {
               <button
                 type="button"
                 class="btn-action-outline"
-                @click="emit('imprimir-etiqueta', activeStudy.folio)"
+                @click="emit('imprimir-etiqueta', estudioActual.folio)"
               >
                 <svg viewBox="0 0 24 24" class="btn-svg" fill="none" stroke="currentColor" stroke-width="2">
                   <polyline points="6 9 6 2 18 2 18 9"/>
@@ -341,7 +425,7 @@ const handleTestLector = () => {
             <button
               type="button"
               class="btn-action-danger"
-              @click="emit('reportar-incidencia', activeStudy.folio)"
+              @click="emit('reportar-incidencia', estudioActual.folio)"
             >
               <svg viewBox="0 0 24 24" class="btn-svg" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -1495,4 +1579,16 @@ const handleTestLector = () => {
   padding: 0.15rem 0.35rem;
   border-radius: 4px;
 }
+
+.scan-error-banner {
+  margin-top: 0.75rem;
+  padding: 0.65rem 1rem;
+  border-radius: 6px;
+  background-color: #fee2e2;
+  border-left: 4px solid #ef4444;
+  color: #b91c1c;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
 </style>

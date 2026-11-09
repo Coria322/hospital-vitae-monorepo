@@ -162,6 +162,36 @@ class Sprint1AuthTest extends TestCase
             ]);
     }
 
+    public function test_alta_de_usuario_sin_id_autogenera_id_secuencial(): void
+    {
+        $admin = Usuario::where('id_usuario', 'ADM-TEST')->first();
+        $token = $admin->createToken('test-token')->plainTextToken;
+
+        // Probar endpoint proximo-id
+        $respProximo = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson('/api/v1/usuarios/proximo-id?rol=MEDICO');
+        $respProximo->assertStatus(200)
+            ->assertJsonStructure(['status', 'data' => ['rol', 'proximo_id']]);
+
+        // Registrar sin enviar id_usuario
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/api/v1/usuarios', [
+                'nombre_completo' => 'Dr. Generado Automatico',
+                'rol' => 'MEDICO',
+                'password' => 'password123',
+                'cedula' => '1122334455',
+            ]);
+
+        $response->assertStatus(201)
+            ->assertJson([
+                'status' => 'success',
+            ]);
+
+        $idGenerado = $response->json('data.id_usuario');
+        $this->assertNotNull($idGenerado);
+        $this->assertStringStartsWith('MED-', $idGenerado);
+    }
+
     public function test_baja_de_usuario_cambia_estado_a_baja(): void
     {
         $admin = Usuario::where('id_usuario', 'ADM-TEST')->first();
@@ -176,6 +206,46 @@ class Sprint1AuthTest extends TestCase
             ]);
 
         $this->assertEquals('BAJA', Usuario::where('id_usuario', 'MED-TEST')->value('estado_cuenta'));
+    }
+
+    public function test_actualizar_usuario_modifica_datos_y_registra_auditoria(): void
+    {
+        $admin = Usuario::where('id_usuario', 'ADM-TEST')->first();
+        $token = $admin->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->putJson('/api/v1/usuarios/MED-TEST', [
+                'nombre_completo' => 'Dr. Nombre Modificado',
+                'estado_cuenta' => 'ACTIVA',
+            ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+                'data' => [
+                    'id_usuario' => 'MED-TEST',
+                    'nombre_completo' => 'Dr. Nombre Modificado',
+                ],
+            ]);
+
+        $this->assertEquals('Dr. Nombre Modificado', Usuario::where('id_usuario', 'MED-TEST')->value('nombre_completo'));
+    }
+
+    public function test_bloquear_usuario_cambia_estado_a_bloqueada(): void
+    {
+        $admin = Usuario::where('id_usuario', 'ADM-TEST')->first();
+        $token = $admin->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->postJson('/api/v1/usuarios/MED-TEST/bloquear');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+            ]);
+
+        $this->assertEquals('BLOQUEADA', Usuario::where('id_usuario', 'MED-TEST')->value('estado_cuenta'));
+        $this->assertEquals(3, Usuario::where('id_usuario', 'MED-TEST')->value('intentos_fallidos'));
     }
 
     public function test_refresh_token_retorna_nuevo_token_y_revoca_el_anterior(): void
@@ -215,6 +285,44 @@ class Sprint1AuthTest extends TestCase
         $newResponse = $this->withHeader('Authorization', 'Bearer ' . $newToken)
             ->getJson('/api/v1/auth/me');
         $newResponse->assertStatus(200);
+    }
+
+    public function test_reset_password_de_usuario_genera_clave_y_audita(): void
+    {
+        $admin = Usuario::create([
+            'id_usuario' => 'ADM-RESET',
+            'nombre_completo' => 'Admin Reset',
+            'rol' => 'ADMINISTRADOR',
+            'password_hash' => Hash::make('password123', ['rounds' => 12]),
+            'estado_cuenta' => 'ACTIVA',
+            'intentos_fallidos' => 0,
+        ]);
+        $token = $admin->createToken('admin')->plainTextToken;
+
+        $target = Usuario::create([
+            'id_usuario' => 'MED-TARGET',
+            'nombre_completo' => 'Dr. Target',
+            'rol' => 'MEDICO',
+            'cedula' => '1234567890',
+            'password_hash' => Hash::make('oldpassword', ['rounds' => 12]),
+            'estado_cuenta' => 'BLOQUEADA',
+            'intentos_fallidos' => 3,
+        ]);
+
+        $response = $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson("/api/v1/usuarios/{$target->id_usuario}/reset-password", [
+                'password' => 'NewSecret2026!',
+            ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+            ]);
+
+        $target->refresh();
+        $this->assertEquals('ACTIVA', $target->estado_cuenta);
+        $this->assertEquals(0, $target->intentos_fallidos);
+        $this->assertTrue(Hash::check('NewSecret2026!', $target->password_hash));
     }
 }
 

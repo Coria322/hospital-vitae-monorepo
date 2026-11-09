@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import triageService from '@/services/triageService'
+import guardiasService, { type PisoHospital, type SolicitudCamaPendiente } from '@/services/guardiasService'
 
 defineProps<{
   horaActual?: string
@@ -20,9 +22,9 @@ const mostrarAlerta = (mensaje: string) => {
 }
 
 // =========================================================================
-// PANTALLA 6: CENSO HOSPITALARIO Y GESTIÓN DE CAMAS (IMAGEN 6)
+// PANTALLA 6: CENSO HOSPITALARIO Y GESTIÓN DE CAMAS
 // =========================================================================
-interface CamaHospitalaria {
+export interface CamaHospitalaria {
   id: string
   nombre: string
   piso: 'P1' | 'P2' | 'P3' | 'QX'
@@ -32,13 +34,7 @@ interface CamaHospitalaria {
   servicio?: string
 }
 
-interface SolicitudCamaPendiente {
-  folio: string
-  paciente: string
-  prioridad: 'Triage 2 - Naranja' | 'Programado' | 'Triage 3 - Amarillo' | 'Gineco Urgente'
-  servicio: string
-  tiempoEspera: string
-}
+// SolicitudCamaPendiente importada de guardiasService
 
 const filtroPisoCenso = ref<'todos' | 'P1' | 'P2' | 'P3' | 'QX'>('todos')
 
@@ -55,117 +51,220 @@ const preasignacionCamaForm = ref({
 })
 
 // Ficha de Cama actualmente seleccionada para inspección
-const fichaCamaSeleccionada = ref<CamaHospitalaria>({
-  id: 'HAB-202-A',
-  nombre: 'HABITACIÓN 202-A',
-  piso: 'P2',
-  subtitulo: 'Pabellón Adultos Poniente',
-  estatus: 'disponible',
-  pacienteInfo: 'Libre para Asignación Inmediata',
-  servicio: 'Medicina Interna'
+const fichaCamaSeleccionada = ref<CamaHospitalaria | null>(null)
+
+// Solicitudes en espera de cama (inicia vacía sin datos precargados)
+const solicitudesCamaPendientes = ref<SolicitudCamaPendiente[]>([])
+
+const cargarSolicitudesCama = () => {
+  solicitudesCamaPendientes.value = guardiasService.obtenerSolicitudesCama()
+}
+
+const seleccionarSolicitud = (sol: SolicitudCamaPendiente) => {
+  preasignacionCamaForm.value.solicitudSeleccionada = sol.folio
+  if (sol.servicio) preasignacionCamaForm.value.servicio = sol.servicio
+  if (sol.medicoTratante) preasignacionCamaForm.value.medicoTratante = sol.medicoTratante
+}
+
+watch(() => preasignacionCamaForm.value.solicitudSeleccionada, (folio) => {
+  if (folio) {
+    const sol = solicitudesCamaPendientes.value.find(s => s.folio === folio)
+    if (sol) {
+      if (sol.servicio) preasignacionCamaForm.value.servicio = sol.servicio
+      if (sol.medicoTratante) preasignacionCamaForm.value.medicoTratante = sol.medicoTratante
+    }
+  }
 })
 
-// Solicitudes en espera de cama
-const solicitudesCamaPendientes = ref<SolicitudCamaPendiente[]>([
-  { folio: 'PAC-9920', paciente: 'Gómez Téllez, Arturo · Masc. 45a', prioridad: 'Triage 2 - Naranja', servicio: 'Medicina Interna', tiempoEspera: '18 min' },
-  { folio: 'PAC-9924', paciente: 'Paredes R., Claudia · Fem. 52a', prioridad: 'Programado', servicio: 'Cirugía General', tiempoEspera: '24 min' },
-  { folio: 'PAC-9931', paciente: 'Vega Morales, Juan · Masc. 29a', prioridad: 'Triage 3 - Amarillo', servicio: 'Traumatología', tiempoEspera: '42 min' },
-  { folio: 'PAC-9935', paciente: 'Herrera S., Diana · Fem. 28a', prioridad: 'Gineco Urgente', servicio: 'Ginecoobstetricia', tiempoEspera: '12 min' }
-])
+// Matriz reactiva de camas
+const matrizCamasHospital = ref<CamaHospitalaria[]>([])
 
-// Cuadrícula maestra de camas
-const matrizCamasHospital = ref<CamaHospitalaria[]>([
-  // Piso 1: Urgencias Médicas y Choque
-  { id: 'BOX-U01', nombre: 'BOX U-01', piso: 'P1', subtitulo: 'Choque 1 (Crítico)', estatus: 'ocupada', pacienteInfo: 'Choque Rojo · Politraumatizado', servicio: 'Urgencias' },
-  { id: 'BOX-U02', nombre: 'BOX U-02', piso: 'P1', subtitulo: 'Choque 2 (Crítico)', estatus: 'ocupada', pacienteInfo: 'Choque Naranja · IAM en curso', servicio: 'Urgencias' },
-  { id: 'BOX-U03', nombre: 'BOX U-03', piso: 'P1', subtitulo: 'Observación Urgencias', estatus: 'disponible', pacienteInfo: 'Listo para ingreso', servicio: 'Urgencias' },
-  { id: 'BOX-U04', nombre: 'BOX U-04', piso: 'P1', subtitulo: 'Adultos Observación', estatus: 'ocupada', pacienteInfo: 'Crisis asmática', servicio: 'Urgencias' },
-  { id: 'BOX-U05', nombre: 'BOX U-05', piso: 'P1', subtitulo: 'Recepción Ambulancia', estatus: 'ocupada', pacienteInfo: 'Trauma craneal leve', servicio: 'Urgencias' },
-  { id: 'BOX-U06', nombre: 'BOX U-06', piso: 'P1', subtitulo: 'Aislamiento Respiratorio', estatus: 'higienizacion', pacienteInfo: 'Limpieza profunda terminal', servicio: 'Urgencias' },
-  { id: 'BOX-U07', nombre: 'BOX U-07', piso: 'P1', subtitulo: 'Observación Corta', estatus: 'disponible', pacienteInfo: 'Libre para derivación', servicio: 'Urgencias' },
-  { id: 'BOX-U08', nombre: 'BOX U-08', piso: 'P1', subtitulo: 'Observación Corta', estatus: 'disponible', pacienteInfo: 'Libre para derivación', servicio: 'Urgencias' },
-  { id: 'BOX-U09', nombre: 'BOX U-09', piso: 'P1', subtitulo: 'Triage 3 Amarillo', estatus: 'ocupada', pacienteInfo: 'Apendicitis en estudio', servicio: 'Urgencias' },
-  { id: 'BOX-U10', nombre: 'BOX U-10', piso: 'P1', subtitulo: 'Triage 3 Amarillo', estatus: 'ocupada', pacienteInfo: 'Deshidratación severa', servicio: 'Urgencias' },
-  { id: 'BOX-U11', nombre: 'BOX U-11', piso: 'P1', subtitulo: 'Reserva Ambulancia', estatus: 'reservada', pacienteInfo: 'Traslado CRUM en camino', servicio: 'Urgencias' },
-  { id: 'BOX-U12', nombre: 'BOX U-12', piso: 'P1', subtitulo: 'Observación Rápida', estatus: 'disponible', pacienteInfo: 'Libre para ingreso', servicio: 'Urgencias' },
+const cargarMatrizCamas = () => {
+  const maestras = guardiasService.obtenerCamasMaestras()
+  matrizCamasHospital.value = maestras.map(m => ({
+    id: m.id,
+    nombre: m.nombre,
+    piso: m.piso,
+    subtitulo: m.subtitulo,
+    estatus: m.estatusCenso || 'disponible',
+    pacienteInfo: m.pacienteInfo || 'Libre para derivación inmediata',
+    servicio: m.servicio
+  }))
+  if (!fichaCamaSeleccionada.value && matrizCamasHospital.value.length > 0) {
+    const primera = matrizCamasHospital.value[0]
+    if (primera) fichaCamaSeleccionada.value = primera
+  }
+}
 
-  // Piso 2: Hospitalización Adultos
-  { id: 'HAB-201-A', nombre: 'HAB 201-A', piso: 'P2', subtitulo: 'Medicina Interna', estatus: 'ocupada', pacienteInfo: 'Gómez R., Juan · Neumonía', servicio: 'Medicina Interna' },
-  { id: 'HAB-201-B', nombre: 'HAB 201-B', piso: 'P2', subtitulo: 'Medicina Interna', estatus: 'ocupada', pacienteInfo: 'López M., Ana · DM2 descompensada', servicio: 'Medicina Interna' },
-  { id: 'HAB-202-A', nombre: 'HAB 202-A', piso: 'P2', subtitulo: 'Pabellón Adultos Poniente', estatus: 'disponible', pacienteInfo: 'Desinfección aprobada 10:15 h', servicio: 'Medicina Interna' },
-  { id: 'HAB-202-B', nombre: 'HAB 202-B', piso: 'P2', subtitulo: 'Cirugía General', estatus: 'ocupada', pacienteInfo: 'Salazar P., Carlos · Post-laparo', servicio: 'Cirugía General' },
-  { id: 'HAB-203', nombre: 'HAB 203', piso: 'P2', subtitulo: 'Aislamiento Presión Neg.', estatus: 'ocupada', pacienteInfo: 'Mendoza T., Luis · TB sospecha', servicio: 'Infectología' },
-  { id: 'HAB-204-A', nombre: 'HAB 204-A', piso: 'P2', subtitulo: 'Medicina Interna', estatus: 'disponible', pacienteInfo: 'Libre e inspeccionada', servicio: 'Medicina Interna' },
-  { id: 'HAB-204-B', nombre: 'HAB 204-B', piso: 'P2', subtitulo: 'Medicina Interna', estatus: 'disponible', pacienteInfo: 'Libre e inspeccionada', servicio: 'Medicina Interna' },
-  { id: 'HAB-205-A', nombre: 'HAB 205-A', piso: 'P2', subtitulo: 'Cirugía General', estatus: 'higienizacion', pacienteInfo: 'En proceso de sanitización', servicio: 'Cirugía General' },
-  { id: 'HAB-205-B', nombre: 'HAB 205-B', piso: 'P2', subtitulo: 'Cirugía General', estatus: 'ocupada', pacienteInfo: 'Pérez K., Mario · Colecistectomía', servicio: 'Cirugía General' },
-  { id: 'HAB-206-A', nombre: 'HAB 206-A', piso: 'P2', subtitulo: 'Post-Quirúrgico', estatus: 'reservada', pacienteInfo: 'Reservada para PAC-9924', servicio: 'Cirugía General' },
-  { id: 'HAB-206-B', nombre: 'HAB 206-B', piso: 'P2', subtitulo: 'Post-Quirúrgico', estatus: 'disponible', pacienteInfo: 'Libre con toma O2 y aspiración', servicio: 'Cirugía General' },
-  { id: 'HAB-207-A', nombre: 'HAB 207-A', piso: 'P2', subtitulo: 'Neurología', estatus: 'ocupada', pacienteInfo: 'Ríos E., Sandra · EVC en remisión', servicio: 'Neurología' },
+// Modal para registrar nueva cama / box
+const modalRegistrarCamaAbierto = ref(false)
+const formNuevaCama = ref<{
+  piso: PisoHospital
+  id: string
+  nombre: string
+  subtitulo: string
+  servicio: string
+}>({
+  piso: 'P1',
+  id: '',
+  nombre: '',
+  subtitulo: '',
+  servicio: 'Urgencias'
+})
 
-  // Piso 3: Pediatría y Ginecoobstetricia
-  { id: 'CUNA-01', nombre: 'CUNA-01', piso: 'P3', subtitulo: 'Cuna Térmica', estatus: 'disponible', pacienteInfo: 'Calibrada a 36.8°C · Libre', servicio: 'Pediatría / Neonatos' },
-  { id: 'CUNA-02', nombre: 'CUNA-02', piso: 'P3', subtitulo: 'Incubadora Cuidados', estatus: 'ocupada', pacienteInfo: 'RN Pérez · Prematuro 34 SDG', servicio: 'Neonatología' },
-  { id: 'CUNA-03', nombre: 'CUNA-03', piso: 'P3', subtitulo: 'Fototerapia Led', estatus: 'disponible', pacienteInfo: 'Lista para hiperbilirrubinemia', servicio: 'Pediatría' },
-  { id: 'PED-301', nombre: 'PED-301', piso: 'P3', subtitulo: 'Pediatría Escolar', estatus: 'ocupada', pacienteInfo: 'Dávila M., Mateo (6a) · Bronquiolitis', servicio: 'Pediatría' },
-  { id: 'PED-302', nombre: 'PED-302', piso: 'P3', subtitulo: 'Pediatría Escolar', estatus: 'disponible', pacienteInfo: 'Libre con protección anticaídas', servicio: 'Pediatría' },
-  { id: 'GIN-305', nombre: 'GIN-305', piso: 'P3', subtitulo: 'Puerperio Fisiológico', estatus: 'ocupada', pacienteInfo: 'Flores H., Carmen · Parto eutócico', servicio: 'Ginecología' },
-  { id: 'GIN-306', nombre: 'GIN-306', piso: 'P3', subtitulo: 'Labor y Recuperación', estatus: 'disponible', pacienteInfo: 'Lista para ingreso de parto', servicio: 'Ginecología' },
+const abrirModalRegistroCama = (pisoSugerido?: PisoHospital) => {
+  formNuevaCama.value = {
+    piso: pisoSugerido || (filtroPisoCenso.value === 'todos' ? 'P1' : filtroPisoCenso.value),
+    id: '',
+    nombre: '',
+    subtitulo: '',
+    servicio: pisoSugerido === 'P2' ? 'Medicina Interna' : pisoSugerido === 'P3' ? 'Pediatría' : pisoSugerido === 'QX' ? 'Quirófano' : 'Urgencias'
+  }
+  modalRegistrarCamaAbierto.value = true
+}
 
-  // Quirófanos Centrales
-  { id: 'QUI-01', nombre: 'QUI-01', piso: 'QX', subtitulo: 'Sala Mayor Cirugía 1', estatus: 'ocupada', pacienteInfo: 'Cirugía activa: Apendicectomía laparoscópica', servicio: 'Quirófano' },
-  { id: 'QUI-02', nombre: 'QUI-02', piso: 'QX', subtitulo: 'Sala Mayor Cirugía 2', estatus: 'ocupada', pacienteInfo: 'Cirugía activa: Colecistectomía', servicio: 'Quirófano' },
-  { id: 'QUI-03', nombre: 'QUI-03', piso: 'QX', subtitulo: 'Sala Cirugía Ambulatoria', estatus: 'disponible', pacienteInfo: 'Esterilizado · Turno 11:30 h libre', servicio: 'Quirófano' },
-  { id: 'QUI-04', nombre: 'QUI-04', piso: 'QX', subtitulo: 'Trauma y Ortopedia', estatus: 'disponible', pacienteInfo: 'Esterilizado con arco en C', servicio: 'Quirófano' },
-  { id: 'QUI-05', nombre: 'QUI-05', piso: 'QX', subtitulo: 'Urgencias QX', estatus: 'higienizacion', pacienteInfo: 'Sanitización terminal en curso', servicio: 'Quirófano' }
-])
+const cerrarModalRegistroCama = () => {
+  modalRegistrarCamaAbierto.value = false
+}
+
+const guardarNuevaCamaDesdeModal = () => {
+  if (!formNuevaCama.value.id.trim() || !formNuevaCama.value.nombre.trim()) {
+    mostrarAlerta('El código identificador y el nombre de la cama o box son obligatorios.')
+    return
+  }
+
+  const res = guardiasService.registrarNuevaCama({
+    id: formNuevaCama.value.id,
+    nombre: formNuevaCama.value.nombre,
+    piso: formNuevaCama.value.piso,
+    subtitulo: formNuevaCama.value.subtitulo || 'Servicio Hospitalario',
+    servicio: formNuevaCama.value.servicio || 'Servicio Hospitalario'
+  })
+
+  if (!res.ok) {
+    mostrarAlerta(res.mensaje)
+    return
+  }
+
+  cargarMatrizCamas()
+  cerrarModalRegistroCama()
+  mostrarAlerta(res.mensaje)
+}
 
 const camasFiltradasPorPiso = (piso: 'P1' | 'P2' | 'P3' | 'QX') => {
   return matrizCamasHospital.value.filter(c => c.piso === piso)
 }
 
+// Estadísticas de censo reactivas
+const totalCamas = computed(() => matrizCamasHospital.value.length)
+const camasDisponibles = computed(() => matrizCamasHospital.value.filter(c => c.estatus === 'disponible'))
+const camasOcupadas = computed(() => matrizCamasHospital.value.filter(c => c.estatus === 'ocupada'))
+const camasHigienizacion = computed(() => matrizCamasHospital.value.filter(c => c.estatus === 'higienizacion'))
+const camasReservadas = computed(() => matrizCamasHospital.value.filter(c => c.estatus === 'reservada'))
+
+const quirofanosTotal = computed(() => camasFiltradasPorPiso('QX').length)
+const quirofanosDisponibles = computed(() => camasFiltradasPorPiso('QX').filter(c => c.estatus === 'disponible').length)
+
+const tasaOcupacionPiso = (p: 'P1' | 'P2' | 'P3' | 'QX') => {
+  const pisoItems = camasFiltradasPorPiso(p)
+  if (pisoItems.length === 0) return '0%'
+  const ocupadas = pisoItems.filter(c => c.estatus === 'ocupada' || c.estatus === 'reservada').length
+  return `${Math.round((ocupadas / pisoItems.length) * 100)}% Ocupado`
+}
+
+const resumenTextoPiso = (p: 'P1' | 'P2' | 'P3' | 'QX') => {
+  const pisoItems = camasFiltradasPorPiso(p)
+  const libres = pisoItems.filter(c => c.estatus === 'disponible').length
+  const ocup = pisoItems.filter(c => c.estatus === 'ocupada').length
+  const hig = pisoItems.filter(c => c.estatus === 'higienizacion').length
+  const res = pisoItems.filter(c => c.estatus === 'reservada').length
+  const tipoPalabra = p === 'P1' ? 'Boxes' : p === 'QX' ? 'Salas' : 'Camas'
+  return `${pisoItems.length} ${tipoPalabra} censables · ${libres} Libres · ${ocup} Ocupadas · ${hig} En Higienización · ${res} Reservadas`
+}
+
 const seleccionarCamaTablero = (cama: CamaHospitalaria) => {
   fichaCamaSeleccionada.value = cama
   preasignacionCamaForm.value.camaSeleccionada = cama.nombre
+  preasignacionCamaForm.value.servicio = cama.servicio || ''
 }
 
-const alternarDemoCenso = () => {
-  if (preasignacionCamaForm.value.solicitudSeleccionada) {
-    preasignacionCamaForm.value.solicitudSeleccionada = ''
+const liberarTodasLasCamas = () => {
+  if (confirm('¿Desea restablecer todas las camas a estado DISPONIBLE (libres de pacientes)?')) {
+    guardiasService.restablecerTodoLibre()
+    cargarMatrizCamas()
+    solicitudesCamaPendientes.value = []; guardiasService.guardarSolicitudesCama([]);
     preasignacionCamaForm.value.camaSeleccionada = ''
-    preasignacionCamaForm.value.medicoTratante = ''
-    preasignacionCamaForm.value.servicio = ''
-  } else {
-    preasignacionCamaForm.value.solicitudSeleccionada = 'PAC-9920'
-    preasignacionCamaForm.value.camaSeleccionada = 'HABITACIÓN 202-A'
-    preasignacionCamaForm.value.medicoTratante = 'Dr. Mauricio Sotomayor'
-    preasignacionCamaForm.value.servicio = 'Medicina Interna'
+    preasignacionCamaForm.value.solicitudSeleccionada = ''
+    mostrarAlerta('Todas las zonas y camas han sido restablecidas a estado DISPONIBLE.')
   }
 }
 
-// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/camas/{id}/asignar (Censo Hospitalario)
-const confirmarAsignacionCama = () => {
-  if (!preasignacionCamaForm.value.solicitudSeleccionada) {
-    mostrarAlerta('Seleccione una solicitud de paciente pendiente de la lista.')
-    return
+const cargarSalasReales = async () => {
+  try {
+    const salas = await triageService.obtenerSalas()
+    if (Array.isArray(salas) && salas.length > 0) {
+      salas.forEach(s => {
+        const encontrada = matrizCamasHospital.value.find(c => c.nombre.toUpperCase().includes(s.nombre.toUpperCase()) || c.id === s.id_sala)
+        if (encontrada) {
+          encontrada.estatus = s.ocupada ? 'ocupada' : 'disponible'
+          encontrada.pacienteInfo = s.ocupada ? 'Ocupada en atención activa' : 'Libre para derivación inmediata'
+        }
+      })
+    }
+  } catch (error) {
+    console.warn('Aviso sincronizando salas con censo:', error)
   }
+}
+
+onMounted(() => {
+  cargarMatrizCamas()
+  cargarSalasReales()
+  cargarSolicitudesCama()
+  window.addEventListener('vitae-camas-actualizadas', cargarMatrizCamas)
+  window.addEventListener('vitae-solicitudes-cama-actualizadas', cargarSolicitudesCama)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('vitae-camas-actualizadas', cargarMatrizCamas)
+  window.removeEventListener('vitae-solicitudes-cama-actualizadas', cargarSolicitudesCama)
+})
+
+const confirmarAsignacionCama = () => {
   if (!preasignacionCamaForm.value.camaSeleccionada) {
     mostrarAlerta('Seleccione una cama disponible en el tablero de censos.')
     return
   }
   const cama = matrizCamasHospital.value.find(c => c.nombre === preasignacionCamaForm.value.camaSeleccionada)
-  if (cama) {
-    cama.estatus = 'reservada'
-    cama.pacienteInfo = `Asignada a ${preasignacionCamaForm.value.solicitudSeleccionada}`
+  if (!cama) {
+    mostrarAlerta('No se encontró la cama seleccionada en el censo hospitalario.')
+    return
   }
-  solicitudesCamaPendientes.value = solicitudesCamaPendientes.value.filter(s => s.folio !== preasignacionCamaForm.value.solicitudSeleccionada)
-  mostrarAlerta(`<svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Cama ${preasignacionCamaForm.value.camaSeleccionada} asignada con éxito al paciente ${preasignacionCamaForm.value.solicitudSeleccionada}. Notificación enviada a la estación de enfermería de ${preasignacionCamaForm.value.servicio || 'Hospitalización'}.`)
+  if (cama.estatus === 'ocupada') {
+    mostrarAlerta('La cama ' + cama.nombre + ' ya se encuentra ocupada por otro paciente.')
+    return
+  }
+
+  const sol = solicitudesCamaPendientes.value.find(s => s.folio === preasignacionCamaForm.value.solicitudSeleccionada)
+  const nombrePaciente = sol ? `${sol.paciente} (${sol.folio})` : (preasignacionCamaForm.value.solicitudSeleccionada || 'Paciente Asignado')
+
+  cama.estatus = 'ocupada'
+  cama.pacienteInfo = `Ocupada por ${nombrePaciente} · Dr. ${preasignacionCamaForm.value.medicoTratante || 'Tratante'}`
+  guardiasService.actualizarEstatusCama(cama.id, 'ocupada', cama.pacienteInfo, preasignacionCamaForm.value.servicio || cama.servicio)
+
+  if (preasignacionCamaForm.value.solicitudSeleccionada) {
+    guardiasService.removerSolicitudCama(preasignacionCamaForm.value.solicitudSeleccionada)
+    cargarSolicitudesCama()
+  }
+
+  mostrarAlerta(`Cama ${cama.nombre} asignada con éxito a ${nombrePaciente}. Notificación enviada a la estación de enfermería de ${preasignacionCamaForm.value.servicio || cama.servicio || 'Hospitalización'}.`)
+  preasignacionCamaForm.value.solicitudSeleccionada = ''
 }
 
 const reportarLimpiezaCama = () => {
   if (!fichaCamaSeleccionada.value) return
   fichaCamaSeleccionada.value.estatus = 'higienizacion'
   fichaCamaSeleccionada.value.pacienteInfo = 'Solicitud de sanitización enviada a Intendencia'
+  guardiasService.actualizarEstatusCama(fichaCamaSeleccionada.value.id, 'higienizacion', fichaCamaSeleccionada.value.pacienteInfo)
   mostrarAlerta(`[INTENDENCIA] Alerta de intendencia despachada para ${fichaCamaSeleccionada.value.nombre}. Prioridad: Higienización estándar.`)
 }
 
@@ -173,7 +272,8 @@ const bloquearCama = () => {
   if (!fichaCamaSeleccionada.value) return
   fichaCamaSeleccionada.value.estatus = 'higienizacion'
   fichaCamaSeleccionada.value.pacienteInfo = 'Bloqueada por mantenimiento preventivo'
-  mostrarAlerta(`� Cama ${fichaCamaSeleccionada.value.nombre} bloqueada temporalmente en censo hospitalario.`)
+  guardiasService.actualizarEstatusCama(fichaCamaSeleccionada.value.id, 'higienizacion', fichaCamaSeleccionada.value.pacienteInfo)
+  mostrarAlerta(`Cama ${fichaCamaSeleccionada.value.nombre} bloqueada temporalmente en censo hospitalario.`)
 }
 </script>
 
@@ -189,17 +289,25 @@ const bloquearCama = () => {
                 <span class="cert-pill cyan">NOM-024 / NOM-016-SSA3-2012</span>
               </div>
               <h2>Censo Hospitalario y Tablero de Gestión de Camas</h2>
-              <p>Monitoreo sincronizado en tiempo real entre Estaciones de Enfermería, Quirófanos Centrales y Sistema de Admisión Hospitalaria.</p>
+              <p>Monitoreo sincronizado en tiempo Áreal entre Estaciones de Enfermería, Quirófanos Centrales y Sistema de Admisión Hospitalaria.</p>
             </div>
 
             <div class="banner-right-kpis-row">
               <button 
                 type="button" 
-                class="btn-demo-slot"
-                @click="alternarDemoCenso"
-                title="Cargar datos de pre-asignación demo"
+                class="btn-action-primary"
+                @click="abrirModalRegistroCama()"
+                title="Registrar una nueva cama o box en el tablero"
               >
-                {{ preasignacionCamaForm.solicitudSeleccionada ? 'Vaciar Datos' : 'Cargar Demo' }}
+                + Registrar Cama / Box
+              </button>
+              <button 
+                type="button" 
+                class="btn-demo-slot"
+                @click="liberarTodasLasCamas"
+                title="Restablecer todas las camas a estado disponible"
+              >
+                Liberar Todas
               </button>
               <button type="button" class="btn-export-censo" @click="mostrarAlerta('Generando censo hospitalario consolidado en formato Excel / PDF...')">
                 <svg viewBox="0 0 24 24" class="svg-inline-chart" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> Exportar Censo Diario
@@ -210,7 +318,7 @@ const bloquearCama = () => {
             </div>
           </div>
 
-          <!-- Filtro de Pisos y Áreas -->
+          <!-- Filtro de Pisos y ÁÁreas -->
           <div class="censo-floors-filter-bar">
             <div class="floors-tab-chips">
               <button 
@@ -218,35 +326,35 @@ const bloquearCama = () => {
                 :class="['floor-chip-btn', { active: filtroPisoCenso === 'todos' }]"
                 @click="filtroPisoCenso = 'todos'"
               >
-                Todos los Pisos (106 Camas)
+                Todos los Pisos ({{ totalCamas }} Posiciones)
               </button>
               <button 
                 type="button" 
                 :class="['floor-chip-btn', { active: filtroPisoCenso === 'P1' }]"
                 @click="filtroPisoCenso = 'P1'"
               >
-                P1: Urgencias (18 Boxes)
+                P1: Urgencias ({{ camasFiltradasPorPiso('P1').length }} Boxes)
               </button>
               <button 
                 type="button" 
                 :class="['floor-chip-btn', { active: filtroPisoCenso === 'P2' }]"
                 @click="filtroPisoCenso = 'P2'"
               >
-                P2: Hospitalización Adultos (40 Camas)
+                P2: Hospitalización ({{ camasFiltradasPorPiso('P2').length }} Camas)
               </button>
               <button 
                 type="button" 
                 :class="['floor-chip-btn', { active: filtroPisoCenso === 'P3' }]"
                 @click="filtroPisoCenso = 'P3'"
               >
-                P3: Materno / Pediatría (28 Camas)
+                P3: Pediatría y Gineco ({{ camasFiltradasPorPiso('P3').length }} Camas)
               </button>
               <button 
                 type="button" 
                 :class="['floor-chip-btn', { active: filtroPisoCenso === 'QX' }]"
                 @click="filtroPisoCenso = 'QX'"
               >
-                Quirófanos Centrales (5 Salas)
+                Quirófanos Centrales ({{ camasFiltradasPorPiso('QX').length }} Salas)
               </button>
             </div>
           </div>
@@ -256,25 +364,25 @@ const bloquearCama = () => {
             
             <div class="kpi-card censo-metric">
               <span class="kpi-label">CAMAS CENSABLES</span>
-              <strong class="kpi-value text-blue">106 Totales</strong>
-              <small class="kpi-sub">82 en estancia activa (77.3% Ocupación)</small>
+              <strong class="kpi-value text-blue">{{ totalCamas }} Totales</strong>
+              <small class="kpi-sub">{{ camasOcupadas.length }} en estancia activa ({{ totalCamas > 0 ? Math.round((camasOcupadas.length / totalCamas) * 100) : 0 }}% Ocupación)</small>
             </div>
 
             <div class="kpi-card censo-metric">
               <span class="kpi-label">DISPONIBLES INMEDIATAS</span>
-              <strong class="kpi-value text-cyan">24 Libres listas</strong>
-              <small class="kpi-sub">Pre-asignadas en cola: 5 en proceso</small>
+              <strong class="kpi-value text-cyan">{{ camasDisponibles.length }} Libres listas</strong>
+              <small class="kpi-sub">Pre-asignadas en cola: {{ camasReservadas.length }} en proceso</small>
             </div>
 
             <div class="kpi-card censo-metric">
               <span class="kpi-label">EN DESINFECCIÓN</span>
-              <strong class="kpi-value text-orange">06 Camas aisladas</strong>
+              <strong class="kpi-value text-orange">{{ camasHigienizacion.length }} En higienización</strong>
               <small class="kpi-sub">Tiempo est. liberación: ~20 min prom.</small>
             </div>
 
             <div class="kpi-card censo-metric">
               <span class="kpi-label">QUIRÓFANOS CENTRALES</span>
-              <strong class="kpi-value text-purple">3 / 5 Disponibles</strong>
+              <strong class="kpi-value text-purple">{{ quirofanosDisponibles }} / {{ quirofanosTotal }} Disponibles</strong>
               <small class="kpi-sub">Salas en cirugía: 2 en curso</small>
             </div>
 
@@ -310,10 +418,10 @@ const bloquearCama = () => {
                     <span class="floor-badge p1">P1</span>
                     <div>
                       <h4>Piso 1 · Urgencias Médicas, Triage y Sala de Choque</h4>
-                      <small>18 Boxes censables · 6 Libres · 1 En Higienización · 1 Reservado</small>
+                      <small>{{ resumenTextoPiso('P1') }}</small>
                     </div>
                   </div>
-                  <span class="floor-rate">66.7% Ocupado</span>
+                  <span class="floor-rate">{{ tasaOcupacionPiso('P1') }}</span>
                 </div>
 
                 <div class="beds-matrix-grid">
@@ -340,10 +448,10 @@ const bloquearCama = () => {
                     <span class="floor-badge p2">P2</span>
                     <div>
                       <h4>Piso 2 · Hospitalización Adultos (Cirugía y Medicina Interna)</h4>
-                      <small>40 Camas censables · 14 Libres · 2 En Higienización · 1 Reservada</small>
+                      <small>{{ resumenTextoPiso('P2') }}</small>
                     </div>
                   </div>
-                  <span class="floor-rate">72.5% Ocupado</span>
+                  <span class="floor-rate">{{ tasaOcupacionPiso('P2') }}</span>
                 </div>
 
                 <div class="beds-matrix-grid">
@@ -370,10 +478,10 @@ const bloquearCama = () => {
                     <span class="floor-badge p3">P3</span>
                     <div>
                       <h4>Piso 3 · Pediatría, Cunas y Ginecoobstetricia</h4>
-                      <small>28 Camas censables · 10 Libres · Cunas Térmicas e Incubadoras activas</small>
+                      <small>{{ resumenTextoPiso('P3') }}</small>
                     </div>
                   </div>
-                  <span class="floor-rate">64.3% Ocupado</span>
+                  <span class="floor-rate">{{ tasaOcupacionPiso('P3') }}</span>
                 </div>
 
                 <div class="beds-matrix-grid">
@@ -399,11 +507,11 @@ const bloquearCama = () => {
                   <div class="floor-title-info">
                     <span class="floor-badge qx">QX</span>
                     <div>
-                      <h4>Área Quirúrgica Central (Salas Q1 a Q5)</h4>
-                      <small>5 Salas de Operación · 3 Disponibles · 2 En Procedimiento Quirúrgico Activo</small>
+                      <h4>Área Quirúrgica Central (Salas QUI)</h4>
+                      <small>{{ resumenTextoPiso('QX') }}</small>
                     </div>
                   </div>
-                  <span class="floor-rate">40% Ocupado</span>
+                  <span class="floor-rate">{{ tasaOcupacionPiso('QX') }}</span>
                 </div>
 
                 <div class="beds-matrix-grid">
@@ -535,7 +643,7 @@ const bloquearCama = () => {
                     :key="idx"
                     class="bed-request-item"
                     :class="{ selected: preasignacionCamaForm.solicitudSeleccionada === sol.folio }"
-                    @click="preasignacionCamaForm.solicitudSeleccionada = sol.folio; preasignacionCamaForm.servicio = sol.servicio"
+                    @click="seleccionarSolicitud(sol)"
                   >
                     <div class="request-top">
                       <strong>{{ sol.folio }}</strong>
@@ -548,7 +656,7 @@ const bloquearCama = () => {
                           blue: sol.prioridad.includes('Programado')
                         }"
                       >
-                        ● {{ sol.prioridad }}
+                        • {{ sol.prioridad }}
                       </span>
                     </div>
                     <div class="request-patient">{{ sol.paciente }}</div>
@@ -568,7 +676,7 @@ const bloquearCama = () => {
                     <strong>Ficha de Cama: {{ fichaCamaSeleccionada.nombre }}</strong>
                   </div>
                   <span class="bed-status-chip" :class="fichaCamaSeleccionada.estatus">
-                    ● {{ fichaCamaSeleccionada.estatus.toUpperCase() }}
+                    • {{ fichaCamaSeleccionada.estatus.toUpperCase() }}
                   </span>
                 </div>
 
@@ -604,6 +712,48 @@ const bloquearCama = () => {
             </aside>
           </div>
         </div>
+
+    <!-- MODAL REGISTRO DE NUEVA CAMA / BOX -->
+    <div v-if="modalRegistrarCamaAbierto" class="modal-backdrop-custom">
+      <div class="modal-card-custom">
+        <div class="modal-header-custom">
+          <h3>Registrar Nueva Cama o Box en Tablero</h3>
+          <button type="button" class="btn-close-modal" @click="cerrarModalRegistroCama">✕</button>
+        </div>
+        <div class="modal-body-custom">
+          <div class="form-group-item">
+            <label class="field-label-sm">Piso / Zona Hospitalaria</label>
+            <select v-model="formNuevaCama.piso" class="form-select">
+              <option value="P1">Piso 1 · Urgencias y Triage</option>
+              <option value="P2">Piso 2 · Hospitalización Adultos</option>
+              <option value="P3">Piso 3 · Pediatría y Ginecoobstetricia</option>
+              <option value="QX">Bloque Quirúrgico Central QX</option>
+            </select>
+          </div>
+          <div class="form-group-item">
+            <label class="field-label-sm">Código / Identificador (ej. BOX-U09, HAB-204-A, QUI-06)</label>
+            <input type="text" v-model="formNuevaCama.id" placeholder="BOX-U09" class="form-input" />
+          </div>
+          <div class="form-group-item">
+            <label class="field-label-sm">Nombre Mostrado (ej. BOX U-09, HABITACIÓN 204-A)</label>
+            <input type="text" v-model="formNuevaCama.nombre" placeholder="BOX U-09" class="form-input" />
+          </div>
+          <div class="form-group-item">
+            <label class="field-label-sm">Subtítulo / Especialidad (ej. Observación Pediátrica, Cirugía)</label>
+            <input type="text" v-model="formNuevaCama.subtitulo" placeholder="Observación Urgencias" class="form-input" />
+          </div>
+          <div class="form-group-item">
+            <label class="field-label-sm">Servicio Clínico</label>
+            <input type="text" v-model="formNuevaCama.servicio" placeholder="Urgencias" class="form-input" />
+          </div>
+        </div>
+        <div class="modal-footer-custom">
+          <button type="button" class="btn-secondary-custom" @click="cerrarModalRegistroCama">Cancelar</button>
+          <button type="button" class="btn-primary-custom" @click="guardarNuevaCamaDesdeModal">Habilitar Cama en Tablero</button>
+        </div>
+      </div>
+    </div>
+
 </template>
 
 <style scoped>
@@ -1181,6 +1331,230 @@ const bloquearCama = () => {
   font-size: 0.65rem;
   font-weight: 600;
   cursor: pointer;
+}
+
+
+/* FORMULARIO DE PRE-ASIGNACION RAPIDA */
+.assignment-form-body {
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.form-group-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+}
+
+.field-label-sm {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-select,
+.form-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  background-color: #FFFFFF;
+  color: #1E293B;
+  font-size: 0.8rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+
+.form-select:focus,
+.form-input:focus {
+  border-color: #0284C7;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
+.curp-field-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+.field-prefix {
+  position: absolute;
+  left: 0.65rem;
+  display: flex;
+  align-items: center;
+  color: #64748B;
+  pointer-events: none;
+}
+
+.curp-field-wrapper .form-input {
+  padding-left: 2.2rem;
+}
+
+.support-checks-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.45rem;
+  background-color: #F8FAFC;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #E2E8F0;
+}
+
+.check-inline-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+}
+
+.check-inline-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.grid-2-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.btn-action-primary {
+  width: 100%;
+  background-color: #0284C7;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  padding: 0.65rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-action-primary:hover {
+  background-color: #0369A1;
+}
+
+.btn-action-primary:active {
+  transform: scale(0.99);
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+.mt-3 {
+  margin-top: 0.75rem;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+
+/* ESTILOS DEL MODAL DE REGISTRO DE CAMA */
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.modal-card-custom {
+  background: #ffffff;
+  border-radius: 10px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header-custom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header-custom h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.btn-close-modal {
+  background: transparent;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.modal-body-custom {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.modal-footer-custom {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-secondary-custom {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-primary-custom {
+  background: #0284c7;
+  border: none;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-primary-custom:hover {
+  background: #0369a1;
 }
 
 </style>
