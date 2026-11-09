@@ -14,10 +14,21 @@ import AdminUsuariosSection from './components/AdminUsuariosSection.vue'
 import AdminBloqueosSection from './components/AdminBloqueosSection.vue'
 import AdminBitacoraSection from './components/AdminBitacoraSection.vue'
 import AdminDockerSection from './components/AdminDockerSection.vue'
+import AdminZonasSection from './components/AdminZonasSection.vue'
+import adminService from '@/services/adminService'
+import authService from '@/services/authService'
 
 // --- ESTADO PRINCIPAL DE IDENTIDAD ---
-const nombreUsuario = ref('Ing. Roberto Silva')
-const cedulaAdmin = ref('ADM-0014')
+const usuarioAuth = authService.getUsuario()
+const nombreUsuario = ref(usuarioAuth?.nombre_completo || 'Ing. Roberto Silva')
+const cedulaAdmin = ref(usuarioAuth?.id_usuario || 'ADM-001')
+const rolActual = computed(() => (usuarioAuth?.rol || '').toUpperCase())
+const esAdmin = computed(() => rolActual.value === 'ADMINISTRADOR')
+
+const cerrarSesionYLoginAdmin = () => {
+  authService.limpiarSesion()
+  window.location.href = '/'
+}
 
 // --- RELOJ INSTITUCIONAL EN VIVO ---
 const currentDateTimeStr = ref('17 oct 2026 • 10:48 h')
@@ -35,7 +46,7 @@ const updateClock = () => {
 }
 
 // --- PESTAÑA ACTIVA ---
-const activeTab = ref<'usuarios' | 'bloqueos' | 'bitacora' | 'docker'>('usuarios')
+const activeTab = ref<'usuarios' | 'bloqueos' | 'bitacora' | 'docker' | 'zonas'>('usuarios')
 
 // TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/admin/usuarios
 // --- CATÁLOGO DE USUARIOS INICIALES (184 EN TOTAL SIMULADOS, CON 6 REALISTAS EN VISTA) ---
@@ -139,43 +150,8 @@ const usuarios = ref<UsuarioAdmin[]>([
 ])
 
 // TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/admin/bloqueos y POST /api/v1/admin/bloqueos/{id}/desbloquear
-// --- LISTADO DE CUENTAS BLOQUEADAS PRIORITARIAS (2 INICIALES) ---
-const cuentasBloqueadas = ref<CuentaBloqueada[]>([
-  {
-    id: 'bloq-1',
-    id_usuario: 'MED-8831',
-    nombre: 'Dra. Sofía Delgado',
-    iniciales: 'SD',
-    rol: 'Médico Urgenciólogo',
-    servicio: 'Urgencias Box 02',
-    correo: 'urgencias.box02@hospitalvitae.mx',
-    terminal: 'Terminal Urgencias Box 02',
-    ip: '192.168.10.45',
-    hora_bloqueo: '10:15 h',
-    tiempo_transcurrido: 'hace 24 min',
-    intentos_fallidos: 3,
-    motivo_bloqueo: '#ERR-PW-CONSEC',
-    pacientes_en_espera: 4,
-    impacto_clinico: 'ALTO'
-  },
-  {
-    id: 'bloq-2',
-    id_usuario: 'ENF-3012',
-    nombre: 'Enf. Manuel Torres',
-    iniciales: 'MT',
-    rol: 'Enfermero Triage',
-    servicio: 'Triage y Choque',
-    correo: 'enfermeria.triage@hospitalvitae.mx',
-    terminal: 'Estación Triage-01',
-    ip: '192.168.10.15',
-    hora_bloqueo: '09:40 h',
-    tiempo_transcurrido: 'hace 59 min',
-    intentos_fallidos: 3,
-    motivo_bloqueo: 'ORIGEN: Terminal Fija',
-    pacientes_en_espera: 2,
-    impacto_clinico: 'ALTO'
-  }
-])
+// --- LISTADO DE CUENTAS BLOQUEADAS CONECTADO A LA BASE DE DATOS ---
+const cuentasBloqueadas = ref<CuentaBloqueada[]>([])
 
 // TODO: [PENDIENTE-CONEXION-API] Reemplazar mock con endpoint real GET /api/v1/auditoria (NOM-024 / AUDITORIA_I)
 // --- TRAZAS DE AUDITORÍA NOM-024 (TIEMPO REAL) ---
@@ -360,89 +336,261 @@ const telemetria = ref<TelemetriaCluster>({
   red_paquetes_perdidos_pct: 0.00
 })
 
-// --- MANEJADORES DE ACCIÓN ---
-const handleSelectTab = (tab: 'usuarios' | 'bloqueos' | 'bitacora' | 'docker') => {
-  activeTab.value = tab
-}
+// --- CARGA DESDE API DE ADMINISTRACIÓN ---
+const cargarUsuarios = async () => {
+  try {
+    const res = await adminService.listarUsuarios()
+    const lista = res?.data || res || []
+    if (lista.length > 0) {
+      const rolEtiquetas: Record<string, string> = {
+        MEDICO: 'Médico ECE',
+        ENFERMERIA: 'Enfermería Operativa',
+        RECEPCION: 'Admisión / Cajas',
+        LABORATORIO: 'Laboratorio / Imagen',
+        LABORATORISTA: 'Laboratorio / Imagen',
+        ADMINISTRADOR: 'Administrador TI',
+        AUDITOR: 'Auditor de Seguridad'
+      }
 
-const handleCrearUsuario = (nuevo: Partial<UsuarioAdmin>) => {
-  usuarios.value.unshift({
-    id: `usr-${Date.now()}`,
-    nombre_completo: nuevo.nombre_completo || '',
-    iniciales: nuevo.iniciales || 'US',
-    cedula_matricula: nuevo.cedula_matricula || 'S/N',
-    curp: nuevo.curp || '',
-    correo_institucional: nuevo.correo_institucional || '',
-    departamento: nuevo.departamento || 'General',
-    rol: nuevo.rol || 'MEDICO',
-    rol_etiqueta: nuevo.rol_etiqueta || 'Médico ECE',
-    mfa_activo: true,
-    estado: 'ACTIVO',
-    ultimo_acceso_fecha: 'Hoy, Reciente',
-    ultimo_acceso_ip: '10.14.0.1',
-    terminal_origen: 'Consola Central'
-  })
-}
+      usuarios.value = lista.map((u: any) => {
+        const partes = (u.nombre_completo || 'Usuario').split(' ')
+        const ini = partes.length >= 2 && partes[0] && partes[1]
+          ? `${partes[0].charAt(0)}${partes[1].charAt(0)}`.toUpperCase()
+          : 'US'
 
-const handleToggleBloqueo = (id: string) => {
-  const u = usuarios.value.find(user => user.id === id)
-  if (!u) return
-  if (u.estado === 'BLOQUEADO') {
-    u.estado = 'ACTIVO'
-    const idx = cuentasBloqueadas.value.findIndex(cb => cb.id_usuario === u.cedula_matricula || cb.nombre === u.nombre_completo)
-    if (idx !== -1) cuentasBloqueadas.value.splice(idx, 1)
-  } else {
-    u.estado = 'BLOQUEADO'
-    cuentasBloqueadas.value.unshift({
-      id: `bloq-${Date.now()}`,
-      id_usuario: u.cedula_matricula,
-      nombre: u.nombre_completo,
-      iniciales: u.iniciales,
-      rol: u.rol_etiqueta,
-      servicio: u.departamento,
-      correo: u.correo_institucional,
-      terminal: u.terminal_origen,
-      ip: u.ultimo_acceso_ip,
-      hora_bloqueo: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' h',
-      tiempo_transcurrido: 'hace 1 min',
-      intentos_fallidos: 3,
-      motivo_bloqueo: '#MANUAL-ADMIN-LOCK',
-      pacientes_en_espera: 0,
-      impacto_clinico: 'MEDIO'
-    })
+        const rolNorm = u.rol === 'LABORATORISTA' ? 'LABORATORIO' : u.rol
+        const estNorm = u.estado_cuenta === 'ACTIVA' ? 'ACTIVO' : u.estado_cuenta === 'INACTIVA' ? 'INACTIVO' : 'BLOQUEADO'
+
+        return {
+          id: u.id_usuario,
+          nombre_completo: u.nombre_completo,
+          iniciales: ini,
+          cedula_matricula: u.cedula || u.id_usuario,
+          curp: u.id_usuario,
+          correo_institucional: `${u.id_usuario.toLowerCase()}@hospitalvitae.mx`,
+          departamento: rolNorm === 'MEDICO' ? 'Urgencias Adultos' : rolNorm === 'ENFERMERIA' ? 'Triage y Choque' : rolNorm === 'RECEPCION' ? 'Recepción y Cajas' : rolNorm === 'LABORATORIO' ? 'Laboratorio Clínico' : 'Seguridad y Sistemas TI',
+          rol: rolNorm,
+          rol_etiqueta: rolEtiquetas[u.rol] || u.rol,
+          mfa_activo: !!u.mfa_habilitado,
+          estado: estNorm,
+          ultimo_acceso_fecha: u.ultimo_acceso_en ? new Date(u.ultimo_acceso_en).toLocaleString('es-MX') : 'Sin registros recientes',
+          ultimo_acceso_ip: '10.14.0.1',
+          terminal_origen: 'Consola Central',
+          bloqueos_previos: u.intentos_fallidos || 0
+        }
+      })
+
+      // Actualizar cuentas bloqueadas desde el backend si tienen intentos_fallidos >= 3 o estado BLOQUEADA/INACTIVA/BAJA
+      const bloqueados = lista.filter((u: any) => 
+        u.estado_cuenta === 'BLOQUEADA' || 
+        u.estado_cuenta === 'INACTIVA' || 
+        u.estado_cuenta === 'BAJA' || 
+        (u.intentos_fallidos && u.intentos_fallidos >= 3)
+      )
+
+      cuentasBloqueadas.value = bloqueados.map((u: any) => {
+        const partes = (u.nombre_completo || 'Usuario').split(' ')
+        const ini = partes.length >= 2 && partes[0] && partes[1]
+          ? `${partes[0].charAt(0)}${partes[1].charAt(0)}`.toUpperCase()
+          : 'US'
+
+        const rolDesc = rolEtiquetas[u.rol] || u.rol
+        const esBaja = u.estado_cuenta === 'BAJA' || u.estado_cuenta === 'INACTIVA'
+
+        return {
+          id: `bloq-${u.id_usuario}`,
+          id_usuario: u.id_usuario,
+          nombre: u.nombre_completo,
+          iniciales: ini,
+          rol: rolDesc,
+          servicio: u.rol === 'MEDICO' ? 'Urgencias Box' : u.rol === 'ENFERMERIA' ? 'Triage y Choque' : 'Servicios Hospitalarios',
+          correo: `${u.id_usuario.toLowerCase()}@hospitalvitae.mx`,
+          terminal: 'Terminal Hospitalaria',
+          ip: '10.14.0.1',
+          hora_bloqueo: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' h',
+          tiempo_transcurrido: 'Reciente',
+          intentos_fallidos: u.intentos_fallidos || 3,
+          motivo_bloqueo: esBaja ? 'Baja Administrativa' : '#ERR-PW-CONSEC (Bloqueada)',
+          pacientes_en_espera: 0,
+          impacto_clinico: u.rol === 'MEDICO' ? 'ALTO' : 'MEDIO'
+        }
+      })
+    }
+  } catch (err) {
+    console.warn('Uso de catálogo de contingencia en frontend', err)
   }
 }
 
-const handleResetPassword = (u: UsuarioAdmin) => {
-  alert(`Se han regenerado las credenciales provisionales para ${u.nombre_completo}. Enlace criptográfico despachado a ${u.correo_institucional}.`)
+const cargarBitacora = async (pagina = 1) => {
+  try {
+    const res = await adminService.obtenerBitacora({ per_page: 50, page: pagina })
+    const logs = Array.isArray(res) ? res : (res?.data || [])
+    if (logs.length > 0) {
+      // Ordenar estrictamente descendente: del más nuevo al más antiguo
+      const ordenados = [...logs].sort((a: any, b: any) => {
+        const timeDiff = new Date(b.fecha_hora).getTime() - new Date(a.fecha_hora).getTime()
+        if (timeDiff !== 0) return timeDiff
+        return (b.id_auditoria || 0) - (a.id_auditoria || 0)
+      })
+
+      trazas.value = ordenados.map((l: any) => {
+        const fecha = new Date(l.fecha_hora)
+        const fechaFormateada = !isNaN(fecha.getTime())
+          ? fecha.toLocaleString('es-MX', { 
+              day: '2-digit', 
+              month: 'short', 
+              year: 'numeric',
+              hour: '2-digit', 
+              minute: '2-digit', 
+              second: '2-digit', 
+              hour12: false 
+            }) + ' UTC'
+          : l.fecha_hora
+
+        return {
+          id: `tr-${l.id_auditoria}`,
+          timestamp_ntp: fechaFormateada,
+          usuario_nombre: l.id_usuario || 'SISTEMA',
+          usuario_id: l.id_usuario || 'SYS',
+          usuario_rol: l.id_usuario?.startsWith('MED') ? 'Médico' : l.id_usuario?.startsWith('ENF') ? 'Enfermería' : l.id_usuario?.startsWith('ADM') ? 'Admin Sistemas' : 'Operativo',
+          ip_origen: l.direccion_ip || '127.0.0.1',
+          mac_address: '4A:60:B2:1A',
+          terminal: l.modulo || 'Terminal Hospitalaria',
+          accion: `${l.tipo_movimiento} en ${l.tabla_afectada}`,
+          recurso_disociado: l.registro_id || 'REGISTRO',
+          resultado_codigo: l.resultado === 'EXITOSO' ? 200 : 403,
+          resultado_etiqueta: l.resultado === 'EXITOSO' ? '200 OK' : '403 Rechazado',
+          hash_sha256: l.hash_sha256 || '0000000000000000000000000000000000000000000000000000000000000000',
+          jwt_token_preview: 'SHA-256 Encadenado (Inalterable)'
+        }
+      })
+    }
+  } catch (err) {
+    console.warn('Uso de bitácora de contingencia', err)
+  }
 }
 
-const handleDesbloquearCuenta = (payload: { id: string; motivo: string; medida: string }) => {
-  const index = cuentasBloqueadas.value.findIndex(c => c.id === payload.id)
-  if (index !== -1) {
-    const cuenta = cuentasBloqueadas.value[index]
-    if (!cuenta) return
-    const u = usuarios.value.find(user => user.nombre_completo.includes(cuenta.nombre) || user.cedula_matricula === cuenta.id_usuario)
-    if (u) u.estado = 'ACTIVO'
-    cuentasBloqueadas.value.splice(index, 1)
+const cargarSalud = async () => {
+  try {
+    const salud = await adminService.obtenerSalud()
+    const dbContainer = contenedores.value.find(c => c.id === 'c-2' || c.nombre.includes('postgres') || c.nombre.includes('db'))
+    if (dbContainer) {
+      dbContainer.estado = salud.database === 'CONNECTED' ? 'SALUDABLE' : 'DEGRADADO'
+      dbContainer.latencia_rtt = salud.database === 'CONNECTED' ? '2ms RTT (Live)' : 'Sin conexión'
+    }
+    const apiContainer = contenedores.value.find(c => c.id === 'c-1' || c.nombre.includes('vite') || c.nombre.includes('ui'))
+    if (apiContainer) {
+      apiContainer.estado = salud.status === 'UP' ? 'ONLINE' : 'DEGRADADO'
+      apiContainer.latencia_rtt = salud.status === 'UP' ? '18ms RTT (Live)' : 'Sin conexión'
+    }
+  } catch (err) {
+    console.warn('Error al verificar salud del clúster', err)
+  }
+}
 
-    // Asentar en bitácora
-    trazas.value.unshift({
-      id: `tr-${Date.now()}`,
-      timestamp_ntp: `${new Date().toLocaleTimeString()} UTC-6`,
-      usuario_nombre: 'Ing. Roberto Silva',
-      usuario_id: 'ADM-0014',
-      usuario_rol: 'Admin Sistemas',
-      ip_origen: '192.168.1.100',
-      mac_address: '18:50:39:40',
-      terminal: 'Consola SysAdmin',
-      accion: 'Desbloqueo Cuenta',
-      recurso_disociado: cuenta.id_usuario,
-      resultado_codigo: 200,
-      resultado_etiqueta: '200 OK',
-      hash_sha256: 'a9821ef3901ba8721ef65a1209b019348102a0029341188219921ef4501239aa',
-      jwt_token_preview: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+// --- MANEJADORES DE ACCIÓN ---
+const handleSelectTab = (tab: 'usuarios' | 'bloqueos' | 'bitacora' | 'docker' | 'zonas') => {
+  activeTab.value = tab
+}
+
+const handleCrearUsuario = async (nuevo: Partial<UsuarioAdmin> & { password?: string; id_usuario?: string }) => {
+  try {
+    const rolBackend = nuevo.rol === 'LABORATORIO' ? 'LABORATORISTA' : (nuevo.rol || 'MEDICO')
+    const payload = {
+      id_usuario: nuevo.id_usuario ? nuevo.id_usuario : undefined,
+      nombre_completo: nuevo.nombre_completo || 'Usuario Nuevo',
+      rol: rolBackend,
+      password: nuevo.password || 'password123',
+      cedula: nuevo.cedula_matricula && nuevo.cedula_matricula !== 'S/N' ? nuevo.cedula_matricula : undefined
+    }
+
+    const creado = await adminService.crearUsuario(payload)
+    const idAsignado = creado?.id_usuario || nuevo.id_usuario || 'ASIGNADO'
+    alert(`Usuario ${nuevo.nombre_completo} creado exitosamente.\n\nIdentificador institucional asignado: ${idAsignado}\nRol: ${rolBackend}\nContraseña provisional emitida.`)
+    await cargarUsuarios()
+    await cargarBitacora()
+  } catch (err: any) {
+    alert('Error al registrar usuario: ' + (err?.response?.data?.message || err.message))
+  }
+}
+
+const handleToggleBloqueo = async (id: string) => {
+  const u = usuarios.value.find(user => user.id === id)
+  if (!u) return
+  try {
+    if (u.estado === 'ACTIVO') {
+      await adminService.bloquearUsuario(id)
+      alert(`Usuario ${u.nombre_completo} (${id}) ha sido BLOQUEADO preventivamente. Sus sesiones fueron revocadas y ahora aparece en el Centro de Reactivación de Cuentas.`)
+    } else {
+      await adminService.reactivarUsuario(id)
+      alert(`Usuario ${u.nombre_completo} (${id}) ha sido DESBLOQUEADO y reactivado exitosamente.`)
+    }
+    await cargarUsuarios()
+    await cargarBitacora()
+  } catch (err: any) {
+    alert('Error al modificar estatus de usuario: ' + (err?.response?.data?.message || err.message))
+  }
+}
+
+const handleResetPassword = async (u: UsuarioAdmin) => {
+  try {
+    const res = await adminService.resetPassword(u.id)
+    const passGen = res?.data?.password_provisional || 'Vitae.2026!'
+    alert(`Credenciales provisionales generadas para ${u.nombre_completo} (${u.id}).\n\nNueva contraseña temporal: ${passGen}\nSe restableció el contador de intentos fallidos.`)
+    await cargarUsuarios()
+    await cargarBitacora()
+  } catch (err: any) {
+    alert('Error al resetear credenciales: ' + (err?.response?.data?.message || err.message))
+  }
+}
+
+const handleActualizarUsuario = async (payload: {
+  id: string
+  nombre_completo: string
+  rol: string
+  cedula?: string | null
+  departamento?: string
+  estado_cuenta?: string
+  password?: string
+}) => {
+  try {
+    const rolBackend = payload.rol === 'LABORATORIO' ? 'LABORATORISTA' : payload.rol
+    await adminService.actualizarUsuario(payload.id, {
+      nombre_completo: payload.nombre_completo,
+      rol: rolBackend,
+      cedula: payload.cedula,
+      estado_cuenta: payload.estado_cuenta,
+      password: payload.password
     })
+    alert(`Usuario ${payload.nombre_completo} (${payload.id}) actualizado exitosamente en el sistema.`)
+    await cargarUsuarios()
+    await cargarBitacora()
+  } catch (err: any) {
+    alert('Error al actualizar usuario: ' + (err?.response?.data?.message || err.message))
+  }
+}
+
+const handleEliminarUsuario = async (id: string) => {
+  try {
+    await adminService.eliminarUsuario(id)
+    alert(`Usuario ${id} dado de baja exitosamente. Sesiones revocadas conforme a la NOM-024.`)
+    await cargarUsuarios()
+    await cargarBitacora()
+  } catch (err: any) {
+    alert('Error al dar de baja usuario: ' + (err?.response?.data?.message || err.message))
+  }
+}
+
+const handleDesbloquearCuenta = async (payload: { id: string; motivo: string; medida: string }) => {
+  const cuenta = cuentasBloqueadas.value.find(c => c.id === payload.id)
+  const idUsuario = cuenta?.id_usuario || payload.id.replace('bloq-', '')
+  try {
+    await adminService.reactivarUsuario(idUsuario)
+    alert(`Cuenta de usuario ${idUsuario} desbloqueada exitosamente. Intentos fallidos restablecidos a 0.`)
+    await cargarUsuarios()
+    await cargarBitacora()
+  } catch (err: any) {
+    alert('Error al desbloquear cuenta: ' + (err?.response?.data?.message || err.message))
   }
 }
 
@@ -462,6 +610,9 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
     } else if (key === 's') {
       e.preventDefault()
       activeTab.value = 'docker'
+    } else if (key === 'z') {
+      e.preventDefault()
+      activeTab.value = 'zonas'
     }
   }
 }
@@ -470,6 +621,9 @@ onMounted(() => {
   updateClock()
   clockInterval = window.setInterval(updateClock, 30000)
   window.addEventListener('keydown', handleGlobalKeydown)
+  cargarUsuarios()
+  cargarBitacora()
+  cargarSalud()
 })
 
 onUnmounted(() => {
@@ -491,6 +645,17 @@ onUnmounted(() => {
       @ir-bloqueos="activeTab = 'bloqueos'"
     />
 
+    <!-- AVISO DE SESIÓN CUANDO NO ES ADMIN -->
+    <div v-if="!esAdmin" class="session-warning-banner">
+      <div class="warning-text">
+        <strong>Atención de Control de Acceso (RBAC):</strong>
+        <span>Has iniciado sesión como {{ nombreUsuario }} con rol institucional <b>{{ rolActual }}</b>. Las operaciones de administración (bloquear cuentas, reactivar, editar y crear colaboradores) requieren sesión de ADMINISTRADOR.</span>
+      </div>
+      <button type="button" class="btn-switch-admin" @click="cerrarSesionYLoginAdmin">
+        Iniciar Sesión como ADM-001
+      </button>
+    </div>
+
     <!-- 2. LAYOUT PRINCIPAL: SIDEBAR + MAIN WORKSPACE -->
     <div class="admin-main-layout">
       <!-- SIDEBAR -->
@@ -508,6 +673,8 @@ onUnmounted(() => {
           v-if="activeTab === 'usuarios'"
           :usuarios="usuarios"
           @crear-usuario="handleCrearUsuario"
+          @actualizar-usuario="handleActualizarUsuario"
+          @eliminar-usuario="handleEliminarUsuario"
           @toggle-bloqueo="handleToggleBloqueo"
           @reset-password="handleResetPassword"
         />
@@ -531,6 +698,12 @@ onUnmounted(() => {
           v-else-if="activeTab === 'docker'"
           :contenedores="contenedores"
           :telemetria="telemetria"
+          @actualizar="cargarSalud"
+        />
+
+        <!-- PANTALLA 5: ASIGNACIÓN DE GUARDIAS Y ZONAS (Alt+Z) -->
+        <AdminZonasSection
+          v-else-if="activeTab === 'zonas'"
         />
       </main>
     </div>
@@ -557,5 +730,46 @@ onUnmounted(() => {
   padding: 1.25rem 1.5rem;
   overflow-y: auto;
   box-sizing: border-box;
+}
+
+.session-warning-banner {
+  background-color: #fef2f2;
+  border-bottom: 2px solid #ef4444;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.warning-text {
+  font-size: 0.82rem;
+  color: #991b1b;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.warning-text code {
+  background-color: #fee2e2;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  font-weight: 700;
+}
+
+.btn-switch-admin {
+  background-color: #dc2626;
+  color: #ffffff;
+  border: none;
+  padding: 0.45rem 0.85rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-switch-admin:hover {
+  background-color: #b91c1c;
 }
 </style>

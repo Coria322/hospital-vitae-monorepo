@@ -99,7 +99,7 @@ class ColaUrgenciasService
                 'desviacion_minutos' => $slaVencido ? abs($minutosRestantesSla) : 0,
                 'estado_atencion' => $t->estado_atencion,
                 'id_sala' => $t->id_sala,
-                'sala_nombre' => $t->sala?->nombre,
+                'sala_nombre' => $t->sala?->nombre ?? ($t->estado_atencion === 'EN_ATENCION' ? 'Consultorio / Box Médico' : null),
                 'signos' => [
                     'presion_art' => $t->presion_art,
                     'frecuencia_card' => $t->frecuencia_card,

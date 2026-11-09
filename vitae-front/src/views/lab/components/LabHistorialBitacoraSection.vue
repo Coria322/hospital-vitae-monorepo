@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { LabKPIs } from '../types'
 
 const props = defineProps<{
   kpis: LabKPIs
+  historialEstudios?: any[]
 }>()
 
 const filtroSubtipo = ref('TODOS')
@@ -11,6 +12,23 @@ const filtroEstado = ref('NOTIFICADO')
 const terminoBusqueda = ref('')
 const selectedRowFolio = ref('EST-2026-9039')
 const modalNotice = ref('')
+
+
+const todasLasFilas = computed(() => {
+  const listaDinamica = props.historialEstudios || []
+  let lista = [...listaDinamica, ...bitacoraRows]
+  if (terminoBusqueda.value.trim()) {
+    const q = terminoBusqueda.value.toLowerCase().trim()
+    lista = lista.filter(r => 
+      r.folio.toLowerCase().includes(q) ||
+      r.paciente.toLowerCase().includes(q) ||
+      (r.paciente_nombre && r.paciente_nombre.toLowerCase().includes(q)) ||
+      r.estudio.toLowerCase().includes(q) ||
+      r.medico.toLowerCase().includes(q)
+    )
+  }
+  return lista
+})
 
 const bitacoraRows = [
   {
@@ -384,7 +402,7 @@ const handleGuardia = () => {
             </thead>
             <tbody>
               <tr
-                v-for="row in bitacoraRows"
+                v-for="row in todasLasFilas"
                 :key="row.folio"
                 :class="{ active: selectedRowFolio === row.folio }"
                 @click="selectedRowFolio = row.folio"

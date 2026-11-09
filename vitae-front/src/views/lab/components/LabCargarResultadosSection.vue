@@ -7,7 +7,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'guardar-resultado', payload: { folio: string; archivo: ArchivoResultado; observaciones: string }): void
+  (e: 'guardar-resultado', payload: { folio: string; archivo: ArchivoResultado; observaciones: string; rawFile?: File }): void
   (e: 'rechazar-muestra', payload: { folio: string; motivo: string }): void
 }>()
 
@@ -23,6 +23,25 @@ const formatoTab = ref<'PDF' | 'DICOM' | 'IMG'>('PDF')
 const isDragging = ref(false)
 const notificationSuccess = ref('')
 const errorMessage = ref('')
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const rawSelectedFile = ref<File | null>(null)
+
+const handleFileSelected = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files[0]) {
+    const file = target.files[0]
+    rawSelectedFile.value = file
+    const sizeMb = (file.size / (1024 * 1024)).toFixed(2)
+    stagedFiles.value = [
+      {
+        name: file.name,
+        size: `${sizeMb} MB`,
+        hash: 'SHA-256 Calculado al sellar',
+        type: file.name.toLowerCase().endsWith('.pdf') ? 'PDF' : (file.name.toLowerCase().endsWith('.dcm') ? 'DICOM' : 'IMG')
+      }
+    ]
+  }
+}
 
 // Archivos cargados en cola
 const stagedFiles = ref<Array<{ name: string; size: string; hash: string; type: string }>>([
@@ -94,7 +113,8 @@ const handleFirmarYNotificar = () => {
       firmado_por: 'Q.F.B. Mariana Téllez Morales',
       ack_hl7: 'HL7 v2.5.1 ORU^R01 ACK_AA 200 OK'
     },
-    observaciones: observaciones.value
+    observaciones: observaciones.value,
+    rawFile: rawSelectedFile.value || undefined
   })
 
   setTimeout(() => {
@@ -345,7 +365,14 @@ const handleRechazo = () => {
               </p>
 
               <div class="dropzone-actions">
-                <button type="button" class="btn-browse">
+                <input
+                  ref="fileInputRef"
+                  type="file"
+                  style="display: none;"
+                  accept=".pdf,.dcm,.png,.jpg,.jpeg,.txt"
+                  @change="handleFileSelected"
+                />
+                <button type="button" class="btn-browse" @click="fileInputRef?.click()">
                   <svg viewBox="0 0 24 24" class="btn-svg-sm" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
                   </svg>

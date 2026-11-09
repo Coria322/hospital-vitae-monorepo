@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
+import api from '@/services/api'
+import authService from '@/services/authService'
 
 type SeccionRecepcion = 'curp' | 'registrar' | 'agendar' | 'consentimiento' | 'monitor' | 'censo'
 
@@ -32,36 +34,40 @@ const mostrarAlerta = (mensaje: string) => {
 }
 
 // =========================================================================
-// PANTALLA 4: GESTIÓN DE CONSENTIMIENTOS INFORMADOS (CONFORME A CAPTURA ORIGINAL)
+// PANTALLA 4: GESTIÓN DE CONSENTIMIENTOS INFORMADOS (INICIA VACÍA)
 // =========================================================================
 const consentimientoForm = ref({
-  curpBusqueda: 'ALMN880415HDFRRL09',
-  pacienteVinculado: {
-    nombre: 'Martínez Álvarez, Marco Ant...',
-    edad: 36,
-    sexo: 'Masculino',
-    curp: 'ALMN880415HDFRRL09',
-    folio: 'Folio: ADM-2026-8812',
-    cama: 'Cama Asignada: 304-B (Medicina Interna)',
-    regimen: 'IMSS Ordinario Activo'
-  },
-  nombreOtorgante: 'Elena García Rivas',
-  parentesco: 'Cónyuge',
+  curpBusqueda: '',
+  pacienteVinculado: null as {
+    id_paciente: string
+    nombre: string
+    edad: number
+    sexo: string
+    curp: string
+    folio: string
+    cama: string
+    regimen: string
+  } | null,
+  nombreOtorgante: '',
+  parentesco: '',
   identificacionOficial: 'INE / Credencial Elector',
-  folioIdentificacion: 'IDMEX1984329412<<8829',
-  telefonoCelular: '+52 55 4910 2094',
-  correoNotificacion: 'elena.garcia@email.com',
+  folioIdentificacion: '',
+  telefonoCelular: '',
+  correoNotificacion: '',
   documentoSeleccionado: 'admision' as 'admision' | 'privacidad' | 'procedimientos' | 'informados',
-  declaracionAceptada: true,
-  trazoFirmado: true,
-  huellaRegistrada: true
+  declaracionAceptada: false,
+  trazoFirmado: false,
+  huellaRegistrada: false
 })
+
+const guardandoConsentimiento = ref(false)
 
 const sincronizarPacienteConsentimiento = () => {
   if (props.pacienteSeleccionado) {
     const p = props.pacienteSeleccionado
     consentimientoForm.value.curpBusqueda = p.curp || consentimientoForm.value.curpBusqueda
     consentimientoForm.value.pacienteVinculado = {
+      id_paciente: p.id_paciente || '',
       nombre: p.nombreCompleto || p.nombre || 'Paciente Seleccionado',
       edad: p.edad || 36,
       sexo: p.sexo || 'No especificado',
@@ -70,35 +76,75 @@ const sincronizarPacienteConsentimiento = () => {
       cama: 'Cama Asignada: 304-B (Admisión)',
       regimen: p.regimen || 'IMSS Ordinario Activo'
     }
+    if (p.id_paciente) {
+      cargarHistorialConsentimientos(p.id_paciente)
+    }
   }
 }
 
 watch(() => props.pacienteSeleccionado, () => sincronizarPacienteConsentimiento())
 onMounted(() => sincronizarPacienteConsentimiento())
 
-const historialConsentimientosExpediente = ref([
-  { documento: 'Aviso Privacidad Integral', fecha: '17/Oct/2026', estado: 'Vigente', hash: '0e4f...b781a' },
-  { documento: 'Consentimiento Quirúrgico (Previo)', fecha: '14/Mar/2025', estado: 'Archivado', hash: '4b20...a810f' },
-  { documento: 'Transfusión Sanguínea', fecha: '14/Mar/2025', estado: 'Archivado', hash: '1c09...03d2e' }
-])
+const historialConsentimientosExpediente = ref<Array<{
+  documento: string
+  fecha: string
+  estado: string
+  hash: string
+}>>([])
 
-const buscarPacienteParaConsentimiento = () => {
-  if (!consentimientoForm.value.curpBusqueda) {
-    mostrarAlerta('Ingrese la CURP o Folio de Ingreso Clínico.')
-    return
-  }
-  consentimientoForm.value.pacienteVinculado = {
-    nombre: 'Martínez Álvarez, Marco Ant...',
-    edad: 36,
-    sexo: 'Masculino',
-    curp: consentimientoForm.value.curpBusqueda.toUpperCase(),
-    folio: 'Folio: ADM-2026-8812',
-    cama: 'Cama Asignada: 304-B (Medicina Interna)',
-    regimen: 'IMSS Ordinario Activo'
+const cargarHistorialConsentimientos = async (idPaciente: string) => {
+  if (!idPaciente) return
+  try {
+    const res = await api.get('/consentimientos', { params: { id_paciente: idPaciente } })
+    const lista = res.data?.data || []
+    if (Array.isArray(lista) && lista.length > 0) {
+      historialConsentimientosExpediente.value = lista.map((c: any) => ({
+        documento: c.tipo || 'Consentimiento Informado',
+        fecha: c.created_at ? new Date(c.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Reciente',
+        estado: c.revocado ? 'Revocado' : 'Vigente',
+        hash: c.hash_sha256 ? `${c.hash_sha256.substring(0, 8)}...${c.hash_sha256.substring(c.hash_sha256.length - 5)}` : 'Sellado SHA-256'
+      }))
+    }
+  } catch (error) {
+    console.warn('Aviso al cargar historial de consentimientos:', error)
   }
 }
 
-const guardarConsentimientoLegal = () => {
+const buscarPacienteParaConsentimiento = async () => {
+  const termino = consentimientoForm.value.curpBusqueda?.trim().toUpperCase()
+  if (!termino) {
+    mostrarAlerta('Ingrese la CURP o Folio de Ingreso Clínico.')
+    return
+  }
+  try {
+    const res = await api.get('/pacientes', { params: { q: termino } })
+    const lista = res.data?.data?.data || res.data?.data || []
+    if (Array.isArray(lista) && lista.length > 0) {
+      const p = lista[0]
+      consentimientoForm.value.pacienteVinculado = {
+        id_paciente: p.id_paciente,
+        nombre: p.nombre_completo,
+        edad: 36,
+        sexo: p.sexo || 'No especificado',
+        curp: p.curp || termino,
+        folio: p.folio_urgencias || `EXP-${p.id_paciente ? String(p.id_paciente).substring(0, 8) : '2026'}`,
+        cama: 'Cama Asignada: 304-B (Medicina Interna)',
+        regimen: p.seguro_activo ? 'IMSS Ordinario Activo' : 'Sin Póliza Activa'
+      }
+      if (p.id_paciente) {
+        cargarHistorialConsentimientos(p.id_paciente)
+      }
+      mostrarAlerta(`Paciente localizado: ${p.nombre_completo}. Expediente vinculado para formalización legal.`)
+    } else {
+      mostrarAlerta(`No se localizó ningún paciente con el criterio "${termino}". Verifique la clave ingresada.`)
+    }
+  } catch (err) {
+    console.error('Error buscando paciente para consentimiento:', err)
+    mostrarAlerta('Error al consultar el paciente en el servidor.')
+  }
+}
+
+const guardarConsentimientoLegal = async () => {
   if (!consentimientoForm.value.pacienteVinculado) {
     mostrarAlerta('Debe vincular un paciente antes de formalizar el documento legal.')
     return
@@ -111,7 +157,59 @@ const guardarConsentimientoLegal = () => {
     mostrarAlerta('Debe marcar la casilla de aceptación bajo protesta de decir verdad.')
     return
   }
-  mostrarAlerta('<svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Consentimiento formalizado con sellado de tiempo criptográfico SHA-256 e incorporado al expediente clínico institucional.')
+
+  const tiposMap: Record<string, string> = {
+    admision: 'ADMISIÓN HOSPITALARIA',
+    privacidad: 'AVISO DE PRIVACIDAD INTEGRAL',
+    procedimientos: 'PROCEDIMIENTOS INVASIVOS',
+    informados: 'CONSENTIMIENTO INFORMADO GENERAL'
+  }
+
+  const tipoDocumento = tiposMap[consentimientoForm.value.documentoSeleccionado] || 'ADMISIÓN HOSPITALARIA'
+  const idPaciente = consentimientoForm.value.pacienteVinculado.id_paciente
+
+  if (!idPaciente) {
+    // Si no tiene UUID de paciente vinculado en BD, informar amablemente
+    mostrarAlerta('El paciente seleccionado no cuenta con clave de identificación en la base de datos. Busque o registre al paciente en el sistema primero.')
+    return
+  }
+
+  const usuario = authService.getUsuario()
+  const medicoResponsable = usuario?.id_usuario?.startsWith('MED') ? usuario.id_usuario : 'MED-001'
+
+  const payload = {
+    id_paciente: idPaciente,
+    tipo: tipoDocumento,
+    finalidades: `Consentimiento formalizado para ingreso, tratamiento médico y resguardo de datos personales conforme a NOM-004-SSA3-2012 y LFPDPPP.`,
+    firmante_nombre: consentimientoForm.value.nombreOtorgante.trim(),
+    firmante_parentesco: consentimientoForm.value.parentesco || 'TITULAR',
+    medico_responsable_id: medicoResponsable,
+    medio: 'DIGITAL_TABLET',
+    version_documento: '2.0',
+    testigo_1: props.recepcionista?.nombre || 'Lic. Andrea Morales',
+    testigo_2: 'Archivo Clínico Hospital Vitae'
+  }
+
+  try {
+    guardandoConsentimiento.value = true
+    const res = await api.post('/consentimientos', payload)
+    const nuevo = res.data?.data
+    if (nuevo) {
+      historialConsentimientosExpediente.value.unshift({
+        documento: nuevo.tipo,
+        fecha: new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }),
+        estado: 'Vigente',
+        hash: nuevo.hash_sha256 ? `${nuevo.hash_sha256.substring(0, 8)}...${nuevo.hash_sha256.substring(nuevo.hash_sha256.length - 5)}` : 'Sellado SHA-256'
+      })
+    }
+    mostrarAlerta(`Consentimiento formalizado con sellado de tiempo criptográfico SHA-256 e incorporado al expediente clínico institucional (Hash: ${nuevo?.hash_sha256?.substring(0, 12)}...).`)
+  } catch (error: any) {
+    console.error('Error registrando consentimiento:', error)
+    const msg = error.response?.data?.message || 'Error al registrar el consentimiento legal en el servidor.'
+    mostrarAlerta(`Error: ${msg}`)
+  } finally {
+    guardandoConsentimiento.value = false
+  }
 }
 </script>
 

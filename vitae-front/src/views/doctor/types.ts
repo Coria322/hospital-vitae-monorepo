@@ -1,5 +1,12 @@
 export interface Paciente {
   id: string
+  id_paciente?: string
+  id_expediente?: string
+  id_triage?: string
+  id_cita?: string
+  curp?: string
+  identificado?: boolean
+  folio_urgencias?: string
   nombre: string
   folio: string
   ece: string

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import type { Paciente, Doctor } from '../types'
+import api from '@/services/api'
+import { eceService } from '@/services/eceService'
 
 const props = defineProps<{
   doctor: Doctor
@@ -194,14 +196,91 @@ const limpiarFormulario = () => {
   }
 }
 
-// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/laboratorio/solicitudes (Sincronización HL7/FHIR v4)
-const enviarSolicitud = () => {
+const guardandoLab = ref(false)
+
+// Conexión oficial con endpoint real POST /api/v1/solicitudes-estudio (Sprint 4 Lab/HL7 FHIR)
+const enviarSolicitud = async () => {
   if (seleccionadosIds.value.length === 0) {
-    alert('Seleccione al menos un estudio del catálogo antes de enviar.')
+    alert('Atención: Seleccione al menos un estudio del catálogo antes de enviar.')
     return
   }
-  emit('enviarSolicitud')
-  alert(`Solicitud enviada a Laboratorio/Imagen con ${seleccionadosIds.value.length} estudios programados (Sincronización HL7/FHIR v4).`)
+
+  if (!props.pacienteSeleccionado) {
+    alert('Atención: Debe seleccionar un paciente para solicitar estudios de laboratorio.')
+    return
+  }
+
+  guardandoLab.value = true
+  try {
+    let idExp = props.pacienteSeleccionado.id_expediente
+    
+    // Si no tiene id_expediente pero tampoco id_paciente, resolverlo por CURP o Nombre
+    if (!idExp && !props.pacienteSeleccionado.id_paciente) {
+      const termino = props.pacienteSeleccionado.curp || props.pacienteSeleccionado.nombre
+      if (termino) {
+        try {
+          const res = await api.get('/pacientes', { params: { q: termino } })
+          const lista = res.data?.data?.data || res.data?.data || []
+          if (Array.isArray(lista) && lista.length > 0) {
+            props.pacienteSeleccionado.id_paciente = lista[0].id_paciente || lista[0].id
+            if (lista[0].expediente?.id_expediente) {
+              idExp = lista[0].expediente.id_expediente
+              props.pacienteSeleccionado.id_expediente = idExp
+            }
+          }
+        } catch (e) {
+          console.warn('Error resolviendo paciente en SolicitarLaboratorio:', e)
+        }
+      }
+    }
+
+    if (!idExp && props.pacienteSeleccionado.id_paciente) {
+      try {
+        const pacData = await eceService.consultarPaciente(props.pacienteSeleccionado.id_paciente)
+        if (pacData?.expediente?.id_expediente) {
+          idExp = pacData.expediente.id_expediente
+        } else {
+          const nuevo = await eceService.crearExpediente({
+            id_paciente: props.pacienteSeleccionado.id_paciente,
+            motivo_consulta: 'Solicitud de auxiliares diagnósticos'
+          })
+          idExp = nuevo.id_expediente
+        }
+      } catch (eExp: any) {
+        if (eExp?.response?.data?.id_expediente_existente) {
+          idExp = eExp.response.data.id_expediente_existente
+        }
+      }
+      if (idExp) {
+        props.pacienteSeleccionado.id_expediente = idExp
+      }
+    }
+
+    if (!idExp) {
+      alert('Error: No se encontró expediente clínico activo para el paciente.')
+      return
+    }
+
+    const prioridad = prioridadOperativa.value === 'urgente' || prioridadOperativa.value === 'critica' ? 'URGENTE' : 'NORMAL'
+    const estudioTipo = seleccionadosIds.value.join(', ').substring(0, 60)
+
+    const res = await eceService.solicitarEstudio({
+      id_expediente: idExp,
+      tipo_estudio: estudioTipo,
+      prioridad,
+      indicaciones_clinicas: justificacionTecnica.value || `Diagnóstico: ${diagnosticoCie.value || 'Estudio de rutina urgencias'}`
+    })
+
+    alert(`Solicitud de estudio clínico registrada exitosamente.\n\nID Solicitud: ${res.id_solicitud}\nEstudios: ${estudioTipo}\nPrioridad: ${prioridad}\nEstado: PENDIENTE (Enviado a Laboratorio LIS/RIS vía HL7 FHIR)`)
+
+    emit('enviarSolicitud')
+    seleccionadosIds.value = []
+    justificacionTecnica.value = ''
+  } catch (err: any) {
+    alert('Error al registrar solicitud de laboratorio: ' + (err?.response?.data?.message || err.message))
+  } finally {
+    guardandoLab.value = false
+  }
 }
 </script>
 

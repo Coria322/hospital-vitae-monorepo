@@ -299,6 +299,70 @@ class TriageController extends Controller
     }
 
     /**
+     * Inicia la atención médica de un paciente en triage (marca estado_atencion como EN_ATENCION y asigna sala/box).
+     */
+    public function iniciarAtencion(Request $request, string $id): JsonResponse
+    {
+        $triage = Triage::where('id_triage', $id)
+            ->orWhere('folio_ingreso', $id)
+            ->first();
+
+        if (!$triage) {
+            $triage = Triage::where('id_paciente', $id)
+                ->whereIn('estado_atencion', ['EN_ESPERA', 'EN_ATENCION'])
+                ->first();
+        }
+
+        if (!$triage) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se encontró un registro activo de triage para iniciar atención.',
+            ], 404);
+        }
+
+        $idSala = $request->input('id_sala');
+        $boxNombre = $request->input('box_nombre');
+
+        if ($idSala) {
+            $sala = SalaAtencion::find($idSala);
+            if ($sala) {
+                $sala->ocupar($triage->id_triage);
+                $triage->id_sala = $sala->id_sala;
+            }
+        } elseif (!$triage->id_sala) {
+            $salaLibre = SalaAtencion::where('tipo', 'CONSULTORIO')
+                ->where('estado', 'LIBRE')
+                ->first();
+            if ($salaLibre) {
+                $salaLibre->ocupar($triage->id_triage);
+                $triage->id_sala = $salaLibre->id_sala;
+            }
+        }
+
+        $valorAnterior = $triage->estado_atencion;
+        $triage->estado_atencion = 'EN_ATENCION';
+        $triage->save();
+
+        AuditLogger::log(
+            tipoMovimiento: 'UPDATE',
+            tablaAfectada: 'triage',
+            registroId: $triage->id_triage,
+            valorAnterior: ['estado_atencion' => $valorAnterior],
+            valorNuevo: ['estado_atencion' => 'EN_ATENCION', 'id_sala' => $triage->id_sala],
+            resultado: 'EXITOSO',
+            motivo: $request->input('motivo', 'Inicio de atención clínica en consultorio/box' . ($boxNombre ? " ($boxNombre)" : ''))
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Atención médica iniciada exitosamente.',
+            'data' => [
+                'triage' => $triage->load('sala'),
+            ],
+        ], 200);
+    }
+
+    /**
      * Libera un consultorio o sala de emergencia y llama al siguiente paciente (RF-006).
      */
     public function liberarSala(string $idSala): JsonResponse

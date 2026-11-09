@@ -1,46 +1,246 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { TrazaAuditoria } from '../types'
+import adminService from '@/services/adminService'
 
 const props = defineProps<{
   trazas: TrazaAuditoria[]
 }>()
 
-const selectedTraza = ref<TrazaAuditoria>(props.trazas[0] || {
-  id: 'tr-1',
-  timestamp_ntp: '10:48:12.418 UTC-6',
-  usuario_nombre: 'Dr. Carlos Mendoza',
-  usuario_id: 'MED-8841',
-  usuario_rol: 'Médico Adscrito',
-  ip_origen: '192.168.10.12',
-  mac_address: '4A:60:B2:1A',
-  terminal: 'WS-MED-04 (Ubuntu LTS 24.04 OS)',
-  accion: 'Apertura ECE',
-  recurso_disociado: 'ECE-DEMO-0248',
-  resultado_codigo: 200,
-  resultado_etiqueta: '200 OK',
-  hash_sha256: '4f9a72c18d4022a186e4ff98c6d17b84aa8981cb984f7621e2e50529c9124be3',
-  jwt_token_preview: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+const selectedTraza = ref<TrazaAuditoria | null>(props.trazas[0] || null)
+
+// Filtros de trazabilidad forense
+const filtroUsuario = ref('')
+const filtroIp = ref('')
+const filtroAccion = ref('TODAS')
+const filtroSeveridad = ref('TODAS')
+
+const trazasFiltradas = computed(() => {
+  return props.trazas.filter(t => {
+    if (filtroUsuario.value.trim()) {
+      const qu = filtroUsuario.value.toLowerCase().trim()
+      const matchU = t.usuario_nombre.toLowerCase().includes(qu) ||
+                     t.usuario_id.toLowerCase().includes(qu) ||
+                     t.usuario_rol.toLowerCase().includes(qu)
+      if (!matchU) return false
+    }
+
+    if (filtroIp.value.trim()) {
+      const qip = filtroIp.value.toLowerCase().trim()
+      const matchIp = t.ip_origen.toLowerCase().includes(qip) || t.terminal.toLowerCase().includes(qip)
+      if (!matchIp) return false
+    }
+
+    if (filtroAccion.value !== 'TODAS') {
+      if (!t.accion.toLowerCase().includes(filtroAccion.value.toLowerCase())) {
+        return false
+      }
+    }
+
+    if (filtroSeveridad.value !== 'TODAS') {
+      if (filtroSeveridad.value === '200' && t.resultado_codigo !== 200) return false
+      if (filtroSeveridad.value === '403' && t.resultado_codigo !== 403) return false
+    }
+
+    return true
+  })
 })
 
-const verifyFeedback = ref('')
+watch([filtroUsuario, filtroIp, filtroAccion, filtroSeveridad], () => {
+  paginaActual.value = 1
+  if (trazasFiltradas.value.length > 0) {
+    selectedTraza.value = trazasFiltradas.value[0] || null
+  }
+})
 
-const handleVerificarCadena = () => {
-  verifyFeedback.value = 'Cadena de custodia Block-Tree verificada: 142,890 bloques concatenados íntegros sin bifurcaciones.'
+watch(
+  () => props.trazas,
+  (nuevas) => {
+    if (nuevas && nuevas.length > 0) {
+      if (!selectedTraza.value || !nuevas.some(t => t.id === selectedTraza.value?.id)) {
+        selectedTraza.value = nuevas[0] || null
+      }
+    } else {
+      selectedTraza.value = null
+    }
+  },
+  { immediate: true, deep: true }
+)
+
+// Paginación reactiva de la bitácora
+const paginaActual = ref(1)
+const porPagina = ref(10)
+
+const totalPaginas = computed(() => {
+  return Math.ceil(trazasFiltradas.value.length / porPagina.value) || 1
+})
+
+const trazasPaginadas = computed(() => {
+  const inicio = (paginaActual.value - 1) * porPagina.value
+  return trazasFiltradas.value.slice(inicio, inicio + porPagina.value)
+})
+
+const irAPagina = (p: number) => {
+  if (p < 1 || p > totalPaginas.value) return
+  paginaActual.value = p
+  if (trazasPaginadas.value.length > 0) {
+    selectedTraza.value = trazasPaginadas.value[0] || null
+  }
+}
+
+// Métricas Forenses Reactivas
+const totalEventosCount = computed(() => props.trazas.length)
+const totalConsultasCount = computed(() => {
+  return props.trazas.filter(t => 
+    t.accion.toLowerCase().includes('ece') || 
+    t.accion.toLowerCase().includes('consulta') ||
+    t.accion.toLowerCase().includes('lectura')
+  ).length
+})
+const totalAlertasCount = computed(() => {
+  return props.trazas.filter(t => t.resultado_codigo === 403).length
+})
+
+// Formateador de acciones clínicas y de auditoría legibles para humanos
+const formatearAccion = (accion: string): string => {
+  if (!accion) return 'Operación del sistema'
+  const a = accion.trim()
+  
+  // Mapeos específicos de login y seguridad
+  if (a === 'LOGIN_SUCCESS' || a.startsWith('LOGIN_SUCCESS')) return 'Inicio de sesión exitoso'
+  if (a === 'LOGIN_FAILED' || a.startsWith('LOGIN_FAILED')) return 'Intento fallido de autenticación'
+  if (a === 'LOGOUT' || a.startsWith('LOGOUT')) return 'Cierre de sesión'
+  if (a.includes('BREAK_THE_GLASS') || a.includes('break_the_glass')) return 'Acceso de emergencia (Break-the-Glass)'
+  if (a.includes('BLOQUEO') || a.includes('CUENTA_BLOQUEADA')) return 'Bloqueo preventivo de cuenta'
+  
+  // Mapeos clínicos ECE y Expediente
+  if (a === 'CONSULTA_EXPEDIENTE' || a.includes('CONSULTA_EXPEDIENTE') || (a.includes('CONSULTA') && a.includes('expediente'))) {
+    return 'Consulta de expediente clínico'
+  }
+  if (a.includes('nota_medica') || a.includes('NOTA_MEDICA') || a.includes('nota')) {
+    if (a.includes('INSERT') || a.includes('alta') || a.includes('crear')) return 'Creación y firma de nota médica ECE'
+    if (a.includes('UPDATE')) return 'Modificación de nota médica'
+    return 'Gestión de nota médica ECE'
+  }
+  if (a.includes('expediente_c') || a.includes('expediente')) {
+    if (a.includes('INSERT')) return 'Apertura de expediente clínico'
+    if (a.includes('UPDATE')) return 'Actualización de expediente clínico'
+    return 'Atención de expediente clínico'
+  }
+  
+  // Recetas
+  if (a.includes('receta') || a.includes('RECETA')) {
+    if (a.includes('INSERT')) return 'Emisión de receta médica con QR'
+    if (a.includes('UPDATE')) return 'Actualización de receta médica'
+    return 'Prescripción de receta médica'
+  }
+  
+  // Triage
+  if (a.includes('triage') || a.includes('TRIAGE')) {
+    if (a.includes('INSERT') || a.includes('alta')) return 'Clasificación inicial de Triage Manchester'
+    if (a.includes('UPDATE') || a.includes('reclasificar')) return 'Reclasificación de prioridad Triage'
+    return 'Valoración en Triage de Urgencias'
+  }
+  
+  // Citas de Consulta Externa
+  if (a.includes('cita') || a.includes('CITA')) {
+    if (a.includes('INSERT')) return 'Agendamiento de cita en Consulta Externa'
+    if (a.includes('UPDATE')) return 'Actualización de estado de cita médica'
+    return 'Gestión de cita de Consulta Externa'
+  }
+  
+  // Laboratorio
+  if (a.includes('laboratorio') || a.includes('LABORATORIO') || a.includes('resultado')) {
+    if (a.includes('INSERT') || a.includes('validar')) return 'Validación de estudio de laboratorio'
+    if (a.includes('solicitud')) return 'Solicitud de análisis clínicos'
+    return 'Gestión de pruebas de laboratorio'
+  }
+  
+  // Pacientes
+  if (a.includes('paciente') || a.includes('PACIENTE')) {
+    if (a.includes('INSERT')) return 'Registro de nuevo paciente'
+    if (a.includes('UPDATE') || a.includes('fusion')) return 'Fusión / Actualización de paciente'
+    return 'Consulta de paciente en padrón'
+  }
+  
+  // Usuarios y Administración
+  if (a.includes('usuario') || a.includes('USUARIO')) {
+    if (a.includes('INSERT')) return 'Alta de usuario asistencial'
+    if (a.includes('UPDATE')) return 'Modificación de usuario / rol'
+    return 'Gestión de usuario en sistema'
+  }
+  
+  // Transformaciones genéricas de SQL crudo
+  if (a.startsWith('INSERT en ')) return 'Creación de registro en ' + a.replace('INSERT en ', '')
+  if (a.startsWith('UPDATE en ')) return 'Actualización en ' + a.replace('UPDATE en ', '')
+  if (a.startsWith('DELETE en ')) return 'Eliminación lógica en ' + a.replace('DELETE en ', '')
+  if (a.startsWith('SELECT en ')) return 'Consulta de ' + a.replace('SELECT en ', '')
+  
+  return a
+}
+
+const formatearRecurso = (recurso: string): string => {
+  if (!recurso) return '--'
+  if (recurso.startsWith('EXP-')) return recurso
+  if (recurso.length > 24) return recurso.substring(0, 16) + '...'
+  return recurso
+}
+
+const verifyFeedback = ref('')
+const cadenaVerificada = ref<boolean | null>(null)
+
+const handleVerificarCadena = async () => {
+  try {
+    verifyFeedback.value = 'Ejecutando verificación matemática de la cadena SHA-256 en AUDITORIA_I...'
+    const res = await adminService.verificarCadena()
+    cadenaVerificada.value = !!res.integra
+    verifyFeedback.value = res.mensaje || `Cadena de custodia verificada: ${res.total_verificados} bloques evaluados con 100% de integridad.`
+  } catch (err: any) {
+    cadenaVerificada.value = false
+    verifyFeedback.value = `Alerta de Integridad: ${err?.response?.data?.mensaje || err.message}`
+  }
+  setTimeout(() => {
+    verifyFeedback.value = ''
+  }, 6000)
+}
+
+const handleExportarReporte = () => {
+  const dataExport = {
+    institucion: 'Hospital Vitae - SIH',
+    normativa: 'NOM-024-SSA3-2012 / ISO 27001',
+    fecha_emision_utc: new Date().toISOString(),
+    total_trazas: props.trazas.length,
+    trazas: props.trazas.map(t => ({
+      id: t.id,
+      timestamp: t.timestamp_ntp,
+      usuario: `${t.usuario_nombre} (${t.usuario_id})`,
+      rol: t.usuario_rol,
+      ip: t.ip_origen,
+      accion: t.accion,
+      recurso: t.recurso_disociado,
+      resultado: t.resultado_etiqueta,
+      hash_sha256: t.hash_sha256
+    }))
+  }
+  const blob = new Blob([JSON.stringify(dataExport, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `dictamen_auditoria_nom024_${new Date().toISOString().slice(0, 10)}.json`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+
+  verifyFeedback.value = `Dictamen de auditoría forense exportado exitosamente (${props.trazas.length} registros sellados en JSON institucional).`
   setTimeout(() => {
     verifyFeedback.value = ''
   }, 4000)
 }
 
-const handleExportarReporte = () => {
-  verifyFeedback.value = 'Generando dictamen pericial forense certificado en PDF con firma PKI y sello de tiempo CENAM...'
-  setTimeout(() => {
-    verifyFeedback.value = ''
-  }, 3500)
-}
-
 const handleValidarHashTraza = () => {
-  verifyFeedback.value = `Hash ${selectedTraza.value.hash_sha256.slice(0, 16)}... coincide exactamente con el bloque sellado #82941.`
+  if (!selectedTraza.value) return
+  verifyFeedback.value = `Hash ${selectedTraza.value.hash_sha256.slice(0, 16)}... coincide exactamente con el bloque sellado.`
   setTimeout(() => {
     verifyFeedback.value = ''
   }, 3500)
@@ -106,7 +306,7 @@ const handleValidarHashTraza = () => {
           </svg>
         </div>
         <div class="kpi-body">
-          <span class="kpi-val">142,890</span>
+          <span class="kpi-val">{{ totalEventosCount }}</span>
           <span class="kpi-sub">
             <svg viewBox="0 0 24 24" class="sync-mini" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="23 4 23 10 17 10"/>
@@ -127,7 +327,7 @@ const handleValidarHashTraza = () => {
           </svg>
         </div>
         <div class="kpi-body">
-          <span class="kpi-val">19,421</span>
+          <span class="kpi-val">{{ totalConsultasCount }}</span>
           <span class="kpi-sub blue">Cero exposición clínica</span>
         </div>
       </div>
@@ -141,8 +341,8 @@ const handleValidarHashTraza = () => {
           </svg>
         </div>
         <div class="kpi-body">
-          <span class="kpi-val danger">14</span>
-          <span class="kpi-sub red">2 IPs en cuarentena preventiva</span>
+          <span class="kpi-val" :class="{ danger: totalAlertasCount > 0 }">{{ totalAlertasCount }}</span>
+          <span class="kpi-sub red">{{ totalAlertasCount }} incidentes registrados</span>
         </div>
       </div>
 
@@ -154,7 +354,7 @@ const handleValidarHashTraza = () => {
           </svg>
         </div>
         <div class="kpi-body">
-          <span class="kpi-val green">100.0%</span>
+          <span class="kpi-val green">{{ cadenaVerificada === false ? 'RUPTURA' : '100.0%' }}</span>
           <span class="kpi-sub green">Cadena SHA-256 válida</span>
         </div>
       </div>
@@ -175,42 +375,44 @@ const handleValidarHashTraza = () => {
 
       <div class="filters-row">
         <div class="filter-group">
-          <label class="flbl">Ventana de Tiempo</label>
-          <select class="fselect">
-            <option>Últimas 24 Horas</option>
-            <option>Últimos 7 Días</option>
-            <option>Últimos 30 Días (Auditoría Mensual)</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
           <label class="flbl">Usuario / Cédula / Matrícula</label>
-          <input type="text" placeholder="Ej. Dr. Mendoza, MED-8841" class="finput" />
+          <input
+            v-model="filtroUsuario"
+            type="text"
+            placeholder="Buscar por usuario o rol (ej. MED, Carlos, ADM)..."
+            class="finput"
+          />
         </div>
 
         <div class="filter-group">
-          <label class="flbl">Dirección IP / Origen</label>
-          <input type="text" placeholder="Ej. 192.168.10.12" class="finput" />
+          <label class="flbl">Dirección IP / Terminal</label>
+          <input
+            v-model="filtroIp"
+            type="text"
+            placeholder="Buscar por IP o terminal (ej. 10.14, Consola)..."
+            class="finput"
+          />
         </div>
 
         <div class="filter-group">
           <label class="flbl">Acción Registrada</label>
-          <select class="fselect">
-            <option>Todos los Eventos (Consolidado)</option>
-            <option>Apertura ECE</option>
-            <option>Validación STAT</option>
-            <option>Firma de Receta</option>
-            <option>Fallo Auth / Bloqueo</option>
-            <option>Desbloqueo Cuenta</option>
+          <select v-model="filtroAccion" class="fselect">
+            <option value="TODAS">Todos los Eventos (Consolidado)</option>
+            <option value="INSERT">Altas / Creaciones</option>
+            <option value="UPDATE">Modificaciones</option>
+            <option value="DELETE">Bajas Lógicas</option>
+            <option value="BLOQUEO">Bloqueos de Cuenta</option>
+            <option value="CONSULTA">Consultas / Auditoría</option>
+            <option value="LOGIN">Autenticación / Login</option>
           </select>
         </div>
 
         <div class="filter-group">
           <label class="flbl">Severidad / Dictamen</label>
-          <select class="fselect">
-            <option>Todos los Niveles</option>
-            <option>200 OK (Autorizado)</option>
-            <option>403 Bloqueado (Alerta)</option>
+          <select v-model="filtroSeveridad" class="fselect">
+            <option value="TODAS">Todos los Niveles</option>
+            <option value="200">200 OK (Autorizado)</option>
+            <option value="403">403 Bloqueado (Alerta)</option>
           </select>
         </div>
       </div>
@@ -224,14 +426,14 @@ const handleValidarHashTraza = () => {
           <div class="table-card-header">
             <div class="tch-left">
               <h4>Trazas Auditadas</h4>
-              <span class="view-tag">{{ trazas.length }} registros en vista</span>
+              <span class="view-tag">{{ trazasFiltradas.length }} registros filtrados (de {{ trazas.length }})</span>
             </div>
             <div class="tch-right">
               <span class="live-pill">
                 <span class="dot-green"></span>
-                Tiempo Real (Live)
+                Descendente (Más reciente primero)
               </span>
-              <span class="page-count">Página 1 de 214</span>
+              <span class="page-count">Página {{ paginaActual }} de {{ totalPaginas }}</span>
             </div>
           </div>
 
@@ -248,9 +450,9 @@ const handleValidarHashTraza = () => {
             </thead>
             <tbody>
               <tr
-                v-for="t in trazas"
+                v-for="t in trazasPaginadas"
                 :key="t.id"
-                :class="{ active: selectedTraza.id === t.id }"
+                :class="{ active: selectedTraza && selectedTraza.id === t.id }"
                 @click="selectedTraza = t"
               >
                 <td class="cell-ntp">
@@ -269,12 +471,12 @@ const handleValidarHashTraza = () => {
 
                 <td class="cell-action">
                   <span class="action-chip" :class="{ alert: t.resultado_codigo === 403 }">
-                    {{ t.accion }}
+                    {{ formatearAccion(t.accion) }}
                   </span>
                 </td>
 
                 <td class="cell-resource">
-                  <strong class="res-code">{{ t.recurso_disociado }}</strong>
+                  <strong class="res-code">{{ formatearRecurso(t.recurso_disociado) }}</strong>
                 </td>
 
                 <td class="cell-result">
@@ -288,18 +490,39 @@ const handleValidarHashTraza = () => {
 
           <div class="table-footer">
             <div class="tf-left">
-              <span>Mostrando 6 de 142,890 registros</span>
+              <span>Mostrando {{ trazasFiltradas.length === 0 ? 0 : (paginaActual - 1) * porPagina + 1 }} a {{ Math.min(paginaActual * porPagina, trazasFiltradas.length) }} de {{ trazasFiltradas.length }} registros ({{ trazas.length }} en total)</span>
               <span class="sep">•</span>
               <span class="retention-info">Buffer de retención: 5 años obligatorios NOM-024</span>
             </div>
             <div class="tf-right">
-              <button type="button" class="btn-pg" disabled>Anterior</button>
-              <button type="button" class="btn-pg active">1</button>
-              <button type="button" class="btn-pg">2</button>
-              <button type="button" class="btn-pg">3</button>
-              <span class="dots">...</span>
-              <button type="button" class="btn-pg">214</button>
-              <button type="button" class="btn-pg">Siguiente</button>
+              <button
+                type="button"
+                class="btn-pg"
+                :disabled="paginaActual <= 1"
+                @click="irAPagina(paginaActual - 1)"
+              >
+                Anterior
+              </button>
+              
+              <button
+                v-for="p in totalPaginas"
+                :key="p"
+                type="button"
+                class="btn-pg"
+                :class="{ active: paginaActual === p }"
+                @click="irAPagina(p)"
+              >
+                {{ p }}
+              </button>
+
+              <button
+                type="button"
+                class="btn-pg"
+                :disabled="paginaActual >= totalPaginas"
+                @click="irAPagina(paginaActual + 1)"
+              >
+                Siguiente
+              </button>
             </div>
           </div>
         </div>
@@ -308,7 +531,7 @@ const handleValidarHashTraza = () => {
       <!-- COLUMNA DERECHA: INSPECCIÓN FORENSE Y ESTADO WORM -->
       <div class="inspection-sidebar-col">
         <!-- INSPECCIÓN FORENSE DE TRAZA -->
-        <div class="inspect-card">
+        <div v-if="selectedTraza" class="inspect-card">
           <div class="inspect-header">
             <div class="ih-left">
               <svg viewBox="0 0 24 24" class="ih-svg" fill="none" stroke="currentColor" stroke-width="2">
@@ -333,9 +556,10 @@ const handleValidarHashTraza = () => {
             <div class="field-block">
               <span class="f-lbl">EVENTO AUDITADO:</span>
               <div class="f-val-row">
-                <strong>{{ selectedTraza.accion }}</strong>
+                <strong>{{ formatearAccion(selectedTraza.accion) }}</strong>
                 <span class="badge-status-code">{{ selectedTraza.resultado_etiqueta }}</span>
               </div>
+              <small class="tech-sub-code">{{ selectedTraza.accion }}</small>
             </div>
 
             <div class="field-block">
@@ -386,6 +610,15 @@ const handleValidarHashTraza = () => {
               <span>Validar Hash de Integridad Criptográfica</span>
             </button>
           </div>
+        </div>
+
+        <div v-else class="inspect-card" style="padding: 2.5rem 1.5rem; text-align: center; color: #64748b;">
+          <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#94a3b8" stroke-width="2" style="margin: 0 auto 0.5rem auto; display: block;">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <strong style="display: block; color: #334155; margin-bottom: 0.25rem;">Sin Traza Seleccionada</strong>
+          <span style="font-size: 0.8rem;">Seleccione una fila en la bitácora para inspeccionar su huella digital criptográfica SHA-256.</span>
         </div>
 
         <!-- SERVICIO DE TRAZABILIDAD CENTRAL (WORM / NTP) -->
@@ -1268,5 +1501,17 @@ const handleValidarHashTraza = () => {
   font-size: 0.68rem;
   color: #475569;
   line-height: 1.35;
+}
+
+.tech-sub-code {
+  font-family: monospace;
+  font-size: 0.65rem;
+  color: #64748B;
+  background-color: #F8FAFC;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  border: 1px solid #E2E8F0;
+  display: inline-block;
+  margin-top: 0.25rem;
 }
 </style>

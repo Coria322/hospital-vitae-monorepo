@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import api from '@/services/api'
+import { CATALOGO_MEDICOS, type PersonalGuardia } from '@/services/guardiasService'
+import citasService, { type CitaMedica } from '@/services/citasService'
 
 type SeccionRecepcion = 'curp' | 'registrar' | 'agendar' | 'consentimiento' | 'monitor' | 'censo'
 
@@ -20,33 +23,138 @@ const mostrarAlerta = (mensaje: string) => {
   alert(mensaje)
 }
 
+// Subpestaña activa: agendar o visualizar citas
+const subtabActiva = ref<'agendar' | 'visualizar'>('agendar')
+
 // =========================================================================
-// PANTALLA 3: PROGRAMACIÓN Y ASIGNACIÓN DE CITAS MÉDICAS (IMAGEN 3)
+// PANTALLA 3: PROGRAMACIÓN Y ASIGNACIÓN DE CITAS MÉDICAS
 // =========================================================================
+const listaMedicosDisponibles = ref<PersonalGuardia[]>([...CATALOGO_MEDICOS])
+
+const cargarMedicosReales = async () => {
+  try {
+    const res = await api.get('/medicos')
+    if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
+      const mapa = new Map<string, PersonalGuardia>()
+      CATALOGO_MEDICOS.forEach(m => mapa.set(m.id, m))
+      res.data.data.forEach((u: any) => {
+        mapa.set(u.id_usuario, {
+          id: u.id_usuario,
+          nombre: u.nombre_completo,
+          rol: 'MEDICO',
+          especialidad: u.especialidad || 'Medicina General / Consulta Externa',
+          cedula: u.cedula || 'N/A'
+        })
+      })
+      listaMedicosDisponibles.value = Array.from(mapa.values())
+    }
+  } catch (e) {
+    listaMedicosDisponibles.value = [...CATALOGO_MEDICOS]
+  }
+}
+
+// Días dinámicos para las próximas dos semanas
+interface DiaCita {
+  id: string // Formato YYYY-MM-DD
+  nombre: string // LUN, MAR, etc.
+  num: string // 07, 08...
+  mes: string
+  fechaTexto: string
+  hoy: boolean
+  cupos: number
+  estado: string
+}
+
+const generarDiasDinamicos = (): DiaCita[] => {
+  const dias: DiaCita[] = []
+  const nombresDias = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB']
+  const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+  const hoy = new Date()
+
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(hoy)
+    d.setDate(hoy.getDate() + i)
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    const id = `${yyyy}-${mm}-${dd}`
+    const diaSem = d.getDay()
+    const cupos = diaSem === 0 ? 8 : 12 + ((i * 3) % 7)
+    const opciones: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long' }
+    const fechaTexto = d.toLocaleDateString('es-MX', opciones)
+
+    dias.push({
+      id,
+      nombre: nombresDias[diaSem] || 'DÍA',
+      num: dd,
+      mes: meses[d.getMonth()] || 'Mes',
+      fechaTexto: fechaTexto.charAt(0).toUpperCase() + fechaTexto.slice(1),
+      hoy: i === 0,
+      cupos,
+      estado: `${cupos} Cupos`
+    })
+  }
+  return dias
+}
+
+const diasSemanaCitas = ref<DiaCita[]>(generarDiasDinamicos())
+
+// Turnos disponibles
+type TipoTurno = 'matutino' | 'vespertino' | 'nocturno' | 'todos'
+const turnoSeleccionado = ref<TipoTurno>('matutino')
+
+const HORARIOS_POR_TURNO: Record<TipoTurno, string[]> = {
+  matutino: ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30'],
+  vespertino: ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30'],
+  nocturno: ['20:00', '20:30', '21:00', '21:30', '22:00', '22:30'],
+  todos: [
+    '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+    '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
+    '20:00', '20:30', '21:00', '21:30', '22:00', '22:30'
+  ]
+}
+
 const agendamientoForm = ref({
   especialidad: 'Medicina Interna — Consultorio 104 (Pabellón Central)',
-  medico: 'Dr. Guillermo Ramírez Vega · Céd. Prof. 8492011 (Medicina Interna)',
+  medico: 'Dr. Carlos Rivera · Céd. Prof. 7894120 (Medicina Interna)',
   curpBusqueda: props.curpCompartida || '',
   pacienteValidado: null as {
+    id?: string
+    id_expediente?: string
     nombre: string
     edad: number
+    sexo?: string
     folio: string
     curp: string
   } | null,
-  tipoIntervencion: 'control' as 'primera' | 'control' | 'preoperatoria',
-  diaSeleccionado: 'sab17',
-  horaSeleccionada: '11:00',
-  folioTurno: 'CITA-2026-1049'
+  tipoIntervencion: 'primera' as 'primera' | 'control' | 'preoperatoria',
+  diaSeleccionado: (diasSemanaCitas.value[0]?.id || new Date().toISOString().substring(0, 10)) as string,
+  horaSeleccionada: '09:00',
+  folioTurno: ''
 })
+
+const diaActivoObj = computed(() => {
+  return diasSemanaCitas.value.find(d => d.id === agendamientoForm.value.diaSeleccionado) || diasSemanaCitas.value[0]
+})
+
+const cambiarTurno = (turno: TipoTurno) => {
+  turnoSeleccionado.value = turno
+  const disponibles = HORARIOS_POR_TURNO[turno]
+  if (disponibles && disponibles.length > 0 && disponibles[0]) {
+    agendamientoForm.value.horaSeleccionada = disponibles[0]
+  }
+}
 
 const sincronizarPacienteCita = () => {
   if (props.pacienteSeleccionado) {
     const p = props.pacienteSeleccionado
     agendamientoForm.value.curpBusqueda = p.curp || props.curpCompartida || ''
     agendamientoForm.value.pacienteValidado = {
-      nombre: p.nombreCompleto || p.nombre || 'Paciente Validado',
+      id: p.id || p.id_paciente || '',
+      nombre: p.nombreCompleto || p.nombre || p.nombre_completo || 'Paciente Validado',
       edad: p.edad || 36,
-      folio: p.cupe || p.folio || '#EXP-2026-9042',
+      sexo: p.sexo || 'Indeterminado',
+      folio: p.cupe || p.folio || p.folio_urgencias || '#EXP-2026-9042',
       curp: p.curp || agendamientoForm.value.curpBusqueda
     }
   } else if (props.curpCompartida) {
@@ -56,93 +164,163 @@ const sincronizarPacienteCita = () => {
 
 watch(() => props.pacienteSeleccionado, () => sincronizarPacienteCita())
 watch(() => props.curpCompartida, () => sincronizarPacienteCita())
-onMounted(() => sincronizarPacienteCita())
 
-const diasSemanaCitas = ref([
-  { id: 'jue15', nombre: 'JUE', num: '15', estado: 'Concluido', disabled: true, cupos: 0 },
-  { id: 'vie16', nombre: 'VIE', num: '16', estado: 'Concluido', disabled: true, cupos: 0 },
-  { id: 'sab17', nombre: 'SÁB', num: '17', estado: '6 Cupos', hoy: true, cupos: 6 },
-  { id: 'dom18', nombre: 'DOM', num: '18', estado: 'Inactivo', disabled: true, cupos: 0 },
-  { id: 'lun19', nombre: 'LUN', num: '19', estado: '14 Cupos', cupos: 14 },
-  { id: 'mar20', nombre: 'MAR', num: '20', estado: '11 Cupos', cupos: 11 }
-])
+// Citas persistidas y compartidas en el hospital
+const listaCitas = ref<CitaMedica[]>([])
+const filtroEstado = ref<string>('TODOS')
+const filtroMedico = ref<string>('TODOS')
+const filtroBusqueda = ref<string>('')
 
-const horariosSabado = ref([
-  { hora: '08:00', estado: 'ocupado', label: 'Ocupado' },
-  { hora: '08:30', estado: 'ocupado', label: 'Ocupado' },
-  { hora: '09:00', estado: 'ocupado', label: 'Ocupado' },
-  { hora: '09:30', estado: 'ocupado', label: 'Ocupado' },
-  { hora: '10:00', estado: 'disponible', label: 'Disponible' },
-  { hora: '10:30', estado: 'disponible', label: 'Disponible' },
-  { hora: '11:00', estado: 'seleccionado', label: 'Seleccionado' },
-  { hora: '11:30', estado: 'disponible', label: 'Disponible' },
-  { hora: '12:00', estado: 'ocupado', label: 'Ocupado' },
-  { hora: '12:30', estado: 'disponible', label: 'Disponible' },
-  { hora: '13:00', estado: 'disponible', label: 'Disponible' },
-  { hora: '13:30', estado: 'urgencia', label: 'Interconsulta' }
-])
+const sincronizarAgendaConsultorio = () => {
+  agendaConsultorio104.value = listaCitas.value.map(c => {
+    const ini = c.pacienteNombre.split(' ').map(n => n[0] ? n[0] + '.' : '').join(' ')
+    return {
+      horario: `${c.hora} - ${c.hora.replace(':00', ':30')}`,
+      folio: c.folio,
+      iniciales: ini || 'P. N.',
+      curp: c.pacienteCurp ? `${c.pacienteCurp.substring(0, 10)}...` : 'CURP-REG',
+      modalidad: c.tipoIntervencion === 'primera' ? 'Primera Vez' : c.tipoIntervencion === 'preoperatoria' ? 'Preoperatoria' : 'Control',
+      estado: c.estado === 'EN_SALA' ? 'En Sala' : c.estado === 'EN_ATENCION' ? 'En Consulta' : c.estado === 'ATENDIDA' ? 'Atendida' : c.estado === 'CANCELADA' ? 'Cancelada' : 'Confirmada',
+      confirmacion: 'Impreso'
+    }
+  })
+}
 
-const agendaConsultorio104 = ref([
-  {
-    horario: '08:00 - 08:30',
-    folio: 'VTE-8102',
-    iniciales: 'M. H. G.',
-    curp: 'HEMG710928HDF...',
-    modalidad: 'Subsecuente',
-    estado: 'Atendida',
-    confirmacion: 'Entregado'
-  },
-  {
-    horario: '08:30 - 09:00',
-    folio: 'VTE-8219',
-    iniciales: 'S. R. L.',
-    curp: 'ROLS650112MDF...',
-    modalidad: 'Primera Vez',
-    estado: 'Atendida',
-    confirmacion: 'Entregado'
-  },
-  {
-    horario: '09:30 - 10:00',
-    folio: 'VTE-8409',
-    iniciales: 'L. C. T.',
-    curp: 'COTL790310HDF...',
-    modalidad: 'Subsecuente',
-    estado: 'En Sala de Espera',
-    confirmacion: 'Reenviar Aviso'
-  },
-  {
-    horario: '10:00 - 10:30',
-    folio: 'VTE-8755',
-    iniciales: 'R. D. B.',
-    curp: 'DIBR881104HDF...',
-    modalidad: 'Preoperatoria',
-    estado: 'Confirmada',
-    confirmacion: 'WhatsApp'
+const recargarCitas = () => {
+  listaCitas.value = citasService.obtenerCitas()
+  sincronizarAgendaConsultorio()
+}
+
+onMounted(() => {
+  sincronizarPacienteCita()
+  cargarMedicosReales()
+  recargarCitas()
+  window.addEventListener('vitae-citas-actualizadas', recargarCitas)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('vitae-citas-actualizadas', recargarCitas)
+})
+
+const citasFiltradas = computed(() => {
+  return listaCitas.value.filter(c => {
+    if (filtroEstado.value !== 'TODOS' && c.estado !== filtroEstado.value) return false
+    if (filtroMedico.value !== 'TODOS' && c.idMedico !== filtroMedico.value && !c.medicoNombre.includes(filtroMedico.value)) return false
+    if (filtroBusqueda.value.trim()) {
+      const q = filtroBusqueda.value.trim().toLowerCase()
+      const matchPac = c.pacienteNombre.toLowerCase().includes(q)
+      const matchCurp = c.pacienteCurp.toLowerCase().includes(q)
+      const matchFol = c.folio.toLowerCase().includes(q)
+      if (!matchPac && !matchCurp && !matchFol) return false
+    }
+    return true
+  })
+})
+
+const pasarASala = (c: CitaMedica) => {
+  citasService.actualizarEstadoCita(c.id, 'EN_SALA')
+  recargarCitas()
+  mostrarAlerta(`Pase concedido: El paciente ${c.pacienteNombre} (${c.folio}) ha ingresado a la Sala de Espera del ${c.medicoNombre}. Ya es visible en su cola de atención médica.`)
+}
+
+const cancelarCita = (c: CitaMedica) => {
+  if (confirm(`¿Confirma la cancelación de la cita ${c.folio} asignada a ${c.pacienteNombre}?`)) {
+    citasService.actualizarEstadoCita(c.id, 'CANCELADA')
+    recargarCitas()
+    mostrarAlerta(`Cita ${c.folio} cancelada exitosamente.`)
   }
-])
+}
 
-const seleccionarHorarioCita = (slot: typeof horariosSabado.value[0]) => {
+const imprimirTicket = (c: CitaMedica) => {
+  mostrarAlerta(`Imprimiendo comprobante térmico con código QR para el paciente ${c.pacienteNombre} (Folio: ${c.folio}).`)
+}
+
+// Slots reactivos calculados según el turno y día seleccionados
+const slotsHorarios = computed(() => {
+  const horas = HORARIOS_POR_TURNO[turnoSeleccionado.value] || HORARIOS_POR_TURNO.matutino
+  const diaAct = agendamientoForm.value.diaSeleccionado
+  const diaTexto = diaActivoObj.value?.fechaTexto
+  
+  // Buscar citas de ese día para no duplicar horas con el mismo médico
+  const medicoActual = agendamientoForm.value.medico
+  const horasOcupadas = new Set(
+    listaCitas.value
+      .filter(c => (c.dia === diaAct || c.dia === diaTexto) && c.estado !== 'CANCELADA')
+      .map(c => c.hora)
+  )
+
+  return horas.map(h => {
+    const ocupado = horasOcupadas.has(h)
+    const seleccionado = agendamientoForm.value.horaSeleccionada === h
+    return {
+      hora: h,
+      estado: ocupado ? 'ocupado' : seleccionado ? 'seleccionado' : 'disponible',
+      label: ocupado ? 'Ocupado' : seleccionado ? 'Seleccionado' : 'Disponible'
+    }
+  })
+})
+
+const agendaConsultorio104 = ref<Array<{
+  horario: string
+  folio: string
+  iniciales: string
+  curp: string
+  modalidad: string
+  estado: string
+  confirmacion: string
+}>>([])
+
+const seleccionarHorarioCita = (slot: { hora: string; estado: string; label: string }) => {
   if (slot.estado === 'ocupado') {
     mostrarAlerta('El horario de las ' + slot.hora + ' se encuentra ocupado por otro paciente.')
     return
   }
-  horariosSabado.value.forEach(s => {
-    if (s.estado === 'seleccionado') s.estado = 'disponible'
-  })
-  slot.estado = 'seleccionado'
   agendamientoForm.value.horaSeleccionada = slot.hora
 }
 
-const buscarPacienteParaCita = () => {
-  if (!agendamientoForm.value.curpBusqueda) {
-    mostrarAlerta('Ingrese una CURP o Folio de paciente para agendar cita.')
-    return
+const buscandoPacienteCita = ref(false)
+
+const buscarPacienteParaCita = async () => {
+  const termino = agendamientoForm.value.curpBusqueda?.trim()
+  if (!termino) {
+    mostrarAlerta('Ingrese una CURP, Nombre o Folio de paciente para agendar cita.')
+    return null
   }
-  agendamientoForm.value.pacienteValidado = {
-    nombre: 'Álvarez Morales, Antonio',
-    edad: 42,
-    folio: 'VTE-8812',
-    curp: agendamientoForm.value.curpBusqueda.toUpperCase()
+
+  buscandoPacienteCita.value = true
+  try {
+    const res = await api.get('/pacientes', { params: { q: termino } })
+    const lista = res.data?.data?.data || res.data?.data || []
+    if (Array.isArray(lista) && lista.length > 0) {
+      const p = lista[0]
+      let edad = 35
+      if (p.fecha_nacimiento) {
+        const nac = new Date(p.fecha_nacimiento)
+        if (!isNaN(nac.getTime())) {
+          edad = Math.max(0, new Date().getFullYear() - nac.getFullYear())
+        }
+      }
+      agendamientoForm.value.pacienteValidado = {
+        id: p.id_paciente || p.id || '',
+        id_expediente: p.expediente?.id_expediente || '',
+        nombre: p.nombre_completo || 'Paciente Validado',
+        edad: edad,
+        sexo: p.sexo || 'Indeterminado',
+        folio: p.folio_urgencias || `VTE-${p.id_paciente ? String(p.id_paciente).substring(0, 6).toUpperCase() : '8812'}`,
+        curp: p.curp || (termino.length === 18 ? termino.toUpperCase() : '')
+      }
+      mostrarAlerta(`Paciente validado en base de datos: ${p.nombre_completo} (CURP: ${p.curp || 'Registrada'}). Horarios disponibles listos para asignación.`)
+      return agendamientoForm.value.pacienteValidado
+    } else {
+      mostrarAlerta(`No se encontró registro previo con "${termino}". Se procederá a registrar el paciente automáticamente al confirmar la cita.`)
+      return null
+    }
+  } catch (error) {
+    console.error('Error buscando paciente para cita:', error)
+    mostrarAlerta('Error al consultar el servicio de pacientes. Verifique la conexión con el servidor.')
+    return null
+  } finally {
+    buscandoPacienteCita.value = false
   }
 }
 
@@ -155,19 +333,119 @@ const cargarDemoCita = () => {
     agendamientoForm.value.pacienteValidado = {
       nombre: 'Álvarez Morales, Antonio',
       edad: 42,
+      sexo: 'M',
       folio: 'VTE-8812',
       curp: 'ALMA820419HDFRNR02'
     }
   }
 }
 
-// TODO: [PENDIENTE-CONEXION-API] Conectar con endpoint real POST /api/v1/citas (Agenda y Consultorios)
-const confirmarCitaExpedirComprobante = () => {
-  if (!agendamientoForm.value.pacienteValidado) {
-    mostrarAlerta('Seleccione o valide un paciente antes de confirmar la cita médica.')
-    return
+const confirmarCitaExpedirComprobante = async () => {
+  // Si no está validado pero hay término en el campo de búsqueda, buscarlo automáticamente
+  if (!agendamientoForm.value.pacienteValidado && agendamientoForm.value.curpBusqueda?.trim()) {
+    await buscarPacienteParaCita()
   }
-  mostrarAlerta('<svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Cita ' + agendamientoForm.value.folioTurno + ' confirmada con éxito a las ' + agendamientoForm.value.horaSeleccionada + ' hrs para ' + agendamientoForm.value.pacienteValidado.nombre + '.')
+
+  // Si aún no está validado, pero el usuario ingresó un nombre o CURP
+  if (!agendamientoForm.value.pacienteValidado) {
+    const termino = agendamientoForm.value.curpBusqueda?.trim()
+    if (!termino) {
+      mostrarAlerta('Seleccione o ingrese un paciente (nombre o CURP) antes de confirmar la cita médica.')
+      return
+    }
+
+    try {
+      const esCurp = termino.length === 18
+      const curpFinal = esCurp ? termino.toUpperCase() : ('TEMP' + Date.now().toString(36).toUpperCase()).padEnd(18, '0')
+      const payloadAlta: any = {
+        identificado: true,
+        curp: curpFinal,
+        nombre_completo: termino.toUpperCase(),
+        fecha_nacimiento: '1990-01-01',
+        sexo: 'MASCULINO',
+        domicilio: 'Consulta Externa Hospital Vitae'
+      }
+      const resAlta = await api.post('/pacientes', payloadAlta)
+      const pCreado = resAlta.data?.data
+      if (pCreado) {
+        agendamientoForm.value.pacienteValidado = {
+          id: pCreado.id_paciente || pCreado.id,
+          nombre: pCreado.nombre_completo,
+          edad: 36,
+          sexo: pCreado.sexo,
+          folio: pCreado.folio_urgencias || `VTE-${String(pCreado.id_paciente).substring(0, 6).toUpperCase()}`,
+          curp: pCreado.curp
+        }
+      }
+    } catch (e: any) {
+      console.warn('Registro local de paciente para cita:', e)
+      try {
+        const resQuery = await api.get('/pacientes', { params: { q: termino } })
+        const listaQuery = resQuery.data?.data?.data || resQuery.data?.data || []
+        if (Array.isArray(listaQuery) && listaQuery.length > 0) {
+          const pExist = listaQuery[0]
+          agendamientoForm.value.pacienteValidado = {
+            id: pExist.id_paciente || pExist.id,
+            id_expediente: pExist.expediente?.id_expediente || '',
+            nombre: pExist.nombre_completo,
+            edad: 35,
+            sexo: pExist.sexo || 'MASCULINO',
+            folio: pExist.folio_urgencias || `VTE-${String(pExist.id_paciente).substring(0, 6).toUpperCase()}`,
+            curp: pExist.curp
+          }
+        }
+      } catch (errQ) {
+        // Fallback local
+      }
+
+      if (!agendamientoForm.value.pacienteValidado) {
+        agendamientoForm.value.pacienteValidado = {
+          nombre: termino,
+          edad: 35,
+          sexo: 'MASCULINO',
+          folio: `VTE-${Math.floor(1000 + Math.random() * 9000)}`,
+          curp: termino.length === 18 ? termino.toUpperCase() : 'CURP-REG'
+        }
+      }
+    }
+  }
+
+  const hora = agendamientoForm.value.horaSeleccionada || '11:00'
+  const paciente = agendamientoForm.value.pacienteValidado!
+  const diaObj = diaActivoObj.value
+
+  // Identificar médico
+  const medicoObj = listaMedicosDisponibles.value.find(m => 
+    agendamientoForm.value.medico.includes(m.nombre) || 
+    agendamientoForm.value.medico.includes(m.id)
+  )
+
+  const partesEsp = agendamientoForm.value.especialidad.split(' — ')
+  const espNombre = partesEsp[0]?.trim() || 'Medicina Interna'
+  const consultorioNombre = partesEsp[1]?.replace('(Pabellón Central)', '')?.trim() || 'Consultorio 104'
+
+  const nuevaCita = citasService.agendarCita({
+    idPaciente: paciente.id,
+    idExpediente: (paciente as any).id_expediente || undefined,
+    pacienteNombre: paciente.nombre,
+    pacienteCurp: paciente.curp,
+    pacienteEdad: paciente.edad,
+    pacienteSexo: paciente.sexo,
+    idMedico: medicoObj?.id || 'MED-001',
+    medicoNombre: medicoObj?.nombre || agendamientoForm.value.medico.split(' · ')[0]?.trim() || 'Dr. Asignado',
+    medicoCedula: medicoObj?.cedula,
+    especialidad: espNombre,
+    consultorio: consultorioNombre,
+    dia: (diaObj?.fechaTexto || agendamientoForm.value.diaSeleccionado || 'Hoy') as string,
+    hora: hora,
+    tipoIntervencion: agendamientoForm.value.tipoIntervencion,
+    estado: 'EN_SALA' // Pasa de inmediato a sala de espera del médico
+  })
+
+  agendamientoForm.value.folioTurno = nuevaCita.folio
+  recargarCitas()
+
+  mostrarAlerta(`Cita ${nuevaCita.folio} confirmada exitosamente a las ${hora} hrs para ${paciente.nombre} (${diaObj?.fechaTexto || 'Hoy'}). Se envió a la Sala de Espera del ${nuevaCita.medicoNombre} (${consultorioNombre}) y ya se encuentra visible en su estación de consulta.`)
 }
 </script>
 
@@ -183,7 +461,7 @@ const confirmarCitaExpedirComprobante = () => {
               <div class="banner-text-col">
                 <div class="badges-row">
                   <span class="cert-pill blue">MÓDULO DE ADMISIÓN · CONSULTA EXTERNA</span>
-                  <span class="cert-pill cyan">● Turno Matutino (07:00 - 15:00)</span>
+                  <span class="cert-pill cyan">● {{ turnoSeleccionado === 'matutino' ? 'Turno Matutino (08:00 - 14:00)' : turnoSeleccionado === 'vespertino' ? 'Turno Vespertino (14:00 - 20:00)' : turnoSeleccionado === 'nocturno' ? 'Turno Nocturno (20:00 - 23:00)' : 'Todos los Turnos Habilitados' }}</span>
                 </div>
                 <h2>Programación y Asignación de Citas Médicas</h2>
               </div>
@@ -212,8 +490,31 @@ const confirmarCitaExpedirComprobante = () => {
             </div>
           </div>
 
-          <!-- Cuadrícula Principal de Agendamiento (Izquierda Formulario/Calendario + Derecha Resumen) -->
-          <div class="curp-layout-grid">
+          <!-- Barra de Navegación de Subpestañas -->
+          <div class="citas-nav-tabs">
+            <button 
+              type="button" 
+              class="citas-nav-tab-btn" 
+              :class="{ active: subtabActiva === 'agendar' }"
+              @click="subtabActiva = 'agendar'"
+            >
+              <svg viewBox="0 0 24 24" class="svg-inline-tab" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span>Agendar Nueva Cita Médica</span>
+            </button>
+            <button 
+              type="button" 
+              class="citas-nav-tab-btn" 
+              :class="{ active: subtabActiva === 'visualizar' }"
+              @click="subtabActiva = 'visualizar'"
+            >
+              <svg viewBox="0 0 24 24" class="svg-inline-tab" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span>Visualizar Citas Agendadas</span>
+              <span class="badge-tab-count">{{ listaCitas.length }}</span>
+            </button>
+          </div>
+
+          <!-- PESTAÑA 1: FORMULARIO Y CALENDARIO DE AGENDAMIENTO -->
+          <div v-if="subtabActiva === 'agendar'" class="curp-layout-grid">
             
             <!-- SUBCOLUMNA IZQUIERDA -->
             <div class="curp-left-col">
@@ -252,9 +553,13 @@ const confirmarCitaExpedirComprobante = () => {
                         <strong>Paso 2: Médico Tratante Asignado</strong>
                       </div>
                       <select v-model="agendamientoForm.medico" class="select-clean full">
-                        <option>Dr. Guillermo Ramírez Vega · Céd. Prof. 8492011 (Medicina Interna)</option>
-                        <option>Dra. Sofía Alarcón Castillo · Céd. Prof. 9410291 (Cardiología)</option>
-                        <option>Dr. Carlos Morales Peña · Céd. Prof. 4029103 (Cirugía)</option>
+                        <option 
+                          v-for="med in listaMedicosDisponibles" 
+                          :key="med.id" 
+                          :value="med.nombre + ' · Céd. Prof. ' + (med.cedula || 'N/A') + ' (' + med.especialidad + ')'"
+                        >
+                          {{ med.nombre }} · Céd. Prof. {{ med.cedula || 'N/A' }} ({{ med.especialidad }})
+                        </option>
                       </select>
                       <small class="field-hint text-blue">Estado: En funciones · Capacidad máxima 16 citas/día</small>
                     </div>
@@ -350,46 +655,95 @@ const confirmarCitaExpedirComprobante = () => {
               <div class="step-card">
                 <div class="step-card-header">
                   <div>
-                    <span class="step-label-blue">PASO 4: CALENDARIO DE TURNOS</span>
-                    <h4>Octubre 2026 · Turno Matutino Consultorio 104</h4>
+                    <span class="step-label-blue">PASO 4: CALENDARIO DE TURNOS Y HORARIOS</span>
+                    <h4>{{ diaActivoObj?.fechaTexto || 'Fecha Seleccionada' }} · {{ agendamientoForm.especialidad ? agendamientoForm.especialidad.split(' — ')[1] || 'Consultorio' : 'Consultorio' }}</h4>
                   </div>
                   
                   <div class="calendar-legend-row">
                     <span class="legend-item"><span class="box-legend free"></span> Libre</span>
                     <span class="legend-item"><span class="box-legend selected"></span> Seleccionado</span>
                     <span class="legend-item"><span class="box-legend occupied"></span> Ocupado</span>
-                    <span class="legend-item"><span class="box-legend urgency"></span> Urgencia</span>
                   </div>
                 </div>
 
                 <div class="step-body">
-                  <!-- Selector de Días de la Semana -->
-                  <div class="days-tabs-grid">
+                  <!-- Barra Interactiva de Selección de Turno -->
+                  <div class="turnos-nav-pills">
                     <button 
-                      v-for="dia in diasSemanaCitas" 
-                      :key="dia.id"
-                      type="button"
-                      class="day-tab-card"
-                      :class="{ 
-                        disabled: dia.disabled, 
-                        active: agendamientoForm.diaSeleccionado === dia.id,
-                        today: dia.hoy 
-                      }"
-                      @click="!dia.disabled && (agendamientoForm.diaSeleccionado = dia.id)"
+                      type="button" 
+                      class="btn-turno-pill"
+                      :class="{ active: turnoSeleccionado === 'matutino' }"
+                      @click="cambiarTurno('matutino')"
                     >
-                      <span class="day-name">{{ dia.nombre }} {{ dia.num }} {{ dia.hoy ? '(HOY)' : '' }}</span>
-                      <strong class="day-number">{{ dia.num }}</strong>
-                      <span class="day-status" :class="{ highlight: dia.cupos > 0 }">{{ dia.estado }}</span>
+                      <span>Matutino (08:00 - 14:00)</span>
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn-turno-pill"
+                      :class="{ active: turnoSeleccionado === 'vespertino' }"
+                      @click="cambiarTurno('vespertino')"
+                    >
+                      <span>Vespertino (14:00 - 20:00)</span>
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn-turno-pill"
+                      :class="{ active: turnoSeleccionado === 'nocturno' }"
+                      @click="cambiarTurno('nocturno')"
+                    >
+                      <span>Nocturno (20:00 - 23:00)</span>
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn-turno-pill"
+                      :class="{ active: turnoSeleccionado === 'todos' }"
+                      @click="cambiarTurno('todos')"
+                    >
+                      <span>Todos los Horarios</span>
                     </button>
                   </div>
 
-                  <!-- Horarios Disponibles para Sábado 17 -->
+                  <!-- Selector de Días de la Semana con Desplazamiento y Fecha Directa -->
+                  <div class="days-controls-wrapper">
+                    <div class="days-tabs-grid-scroll">
+                      <button 
+                        v-for="dia in diasSemanaCitas" 
+                        :key="dia.id"
+                        type="button"
+                        class="day-tab-card"
+                        :class="{ 
+                          active: agendamientoForm.diaSeleccionado === dia.id,
+                          today: dia.hoy 
+                        }"
+                        @click="agendamientoForm.diaSeleccionado = dia.id"
+                      >
+                        <span class="day-name">{{ dia.nombre }} {{ dia.hoy ? '(HOY)' : '' }}</span>
+                        <strong class="day-number">{{ dia.num }}</strong>
+                        <span class="day-status highlight">{{ dia.estado }}</span>
+                      </button>
+                    </div>
+
+                    <div class="date-direct-picker-row">
+                      <label class="lbl-direct-date">
+                        <span>O seleccione fecha en calendario:</span>
+                        <input 
+                          type="date" 
+                          v-model="agendamientoForm.diaSeleccionado" 
+                          class="input-clean date-picker-input"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- Horarios Disponibles según Día y Turno -->
                   <div class="available-hours-container">
-                    <span class="hours-header-title">Horarios Disponibles para Sábado 17 de Octubre:</span>
+                    <span class="hours-header-title">
+                      Horarios Disponibles para <strong>{{ diaActivoObj?.fechaTexto || 'el día seleccionado' }}</strong> · <em>Turno {{ turnoSeleccionado.toUpperCase() }}</em>:
+                    </span>
 
                     <div class="slots-hours-grid">
                       <button 
-                        v-for="slot in horariosSabado" 
+                        v-for="slot in slotsHorarios" 
                         :key="slot.hora"
                         type="button"
                         class="slot-btn"
@@ -411,7 +765,7 @@ const confirmarCitaExpedirComprobante = () => {
                     <span><svg viewBox="0 0 24 24" class="svg-inline-clip" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></span>
                     <div>
                       <h4>Agenda del Día · Consultorio 104</h4>
-                      <small class="text-subtle">Pacientes asignados al Dr. Guillermo Ramírez Vega para hoy</small>
+                      <small class="text-subtle">Pacientes asignados a {{ agendamientoForm.medico ? agendamientoForm.medico.split(' · ')[0] : 'Médico Tratante' }} para hoy</small>
                     </div>
                   </div>
                   <span class="badge-neutral-sm">8 Citas Registradas</span>
@@ -479,7 +833,7 @@ const confirmarCitaExpedirComprobante = () => {
                   </div>
                   <div class="highlight-time-row">
                     <span class="highlight-big-hour">{{ agendamientoForm.horaSeleccionada }}</span>
-                    <span class="highlight-date-badge">HRS · SÁB 17 OCT</span>
+                    <span class="highlight-date-badge">HRS · {{ diaActivoObj?.nombre }} {{ diaActivoObj?.num }} {{ diaActivoObj?.mes }}</span>
                   </div>
                   <small class="highlight-sub">Duración estimada: 30 minutos (Espacio reservado en agenda del médico).</small>
                 </div>
@@ -499,8 +853,8 @@ const confirmarCitaExpedirComprobante = () => {
                     <span class="detail-icon"><svg viewBox="0 0 24 24" class="svg-inline-hospital" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><line x1="12" y1="6" x2="12" y2="10"/><line x1="10" y1="8" x2="14" y2="8"/></svg></span>
                     <div>
                       <small>ESPECIALIDAD & MÉDICO</small>
-                      <strong>Medicina Interna</strong>
-                      <span class="detail-meta">Dr. Guillermo Ramírez Vega (Céd. 8492011)</span>
+                      <strong>{{ agendamientoForm.especialidad ? agendamientoForm.especialidad.split(' — ')[0] : 'Medicina Interna' }}</strong>
+                      <span class="detail-meta">{{ agendamientoForm.medico }}</span>
                     </div>
                   </div>
 
@@ -571,6 +925,193 @@ const confirmarCitaExpedirComprobante = () => {
               </div>
 
             </aside>
+          </div>
+
+          <!-- PESTAÑA 2: VISUALIZACIÓN INTEGRAL DE CITAS AGENDADAS -->
+          <div v-else class="view-citas-agendadas">
+            <!-- Filtros y Métricas Rápidas -->
+            <div class="citas-filter-card">
+              <div class="filter-controls-row">
+                <div class="filter-field search-flex">
+                  <label>Buscar Paciente / Folio / CURP</label>
+                  <div class="search-input-wrap">
+                    <svg viewBox="0 0 24 24" class="svg-search-field" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input 
+                      type="text" 
+                      v-model="filtroBusqueda" 
+                      placeholder="Ej. IVAN ESTRADA, VTE-1042 o CURP..."
+                      class="input-filter-text"
+                    />
+                  </div>
+                </div>
+
+                <div class="filter-field">
+                  <label>Estado Asistencial</label>
+                  <select v-model="filtroEstado" class="select-filter">
+                    <option value="TODOS">Todos los estados</option>
+                    <option value="EN_SALA">En Sala de Espera</option>
+                    <option value="PROGRAMADA">Programada</option>
+                    <option value="EN_ATENCION">En Consulta Médica</option>
+                    <option value="ATENDIDA">Atendida / Egresada</option>
+                    <option value="CANCELADA">Cancelada</option>
+                  </select>
+                </div>
+
+                <div class="filter-field">
+                  <label>Médico Tratante</label>
+                  <select v-model="filtroMedico" class="select-filter">
+                    <option value="TODOS">Todos los médicos</option>
+                    <option v-for="m in listaMedicosDisponibles" :key="m.id" :value="m.id">
+                      {{ m.nombre }} ({{ m.especialidad }})
+                    </option>
+                  </select>
+                </div>
+
+                <div class="filter-field-actions">
+                  <button type="button" class="btn-refresh-citas" @click="recargarCitas">
+                    <svg viewBox="0 0 24 24" class="svg-inline-sync" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    <span>Actualizar</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Mini KPIs de Estados -->
+              <div class="kpi-citas-chips">
+                <div class="chip-kpi" :class="{ selected: filtroEstado === 'TODOS' }" @click="filtroEstado = 'TODOS'">
+                  <span class="chip-dot all"></span>
+                  <span class="chip-label">Total Citas:</span>
+                  <strong>{{ listaCitas.length }}</strong>
+                </div>
+                <div class="chip-kpi" :class="{ selected: filtroEstado === 'EN_SALA' }" @click="filtroEstado = 'EN_SALA'">
+                  <span class="chip-dot green"></span>
+                  <span class="chip-label">En Sala de Espera:</span>
+                  <strong>{{ listaCitas.filter(c => c.estado === 'EN_SALA').length }}</strong>
+                </div>
+                <div class="chip-kpi" :class="{ selected: filtroEstado === 'PROGRAMADA' }" @click="filtroEstado = 'PROGRAMADA'">
+                  <span class="chip-dot blue"></span>
+                  <span class="chip-label">Programadas:</span>
+                  <strong>{{ listaCitas.filter(c => c.estado === 'PROGRAMADA').length }}</strong>
+                </div>
+                <div class="chip-kpi" :class="{ selected: filtroEstado === 'EN_ATENCION' }" @click="filtroEstado = 'EN_ATENCION'">
+                  <span class="chip-dot orange"></span>
+                  <span class="chip-label">En Consulta:</span>
+                  <strong>{{ listaCitas.filter(c => c.estado === 'EN_ATENCION').length }}</strong>
+                </div>
+                <div class="chip-kpi" :class="{ selected: filtroEstado === 'ATENDIDA' }" @click="filtroEstado = 'ATENDIDA'">
+                  <span class="chip-dot gray"></span>
+                  <span class="chip-label">Atendidas:</span>
+                  <strong>{{ listaCitas.filter(c => c.estado === 'ATENDIDA').length }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabla de Citas Agendadas -->
+            <div class="citas-table-card">
+              <div class="table-card-top">
+                <div>
+                  <h3>Padrón Institucional de Citas Agendadas y Pase a Sala</h3>
+                  <p class="text-subtle">Sincronizado en tiempo real con la cola médica y el censo institucional.</p>
+                </div>
+                <span class="badge-total-showing">{{ citasFiltradas.length }} Registros</span>
+              </div>
+
+              <div v-if="citasFiltradas.length === 0" class="empty-citas-notice">
+                <svg viewBox="0 0 24 24" class="svg-empty-box" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <h4>No se encontraron citas con los filtros aplicados</h4>
+                <p>Puede agendar una nueva cita en la pestaña superior o ajustar los criterios de búsqueda.</p>
+                <button type="button" class="btn-create-shortcut" @click="subtabActiva = 'agendar'">
+                  + Agendar Nueva Cita
+                </button>
+              </div>
+
+              <div v-else class="table-responsive">
+                <table class="citas-master-table">
+                  <thead>
+                    <tr>
+                      <th>FOLIO / FECHA</th>
+                      <th>PACIENTE</th>
+                      <th>MÉDICO & CONSULTORIO</th>
+                      <th>HORARIO Y MODALIDAD</th>
+                      <th>ESTADO ASISTENCIAL</th>
+                      <th class="text-right">ACCIONES OPERATIVAS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="c in citasFiltradas" :key="c.id" :class="'row-status-' + c.estado.toLowerCase()">
+                      <td class="col-folio">
+                        <strong class="folio-tag">{{ c.folio }}</strong>
+                        <small class="text-subtle block-meta">{{ c.fechaRegistro ? c.fechaRegistro.substring(0, 10) : 'Hoy' }}</small>
+                      </td>
+                      <td class="col-paciente">
+                        <div class="patient-main-cell">
+                          <span class="patient-avatar-mini">{{ c.pacienteNombre.charAt(0) }}</span>
+                          <div>
+                            <strong class="patient-full-name">{{ c.pacienteNombre }}</strong>
+                            <span class="patient-curp-meta">CURP: {{ c.pacienteCurp || 'SIN-CURP' }}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="col-medico">
+                        <strong>{{ c.medicoNombre }}</strong>
+                        <small class="block-consultorio">{{ c.especialidad }} · {{ c.consultorio }}</small>
+                      </td>
+                      <td class="col-horario">
+                        <span class="badge-time-slot">{{ c.hora }} hrs</span>
+                        <small class="block-modality">{{ c.tipoIntervencion === 'primera' ? 'Primera Vez' : c.tipoIntervencion === 'preoperatoria' ? 'Preoperatoria' : 'Control' }}</small>
+                      </td>
+                      <td>
+                        <span 
+                          class="status-pill-badge" 
+                          :class="{
+                            'pill-green': c.estado === 'EN_SALA',
+                            'pill-blue': c.estado === 'PROGRAMADA',
+                            'pill-orange': c.estado === 'EN_ATENCION',
+                            'pill-gray': c.estado === 'ATENDIDA',
+                            'pill-red': c.estado === 'CANCELADA'
+                          }"
+                        >
+                          ● {{ c.estado === 'EN_SALA' ? 'En Sala de Espera' : c.estado === 'PROGRAMADA' ? 'Programada' : c.estado === 'EN_ATENCION' ? 'En Consulta' : c.estado === 'ATENDIDA' ? 'Atendida' : 'Cancelada' }}
+                        </span>
+                      </td>
+                      <td class="text-right col-actions">
+                        <div class="actions-buttons-cluster">
+                          <button 
+                            v-if="c.estado === 'PROGRAMADA'" 
+                            type="button" 
+                            class="btn-table-action btn-transfer" 
+                            @click="pasarASala(c)"
+                            title="Dar pase a la sala de espera del médico"
+                          >
+                            <svg viewBox="0 0 24 24" class="svg-inline-btn" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                            <span>Pase a Sala</span>
+                          </button>
+
+                          <button 
+                            type="button" 
+                            class="btn-table-action btn-print" 
+                            @click="imprimirTicket(c)"
+                            title="Imprimir comprobante con QR"
+                          >
+                            <svg viewBox="0 0 24 24" class="svg-inline-btn" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                            <span>Ticket</span>
+                          </button>
+
+                          <button 
+                            v-if="c.estado !== 'ATENDIDA' && c.estado !== 'CANCELADA'" 
+                            type="button" 
+                            class="btn-table-action btn-cancel" 
+                            @click="cancelarCita(c)"
+                            title="Cancelar cita"
+                          >
+                            <svg viewBox="0 0 24 24" class="svg-inline-btn" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 </template>
@@ -945,6 +1486,82 @@ const confirmarCitaExpedirComprobante = () => {
 .box-legend.occupied { background-color: #F1F5F9; border: 1px solid #E2E8F0; }
 .box-legend.urgency { background-color: #FEE2E2; border: 1px solid #FECACA; }
 
+/* Barra de Turnos */
+.turnos-nav-pills {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.btn-turno-pill {
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  background-color: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  color: #334155;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-turno-pill:hover {
+  background-color: #E2E8F0;
+  border-color: #94A3B8;
+}
+
+.btn-turno-pill.active {
+  background-color: #0F2D4A;
+  color: #FFFFFF;
+  border-color: #0F2D4A;
+  box-shadow: 0 2px 4px rgba(15, 45, 74, 0.2);
+}
+
+.days-controls-wrapper {
+  margin-bottom: 0.9rem;
+}
+
+.days-tabs-grid-scroll {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.4rem;
+}
+
+.days-tabs-grid-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.days-tabs-grid-scroll::-webkit-scrollbar-thumb {
+  background-color: #CBD5E1;
+  border-radius: 3px;
+}
+
+.date-direct-picker-row {
+  margin-top: 0.6rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.lbl-direct-date {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.date-picker-input {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.75rem;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  color: #0F172A;
+  background-color: #FFFFFF;
+}
+
 .days-tabs-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -1278,6 +1895,451 @@ const confirmarCitaExpedirComprobante = () => {
   font-weight: 700;
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
+}
+
+/* SUBPESTAÑAS DE CITAS */
+.citas-nav-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #E2E8F0;
+  padding-bottom: 0.5rem;
+}
+
+.citas-nav-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: transparent;
+  border: 1px solid transparent;
+  padding: 0.6rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.citas-nav-tab-btn:hover {
+  background-color: #F1F5F9;
+  color: #1E293B;
+}
+
+.citas-nav-tab-btn.active {
+  background-color: #0284C7;
+  color: #FFFFFF;
+  border-color: #0284C7;
+  box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
+}
+
+.svg-inline-tab {
+  width: 16px;
+  height: 16px;
+}
+
+.badge-tab-count {
+  background-color: rgba(0, 0, 0, 0.15);
+  color: inherit;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  font-weight: 700;
+}
+
+/* VISTA DE CITAS AGENDADAS */
+.view-citas-agendadas {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.citas-filter-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.filter-controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 200px;
+}
+
+.filter-field.search-flex {
+  flex: 1;
+  min-width: 250px;
+}
+
+.filter-field label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.svg-search-field {
+  position: absolute;
+  left: 0.75rem;
+  width: 16px;
+  height: 16px;
+  color: #94A3B8;
+  pointer-events: none;
+}
+
+.input-filter-text {
+  width: 100%;
+  padding: 0.55rem 0.75rem 0.55rem 2.2rem;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #1E293B;
+  background-color: #F8FAFC;
+}
+
+.input-filter-text:focus {
+  outline: none;
+  border-color: #0284C7;
+  background-color: #FFFFFF;
+}
+
+.select-filter {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #1E293B;
+  background-color: #F8FAFC;
+}
+
+.select-filter:focus {
+  outline: none;
+  border-color: #0284C7;
+  background-color: #FFFFFF;
+}
+
+.filter-field-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.btn-refresh-citas {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.9rem;
+  background-color: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-refresh-citas:hover {
+  background-color: #E2E8F0;
+  color: #0F172A;
+}
+
+/* Mini KPIs chips */
+.kpi-citas-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #F1F5F9;
+}
+
+.chip-kpi {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  font-size: 0.78rem;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.chip-kpi:hover {
+  border-color: #94A3B8;
+  background-color: #F1F5F9;
+}
+
+.chip-kpi.selected {
+  background-color: #EFF6FF;
+  border-color: #3B82F6;
+  color: #1D4ED8;
+  font-weight: 600;
+}
+
+.chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.chip-dot.all { background-color: #64748B; }
+.chip-dot.green { background-color: #10B981; }
+.chip-dot.blue { background-color: #3B82F6; }
+.chip-dot.orange { background-color: #F59E0B; }
+.chip-dot.gray { background-color: #94A3B8; }
+
+/* Tabla Citas Master */
+.citas-table-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.table-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #F1F5F9;
+  padding-bottom: 0.75rem;
+}
+
+.table-card-top h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+}
+
+.badge-total-showing {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background-color: #F1F5F9;
+  color: #475569;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+}
+
+.empty-citas-notice {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #64748B;
+}
+
+.svg-empty-box {
+  width: 48px;
+  height: 48px;
+  color: #CBD5E1;
+  margin-bottom: 0.5rem;
+}
+
+.empty-citas-notice h4 {
+  font-size: 1.05rem;
+  color: #334155;
+  margin-bottom: 0.3rem;
+}
+
+.btn-create-shortcut {
+  margin-top: 1rem;
+  padding: 0.55rem 1.1rem;
+  background-color: #0284C7;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.citas-master-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.citas-master-table th {
+  background-color: #F8FAFC;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid #E2E8F0;
+  text-align: left;
+}
+
+.citas-master-table td {
+  padding: 0.85rem 0.9rem;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 0.85rem;
+  color: #334155;
+  vertical-align: middle;
+}
+
+.citas-master-table tr:hover {
+  background-color: #F8FAFC;
+}
+
+.col-folio {
+  min-width: 100px;
+}
+
+.folio-tag {
+  color: #0284C7;
+  font-weight: 700;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.block-meta {
+  display: block;
+  font-size: 0.72rem;
+  color: #94A3B8;
+}
+
+.patient-main-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.patient-avatar-mini {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #0284C7;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.patient-full-name {
+  display: block;
+  font-size: 0.9rem;
+  color: #0F172A;
+}
+
+.patient-curp-meta {
+  display: block;
+  font-size: 0.72rem;
+  color: #64748B;
+  font-family: monospace;
+}
+
+.block-consultorio {
+  display: block;
+  font-size: 0.74rem;
+  color: #64748B;
+}
+
+.badge-time-slot {
+  display: inline-block;
+  background-color: #F1F5F9;
+  color: #1E293B;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.block-modality {
+  display: block;
+  font-size: 0.72rem;
+  color: #64748B;
+  margin-top: 0.15rem;
+}
+
+.status-pill-badge {
+  display: inline-block;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.pill-green { background-color: #DCFCE7; color: #15803D; }
+.pill-blue { background-color: #DBEAFE; color: #1E40AF; }
+.pill-orange { background-color: #FEF3C7; color: #B45309; }
+.pill-gray { background-color: #F1F5F9; color: #475569; }
+.pill-red { background-color: #FEE2E2; color: #B91C1C; }
+
+.col-actions {
+  min-width: 160px;
+}
+
+.actions-buttons-cluster {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+.btn-table-action {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid #CBD5E1;
+  background-color: #FFFFFF;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-table-action:hover {
+  background-color: #F8FAFC;
+  border-color: #94A3B8;
+}
+
+.btn-table-action.btn-transfer {
+  background-color: #DCFCE7;
+  border-color: #86EFAC;
+  color: #15803D;
+}
+
+.btn-table-action.btn-transfer:hover {
+  background-color: #BBF7D0;
+}
+
+.btn-table-action.btn-cancel {
+  color: #DC2626;
+  border-color: #FECACA;
+  padding: 0.35rem 0.45rem;
+}
+
+.btn-table-action.btn-cancel:hover {
+  background-color: #FEE2E2;
+}
+
+.svg-inline-btn {
+  width: 14px;
+  height: 14px;
 }
 
 </style>

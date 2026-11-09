@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import type { Paciente } from '../types'
 
 defineProps<{
@@ -7,6 +7,7 @@ defineProps<{
 
 defineEmits<{
   (e: 'deseleccionarPaciente'): void
+  (e: 'terminarConsulta'): void
 }>()
 </script>
 
@@ -42,7 +43,14 @@ defineEmits<{
         <strong>{{ pacienteSeleccionado.restantesMin }} <small>min</small></strong>
         <span>RESTANTES SLA</span>
       </div>
-      <button class="btn-change-patient" @click="$emit('deseleccionarPaciente')">
+      <button class="btn-egreso-patient" @click="$emit('terminarConsulta')" type="button">
+        <svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 11l3 3L22 4"/>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+        Terminar Consulta y Egresar
+      </button>
+      <button class="btn-change-patient" @click="$emit('deseleccionarPaciente')" type="button">
         <svg viewBox="0 0 24 24" class="svg-inline-x" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Cambiar
       </button>
     </div>
@@ -139,6 +147,35 @@ defineEmits<{
   font-size: 0.62rem;
   font-weight: 700;
   color: #64748B;
+}
+
+.btn-egreso-patient {
+  background-color: #dc2626;
+  color: #ffffff;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.45rem 0.85rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+  white-space: nowrap;
+}
+
+.btn-egreso-patient:hover {
+  background-color: #b91c1c;
+}
+
+.btn-egreso-patient:active {
+  transform: scale(0.98);
+}
+
+.svg-inline-check {
+  width: 14px;
+  height: 14px;
 }
 
 .btn-change-patient {

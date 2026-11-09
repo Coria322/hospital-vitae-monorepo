@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Usuario;
+use App\Services\AuditLogger;
 use Illuminate\Support\Facades\Hash;
 
 class AuthService
@@ -12,6 +13,18 @@ class AuthService
         $usuario = Usuario::where('id_usuario', $idUsuario)->first();
 
         if (!$usuario) {
+            try {
+                AuditLogger::log(
+                    tipoMovimiento: 'LOGIN_FAILED',
+                    tablaAfectada: 'usuario',
+                    registroId: $idUsuario,
+                    valorNuevo: ['ip' => request()->ip()],
+                    resultado: 'FALLIDO',
+                    motivo: 'Intento de acceso con identificador inexistente',
+                    idUsuario: 'DESCONOCIDO'
+                );
+            } catch (\Throwable) {}
+
             return [
                 'success' => false,
                 'status' => 401,
@@ -44,12 +57,37 @@ class AuthService
                     'bloqueado_hasta' => now()->addMinutes(15),
                 ]);
 
+                try {
+                    AuditLogger::log(
+                        tipoMovimiento: 'ACCOUNT_LOCKED',
+                        tablaAfectada: 'usuario',
+                        registroId: $usuario->id_usuario,
+                        valorNuevo: ['bloqueado_hasta' => $usuario->bloqueado_hasta, 'intentos' => 3],
+                        resultado: 'BLOQUEADO',
+                        motivo: 'Cuenta bloqueada temporalmente por 3 intentos fallidos consecutivos (15 minutos)',
+                        esNecesarioAuditoriaInterna: true,
+                        idUsuario: $usuario->id_usuario
+                    );
+                } catch (\Throwable) {}
+
                 return [
                     'success' => false,
                     'status' => 423,
                     'message' => 'Cuenta bloqueada temporalmente por 3 intentos fallidos consecutivos (15 minutos).',
                 ];
             }
+
+            try {
+                AuditLogger::log(
+                    tipoMovimiento: 'LOGIN_FAILED',
+                    tablaAfectada: 'usuario',
+                    registroId: $usuario->id_usuario,
+                    valorNuevo: ['intentos_fallidos' => $usuario->intentos_fallidos, 'ip' => request()->ip()],
+                    resultado: 'FALLIDO',
+                    motivo: 'Credenciales inválidas proporcionadas',
+                    idUsuario: $usuario->id_usuario
+                );
+            } catch (\Throwable) {}
 
             return [
                 'success' => false,
@@ -63,6 +101,17 @@ class AuthService
             'bloqueado_hasta' => null,
             'ultimo_acceso_en' => now(),
         ]);
+
+        try {
+            AuditLogger::log(
+                tipoMovimiento: 'LOGIN_SUCCESS',
+                tablaAfectada: 'usuario',
+                registroId: $usuario->id_usuario,
+                resultado: 'EXITOSO',
+                motivo: 'Autenticación exitosa',
+                idUsuario: $usuario->id_usuario
+            );
+        } catch (\Throwable) {}
 
         $token = $usuario->createToken('auth-token', ['*'], now()->addMinutes(15))->plainTextToken;
 

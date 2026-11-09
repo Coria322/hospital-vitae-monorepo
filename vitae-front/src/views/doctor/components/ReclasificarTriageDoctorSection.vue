@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { Paciente, Doctor } from '../types'
+import triageService from '@/services/triageService'
 
 const props = defineProps<{
   doctor: Doctor
@@ -56,19 +57,71 @@ const signosIngreso = computed(() => {
   }
 })
 
+// Determinar si el paciente proviene de Consulta Externa (cita agendada previa) o Urgencias
+const esConsultaExterna = computed(() => {
+  if (!props.pacienteSeleccionado) return false
+  return Boolean(
+    props.pacienteSeleccionado.id_cita ||
+    !props.pacienteSeleccionado.id_triage ||
+    props.pacienteSeleccionado.triage?.toLowerCase().includes('consulta externa')
+  )
+})
+
 const escalaraChoque = () => {
   nuevoNivel.value = 1
   discriminadores.value.viaAerea = true
   alert('ALERTA CRÍTICA: Paciente escalado inmediatamente a Nivel I (Choque / Resucitación). Alerta enviada a sala de estabilización.')
 }
 
-const confirmarReclasificacion = () => {
-  if (!justificacionClinica.value) {
-    alert('Debe ingresar la justificación clínica médica obligatoria para auditar el cambio de prioridad.')
+const reclasificando = ref(false)
+
+const confirmarReclasificacion = async () => {
+  if (!props.pacienteSeleccionado) {
+    alert('Atención: Seleccione un paciente antes de reclasificar la prioridad de triage.')
     return
   }
-  alert(`Reclasificación médica confirmada. Registrado en bitácora de auditoría con la firma del médico ${props.doctor.nombre}.`)
-  emit('cambiarSeccion', 'atencion')
+
+  if (!nuevoNivel.value) {
+    alert('Seleccione el nuevo nivel de prioridad Manchester (Nivel 1 al 5) para el paciente.')
+    return
+  }
+
+  const justificacion = justificacionClinica.value?.trim() || ''
+  if (justificacion.length < 10) {
+    alert('La justificación clínica médica es obligatoria y debe contener al menos 10 caracteres conforme a la NOM-206-SSA1-2002.')
+    return
+  }
+
+  const nivelesColor: Record<number, { color: string; hex: string }> = {
+    1: { color: 'ROJO', hex: '#EF4444' },
+    2: { color: 'NARANJA', hex: '#EA580C' },
+    3: { color: 'AMARILLO', hex: '#D97706' },
+    4: { color: 'VERDE', hex: '#10B981' },
+    5: { color: 'AZUL', hex: '#2563EB' }
+  }
+
+  const nivelObj = nivelesColor[nuevoNivel.value] || { color: 'AMARILLO', hex: '#D97706' }
+  const idTriage = props.pacienteSeleccionado.id_triage || props.pacienteSeleccionado.id
+
+  try {
+    reclasificando.value = true
+    if (idTriage && !String(idTriage).startsWith('PAC-')) {
+      await triageService.reclasificar(String(idTriage), nivelObj.color, justificacion)
+    }
+
+    props.pacienteSeleccionado.triage = `Manchester ${nivelObj.color} · Nivel ${nuevoNivel.value}`
+    props.pacienteSeleccionado.triageColor = nivelObj.hex
+
+    alert(`Reclasificación médica confirmada exitosamente.\n\nNuevo Nivel: Manchester ${nivelObj.color} (Nivel ${nuevoNivel.value})\nJustificación: "${justificacion}"\nOperación registrada en bitácora inalterable de auditoría con la cédula del médico ${props.doctor.cedula}.`)
+
+    emit('cambiarSeccion', 'atencion')
+  } catch (error: any) {
+    console.error('Error reclasificando triage médico:', error)
+    const msg = error.response?.data?.message || 'Error al registrar la reclasificación en el servidor.'
+    alert(`Error: ${msg}`)
+  } finally {
+    reclasificando.value = false
+  }
 }
 
 const cancelar = () => {
@@ -127,8 +180,74 @@ const cancelar = () => {
       </template>
     </div>
 
+    <!-- CUANDO EL PACIENTE ES DE CONSULTA EXTERNA PROGRAMADA (NO APLICA RECLASIFICACIÓN DE URGENCIAS) -->
+    <div v-if="esConsultaExterna" class="consulta-externa-notice-card">
+      <div class="notice-icon-header">
+        <div class="notice-icon-circle">
+          <svg viewBox="0 0 24 24" class="notice-svg" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <div class="notice-text">
+          <h3>Protocolo de Triage No Aplicable a Consulta Externa</h3>
+          <p>El paciente <strong>{{ pacienteSeleccionado?.nombre }}</strong> se encuentra en atención por <strong>Cita Programada de Consulta Externa ({{ pacienteSeleccionado?.folio }})</strong>.</p>
+        </div>
+      </div>
+
+      <div class="notice-body">
+        <div class="notice-explanation">
+          <h4>Criterio Normativo (NOM-004-SSA3-2012 / NOM-027-SSA3-2013)</h4>
+          <p>
+            El Sistema de Reclasificación de Triage (Protocolo Manchester) está diseñado exclusivamente para el Servicio de Urgencias y Resucitación con el fin de clasificar y priorizar el riesgo vital inmediato.
+          </p>
+          <p>
+            En pacientes con cita agendada, la toma de signos vitales se realiza en el área de <strong>Somatometría por Enfermería</strong> previo al ingreso al consultorio, y la atención médica se gestiona directamente desde el <strong>Expediente Clínico Electrónico</strong> y la <strong>Nota Médica ECE</strong>.
+          </p>
+        </div>
+
+        <div class="somatometria-status-box">
+          <div class="status-header">
+            <span class="status-title">Estado de Signos Vitales / Somatometría</span>
+            <span v-if="pacienteSeleccionado?.signos" class="badge-somatometria ok">Tomados por Enfermería · {{ pacienteSeleccionado.signos.horaToma }}</span>
+            <span v-else class="badge-somatometria pending">Pendiente de toma por Enfermería / Somatometría</span>
+          </div>
+
+          <div v-if="pacienteSeleccionado?.signos" class="vitals-summary-grid">
+            <div class="vital-chip"><span>P.A.:</span> <strong>{{ pacienteSeleccionado.signos.pa }}</strong> mmHg</div>
+            <div class="vital-chip"><span>F.C.:</span> <strong>{{ pacienteSeleccionado.signos.fc }}</strong> lpm</div>
+            <div class="vital-chip"><span>Temp:</span> <strong>{{ pacienteSeleccionado.signos.temp }}</strong> °C</div>
+            <div class="vital-chip"><span>SpO₂:</span> <strong>{{ pacienteSeleccionado.signos.spo2 }}</strong> %</div>
+          </div>
+          <p v-else class="status-note">
+            El paciente no cuenta aún con signos vitales registrados en somatometría. El personal de enfermería los capturará al registrar su llegada en sala, o bien puede usted registrarlos directamente durante la exploración en la Nota Médica.
+          </p>
+        </div>
+
+        <div class="notice-actions">
+          <button class="btn-primary-action" @click="$emit('cambiarSeccion', 'atencion')">
+            <svg viewBox="0 0 24 24" class="btn-action-svg" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            Ir a Expediente Clínico (Alt+E)
+          </button>
+          <button class="btn-secondary-action" @click="$emit('cambiarSeccion', 'nota')">
+            <svg viewBox="0 0 24 24" class="btn-action-svg" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Elaborar Nota Médica ECE (Alt+N)
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- GRID DE 2 COLUMNAS (RE-EVALUACIÓN Y DISCRIMINADORES IZQ + RECÁLCULO DER) -->
-    <div class="triage-grid">
+    <div v-else class="triage-grid">
       
       <!-- COLUMNA IZQUIERDA: SIGNOS COMPARATIVOS, DISCRIMINADORES Y JUSTIFICACIÓN -->
       <div class="triage-left-column">
@@ -148,7 +267,8 @@ const cancelar = () => {
 
             <div class="card-notice">
               <span class="info-bubble">ⓘ</span>
-              <p>Los signos registrados por enfermería en el primer contacto se visualizarán aquí al vincular al paciente.</p>
+              <p v-if="pacienteSeleccionado?.signos">Signos vitales registrados al ingreso por Enfermería en el área de Triage.</p>
+              <p v-else>Esperando registro de signos vitales por Enfermería en Triage o vinculación del paciente.</p>
             </div>
 
             <div class="vitals-6-grid">
@@ -190,7 +310,8 @@ const cancelar = () => {
             </div>
 
             <div class="timestamp-footer">
-              <span>Hora de captura inicial: {{ signosIngreso.horaToma || '--:--' }} h</span>
+              <span v-if="pacienteSeleccionado?.signos">Hora de captura inicial: {{ pacienteSeleccionado.signos.horaToma || '--:--' }}</span>
+              <span v-else>Sin registro previo de signos en Triage</span>
             </div>
           </div>
 
@@ -1248,6 +1369,207 @@ const cancelar = () => {
 
 .audit-card p {
   margin: 0;
+}
+
+/* TARJETA INFORMATIVA CONSULTA EXTERNA (NO APLICA TRIAGE) */
+.consulta-externa-notice-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.notice-icon-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+  border-bottom: 1px solid #BAE6FD;
+}
+
+.notice-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #0284C7;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.notice-svg {
+  width: 24px;
+  height: 24px;
+}
+
+.notice-text h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0369A1;
+}
+
+.notice-text p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #0C4A6E;
+}
+
+.notice-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.notice-explanation {
+  background: #F8FAFC;
+  border-left: 4px solid #0284C7;
+  padding: 1rem 1.25rem;
+  border-radius: 0 6px 6px 0;
+}
+
+.notice-explanation h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1E293B;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.notice-explanation p {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #475569;
+}
+
+.notice-explanation p:last-child {
+  margin-bottom: 0;
+}
+
+.somatometria-status-box {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+}
+
+.status-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.status-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+}
+
+.badge-somatometria {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+}
+
+.badge-somatometria.ok {
+  background: #DCFCE7;
+  color: #15803D;
+  border: 1px solid #86EFAC;
+}
+
+.badge-somatometria.pending {
+  background: #FEF3C7;
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+
+.vitals-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
+}
+
+.vital-chip {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.vital-chip strong {
+  font-size: 1rem;
+  color: #0F172A;
+  margin-left: 0.25rem;
+}
+
+.status-note {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #64748B;
+  line-height: 1.45;
+}
+
+.notice-actions {
+  display: flex;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+
+.btn-primary-action {
+  background: #0F4C81;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.15s ease;
+}
+
+.btn-primary-action:hover {
+  background: #0a355c;
+}
+
+.btn-secondary-action {
+  background: #F1F5F9;
+  color: #334155;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.15s ease;
+}
+
+.btn-secondary-action:hover {
+  background: #E2E8F0;
+}
+
+.btn-action-svg {
+  width: 16px;
+  height: 16px;
 }
 
 @media (max-width: 1100px) {
