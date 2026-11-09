@@ -1,0 +1,25 @@
+info:
+  name: 06 - Rechazar Inyeccion IDOR (403 Forbidden)
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{base_url}}/mobile/recetas?id_paciente=00000000-0000-0000-0000-000000000099"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: "Bearer {{paciente_token}}"
+    - name: X-Client-Version
+      value: "29"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Detecta y bloquea violación de aislamiento horizontal anti-IDOR (RF-002.1)", function() {
+          expect(res.getStatus()).to.equal(403);
+          expect(res.getBody().code).to.equal("IDOR_VIOLATION_DETECTED");
+        });
+

@@ -27,6 +27,7 @@ class Usuario extends Authenticatable
         'mfa_habilitado',
         'ultimo_acceso_en',
         'debe_cambiar_password',
+        'id_paciente',
     ];
 
     protected $hidden = [
@@ -52,5 +53,10 @@ class Usuario extends Authenticatable
     public function getAuthPassword(): string
     {
         return $this->password_hash;
+    }
+
+    public function paciente(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Paciente::class, 'id_paciente', 'id_paciente');
     }
 }

@@ -1,0 +1,29 @@
+meta {
+  name: 02 - Consultar Perfil Movil (200 OK)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/mobile/perfil
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{paciente_token}}
+}
+
+headers {
+  Accept: application/json
+  X-Client-Version: 29
+}
+
+tests {
+  test("Consulta de perfil propio en portal móvil exitosa", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.nombre_completo).to.be.a('string');
+  });
+}
+

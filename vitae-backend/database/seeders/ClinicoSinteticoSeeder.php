@@ -129,5 +129,38 @@ class ClinicoSinteticoSeeder extends Seeder
                 'estado_atencion' => 'EN_ESPERA',
             ]
         );
+
+        // 5. Vincular cuentas de usuarios PACIENTE con registros clínicos
+        Usuario::where('id_usuario', 'PAC-001')->update(['id_paciente' => $paciente1->id_paciente]);
+        Usuario::where('id_usuario', 'PAC-002')->update(['id_paciente' => $paciente2->id_paciente]);
+
+        // 6. Citas médicas sintéticas (PROV-RF-002 / Sprint 5)
+        \App\Models\Cita::updateOrCreate(
+            ['id_cita' => 'a0000000-0000-0000-0000-000000000001'],
+            [
+                'id_paciente' => $paciente1->id_paciente,
+                'id_usuario' => $idMedico,
+                'fecha_hora' => Carbon::now('UTC')->addDays(3)->setTime(10, 0, 0),
+                'estado' => 'CONFIRMADA',
+                'especialidad' => 'Medicina Interna',
+                'motivo' => 'Seguimiento de control clínico sintético',
+                'consultorio' => 'Consultorio 104',
+                'confirmada_por' => 'REC-001',
+                'confirmada_en' => Carbon::now('UTC')->subHours(2),
+            ]
+        );
+
+        \App\Models\Cita::updateOrCreate(
+            ['id_cita' => 'a0000000-0000-0000-0000-000000000002'],
+            [
+                'id_paciente' => $paciente1->id_paciente,
+                'id_usuario' => $idMedico,
+                'fecha_hora' => Carbon::now('UTC')->addDays(7)->setTime(16, 30, 0),
+                'estado' => 'PENDIENTE',
+                'especialidad' => 'Cardiología Preventiva',
+                'motivo' => 'Revisión periódica de presión arterial',
+                'consultorio' => 'Consultorio 202',
+            ]
+        );
     }
 }

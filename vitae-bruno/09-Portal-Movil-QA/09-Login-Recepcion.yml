@@ -1,0 +1,39 @@
+info:
+  name: 09 - Login Recepcion (200 OK)
+  type: http
+  seq: 9
+
+http:
+  method: POST
+  url: "{{base_url}}/auth/login"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "id_usuario": "REC-001",
+        "password": "password123"
+      }
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Personal de recepción inicia sesión exitosamente", function() {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().data.usuario.rol).to.equal("RECEPCION");
+        });
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.body.data.token
+        method: jsonq
+      variable:
+        name: recepcion_token
+        scope: runtime
+
