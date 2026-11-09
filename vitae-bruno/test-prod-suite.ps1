@@ -100,6 +100,8 @@ $suites = @(
     @{ Folder = "05-Auditoria-I"; Desc = "Bitacora Inalterable NOM-024 (AUDITORIA_I) y Bloqueo 405" },
     @{ Folder = "06-Infraestructura-y-Tiempo"; Desc = "Sincronizacion CENAM/NTP y Healthchecks de Disponibilidad" },
     @{ Folder = "07-Triage-Manchester"; Desc = "Triage Manchester, Reclasificacion Medica y Salas Urgencias" },
+    @{ Folder = "08-ECE-Recetas-FHIR"; Desc = "ECE, Recetas Controladas, FHIR R4 e Interoperabilidad" },
+    @{ Folder = "09-Portal-Movil-QA"; Desc = "Portal Movil Paciente, Anti-IDOR, NOM-035 y Agenda de Citas" },
     @{ Folder = "04-Logout"; Desc = "Revocacion Segura de Tokens de Sesion (Logout)" }
 )
 

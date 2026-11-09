@@ -1,0 +1,23 @@
+info:
+  name: 13 - Exportar CSV NOM-035 (200 OK)
+  type: http
+  seq: 13
+
+http:
+  method: GET
+  url: "{{base_url}}/estadisticas/exportar?formato=csv"
+  headers:
+    - name: Accept
+      value: text/csv
+    - name: Authorization
+      value: "Bearer {{admin_token}}"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Exportación de métricas NOM-035 en CSV disociado (PROV-RF-001)", function() {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getHeader('content-type')).to.include('text/csv');
+        });
+

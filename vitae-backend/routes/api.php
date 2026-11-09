@@ -190,6 +190,43 @@ Route::prefix('v1')->group(function () {
         Route::get('/accesos-emergencia', [\App\Http\Controllers\Api\V1\AccesoEmergenciaController::class, 'index'])
             ->middleware('role:ADMINISTRADOR,MEDICO');
 
+        // SPRINT 5: Agenda y Confirmación de Citas Médicas (PROV-RF-002 / Recepción)
+        Route::get('/citas', [\App\Http\Controllers\Api\V1\CitaController::class, 'index'])
+            ->middleware('role:RECEPCION,ADMINISTRADOR,MEDICO');
+        Route::post('/citas', [\App\Http\Controllers\Api\V1\CitaController::class, 'store'])
+            ->middleware('role:RECEPCION,ADMINISTRADOR');
+        Route::get('/citas/{id}', [\App\Http\Controllers\Api\V1\CitaController::class, 'show'])
+            ->middleware('role:RECEPCION,ADMINISTRADOR,MEDICO');
+        Route::patch('/citas/{id}/confirmacion', [\App\Http\Controllers\Api\V1\CitaController::class, 'confirmar'])
+            ->middleware('role:RECEPCION,ADMINISTRADOR');
+        Route::patch('/citas/{id}/cancelacion', [\App\Http\Controllers\Api\V1\CitaController::class, 'cancelar'])
+            ->middleware('role:RECEPCION,ADMINISTRADOR');
+
+        // SPRINT 5: Tableros Estadísticos NOM-035 con Cero PII y CLUES (PROV-RF-001 / NOM-035-STPS-2018)
+        Route::get('/estadisticas/tableros', [\App\Http\Controllers\Api\V1\EstadisticaController::class, 'tableros'])
+            ->middleware('role:ADMINISTRADOR');
+        Route::get('/estadisticas/exportar', [\App\Http\Controllers\Api\V1\EstadisticaController::class, 'exportar'])
+            ->middleware('role:ADMINISTRADOR');
+
+        // SPRINT 5: Portal Móvil del Paciente (RF-011, RF-002.1, RNF-006 / Android 10+ / Anti-IDOR)
+        Route::prefix('mobile')->middleware(['mobile.version', 'mobile.isolation'])->group(function () {
+            Route::get('/perfil', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'perfil']);
+            Route::get('/citas', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'citas']);
+            Route::post('/citas', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'solicitarCita']);
+            Route::patch('/citas/{id}/cancelar', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'cancelarCita']);
+            Route::get('/recetas', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'recetas']);
+            Route::get('/resultados', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'resultados']);
+            Route::get('/expediente', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'expediente']);
+            Route::post('/consentimientos', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'consentimiento']);
+            Route::post('/solicitudes-arco', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'solicitudArco']);
+
+            // Interceptores normativos de bloqueo a mutaciones clínicas desde móvil (RF-011)
+            Route::match(['post', 'put', 'patch', 'delete'], '/recetas/{id?}', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'bloquearMutacionClinica']);
+            Route::match(['post', 'put', 'patch', 'delete'], '/resultados/{id?}', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'bloquearMutacionClinica']);
+            Route::match(['post', 'put', 'patch', 'delete'], '/expediente/{id?}', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'bloquearMutacionClinica']);
+            Route::match(['post', 'put', 'patch', 'delete'], '/notas/{id?}', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'bloquearMutacionClinica']);
+        });
+
         // Endpoints administrativos protegidos por rol ADMINISTRADOR
         Route::middleware(['role:ADMINISTRADOR'])->group(function () {
             Route::get('/usuarios', [UsuarioController::class, 'index']);

@@ -102,5 +102,35 @@ class UsuarioSeeder extends Seeder
                 'debe_cambiar_password' => false,
             ]
         );
+
+        // 6. Paciente Portal Móvil (RF-011 / RF-002.1)
+        Usuario::updateOrCreate(
+            ['id_usuario' => 'PAC-001'],
+            [
+                'nombre_completo' => 'Paciente Sintético Alfa',
+                'rol' => 'PACIENTE',
+                'password_hash' => Hash::make('password123', ['rounds' => 12]),
+                'cedula' => null,
+                'estado_cuenta' => 'ACTIVA',
+                'intentos_fallidos' => 0,
+                'mfa_habilitado' => false,
+                'debe_cambiar_password' => false,
+            ]
+        );
+
+        // 6b. Segundo Paciente (Para pruebas de Aislamiento Horizontal Anti-IDOR)
+        Usuario::updateOrCreate(
+            ['id_usuario' => 'PAC-002'],
+            [
+                'nombre_completo' => 'Paciente Sintética Beta',
+                'rol' => 'PACIENTE',
+                'password_hash' => Hash::make('password123', ['rounds' => 12]),
+                'cedula' => null,
+                'estado_cuenta' => 'ACTIVA',
+                'intentos_fallidos' => 0,
+                'mfa_habilitado' => false,
+                'debe_cambiar_password' => false,
+            ]
+        );
     }
 }

@@ -1,0 +1,26 @@
+info:
+  name: 02 - Consultar Perfil Movil (200 OK)
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{base_url}}/mobile/perfil"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: "Bearer {{paciente_token}}"
+    - name: X-Client-Version
+      value: "29"
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Consulta de perfil propio en portal móvil exitosa", function() {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().status).to.equal("success");
+          expect(res.getBody().data.nombre_completo).to.be.a('string');
+        });
+

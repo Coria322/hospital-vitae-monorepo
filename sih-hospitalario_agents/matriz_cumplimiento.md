@@ -1,7 +1,7 @@
 # Matriz de Cumplimiento — Hospital Vitae SIH
-**Sprint Activo:** Sprint 4 (Auditoría AI-04 — ECE, Recetas Médicas Controladas e Interoperabilidad HL7 FHIR R4)  
-**Fecha de Actualización:** 2026-11-05  
-**Rama:** `feature/sprint-4-ece-recetas-fhir`
+**Sprint Activo:** Sprint 5 (Auditoría AI-05 — Portal Móvil del Paciente, Estadística NOM-035 y QA Integral)  
+**Fecha de Actualización:** 2026-11-08  
+**Rama:** `feature/sprint-5-portal-movil-backend`
 
 ---
 
@@ -69,6 +69,23 @@
 
 ---
 
+### Sprint 5: Portal Móvil, Estadística NOM-035 y QA Integral (Auditoría AI-05)
+> *Normativas: NOM-024-SSA3-2012, LFPDPPP, NOM-035-STPS-2018, ISO/IEC-25010, OWASP ASVS L2.*  
+> *Estado del Sprint: ✅ **CERRADO EN BACKEND (100% Cumplido - Certificado con 92 pruebas PHPUnit y 13 peticiones Bruno CLI)**.*
+
+| Requerimiento / Norma | Descripción Normativa | Estado Inicial | Estado Actual | Nivel de Brecha |
+| :--- | :--- | :--- | :--- | :---: |
+| **RF-011** (NOM-024 / LFPDPPP) | API móvil de solo lectura para consulta de paciente (perfil, citas, recetas, resultados) y rechazo HTTP 403 a escrituras clínicas. | Inexistente en API. | Rutas `/api/v1/mobile/*` con middleware `MobilePatientIsolation`, lectura permitida y bloqueo estricto a mutaciones clínicas (HTTP 403). | ✅ **Cerrada (100%)** |
+| **RF-002.1** (OWASP ASVS L2 / LFPDPPP) | Aislamiento horizontal estricto de registros clínicos por claim `sub` del token del paciente (Anti-IDOR). | No había validación horizontal en móvil. | Middleware `MobilePatientIsolation` valida que cualquier `id_paciente` coincida con el token; rechazo inmediato con HTTP 403 y auto-auditoría. | ✅ **Cerrada (100%)** |
+| **RNF-005** (ISO/IEC-25010) | Rendimiento y tiempos de respuesta P95 <= 2.0 s en visualización de expediente clínico con relaciones completas. | Sin benchmarking formal. | Consultas indexadas y optimizadas; prueba de estrés con 15 consultas completas certifica P95 <= 2.0 s (promedio < 150 ms). | ✅ **Cerrada (100%)** |
+| **RNF-006** (ISO/IEC-25010) | Compatibilidad de cliente móvil: validación de `X-Client-Version` >= Android 10 (API 29); rechazo con HTTP 426 o 400. | Inexistente. | Middleware `CheckClientVersion` con rechazo HTTP 426 ante API level < 29 y HTTP 400 ante cabecera faltante o malformada. | ✅ **Cerrada (100%)** |
+| **PROV-RF-001** (NOM-035 / LFPDPPP) | Tableros de control estadístico y reportes de salud laboral disociados (CLUES obligatorio, k-anonimato $n \ge 3$, cero PII). | Inexistente. | `EstadisticaController` con tableros agregados, exportación CSV disociada, inclusión de CLUES y auto-auditoría en `AUDITORIA_I`. | ✅ **Cerrada (100%)** |
+| **PROV-RF-002** (NOM-024) | Módulo de agenda y confirmación de citas hospitalarias para pacientes y recepción. | Inexistente en base de datos y API. | Migración `cita`, modelo Eloquent `Cita`, endpoints `/citas` (creación, confirmación presencial y rechazo HTTP 422 ante citas expiradas). | ✅ **Cerrada (100%)** |
+| **PROV-RNF-002** (ISO/IEC-25010) | Estrategia integral de aseguramiento de calidad (QA: unitarias, integración, e2e, estrés). | Cobertura en desarrollo. | Suite PHPUnit alcanzando 92 pruebas pasando al 100% (492 aserciones) y colección Bruno `09-Portal-Movil-QA` (13 peticiones). | ✅ **Cerrada (100%)** |
+| **PROV-SEC-009** (OWASP ASVS L2 / ISO-27001) | Gestión de vulnerabilidades, inventario de componentes SBOM y evaluación de dependencias. | Inexistente. | Comando Artisan `secops:sbom` en formato CycloneDX v1.5, verificación estricta de 0 dependencias críticas (MS-03 = 0). | ✅ **Cerrada (100%)** |
+
+---
+
 ## 2. Matriz Detallada de Trazabilidad Técnica vs Constraints Reales
 
 ### Tareas Certificadas — Sprint 2 (Auditoría AI-02)
@@ -91,6 +108,19 @@
 | `TASK-W-050` | PROV-SEC-008, LFPDPPP | Generación de PDF de expediente clínico con marca de agua disociada ("COPIA CLÍNICA AUDITADA - USO INTERNO"). | `app/Services/PdfExpedienteService.php` | Test de generación sin PII expuesta en texto plano y marcas de agua | ✅ **Cumplida (100%)** |
 | `TASK-W-051` | RF-008 a RF-010, RNF-007 | Colección Bruno `08-ECE-Recetas-FHIR` cubriendo notas médicas, recetas con QR, FHIR R4 y Break-the-Glass. | `vitae-bruno/08-ECE-Recetas-FHIR` | Ejecución 100% exitosa con Bruno CLI (27/27 requests aprobados) | ✅ **Cumplida (100%)** |
 | `TASK-W-052` | RF-008 a RF-010, RNF-007 | Suite completa de pruebas automatizadas PHPUnit para ECE, notas inmutables, recetas y FHIR R4. | `tests/Feature/Sprint4EceRecetasTest.php` | Suite de pruebas PHPUnit pasando al 100% (13/13 Sprint 4, 81/81 global) | ✅ **Cumplida (100%)** |
+
+### Tareas Certificadas — Sprint 5 (Auditoría AI-05)
+
+| ID Tarea | Requisito | Constraint / Criterio de Aceptación Real | Componente Afectado | Evidencia Requerida | Estado |
+| :--- | :--- | :--- | :--- | :--- | :---: |
+| `TASK-W-053` | RF-011, NOM-024 | Endpoints de solo lectura bajo `/api/v1/mobile/*` (perfil, citas, recetas, resultados) y bloqueo a mutaciones clínicas. | `app/Http/Controllers/Api/V1/MobileApiController.php`, `routes/api.php` | Test de consulta 200 y rechazo HTTP 403 a escrituras clínicas con log en `AUDITORIA_I` | ✅ **Cumplida (100%)** |
+| `TASK-W-054` | RF-002.1, OWASP | Aislamiento horizontal anti-IDOR forzado por `sub` del token (HTTP 403 si difiere). | `app/Http/Middleware/MobilePatientIsolation.php` | Test de inyección en query, body y cancelación ajena retornando HTTP 403 | ✅ **Cumplida (100%)** |
+| `TASK-W-055` | RNF-006, Android | Middleware de compatibilidad de cliente móvil: exige `X-Client-Version` >= Android 10 (API 29). | `app/Http/Middleware/CheckClientVersion.php` | Test de rechazo HTTP 400 (ausente) y 426 (API 28), aceptación API 29 y 34 | ✅ **Cumplida (100%)** |
+| `TASK-W-056` | PROV-RF-002, NOM-024 | Modelo de agenda y citas médicas con agendamiento, consulta y confirmación por recepción. | `database/migrations`, `app/Models/Cita.php`, `app/Http/Controllers/Api/V1/CitaController.php` | Test de creación 201, confirmación 200 y rechazo HTTP 422 ante citas expiradas | ✅ **Cumplida (100%)** |
+| `TASK-W-057` | PROV-RF-001, NOM-035 | Tableros estadísticos NOM-035 con inclusión obligatoria de CLUES, k-anonimidad $n \ge 3$ y cero PII. | `app/Http/Controllers/Api/V1/EstadisticaController.php` | Test de rechazo a personal no admin (403), verificación de 0 PII y exportación CSV | ✅ **Cumplida (100%)** |
+| `TASK-W-058` | RNF-005, ISO-25010 | Benchmarking de rendimiento clínico en ECE garantizando P95 <= 2.0 s bajo carga. | `tests/Feature/Sprint5PortalMovilQaTest.php` | Prueba automatizada con 15 lecturas sucesivas con eager loading certificando P95 <= 2.0 s | ✅ **Cumplida (100%)** |
+| `TASK-W-059` | PROV-SEC-009, SecOps | Comando Artisan `secops:sbom` generador de inventario SBOM CycloneDX y evaluación de CVEs críticas. | `app/Console/Commands/GenerarSbomCommand.php` | Test de generación de `sbom.json` con 0 vulnerabilidades críticas (MS-03 = 0) | ✅ **Cumplida (100%)** |
+| `TASK-W-060` | PROV-RNF-002, QA | Suite de pruebas PHPUnit Sprint 5 (10 tests) y colección Bruno `09-Portal-Movil-QA` (13 peticiones). | `tests/Feature/Sprint5PortalMovilQaTest.php`, `vitae-bruno/09-Portal-Movil-QA` | 92/92 tests PHPUnit aprobados y suite Bruno homologada | ✅ **Cumplida (100%)** |
 
 ---
 

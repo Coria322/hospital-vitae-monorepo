@@ -65,6 +65,11 @@ class ExpedienteClinico extends Model
         return $this->hasMany(NotaMedica::class, 'id_expediente', 'id_expediente')->orderBy('fecha_hora', 'asc');
     }
 
+    public function notas(): HasMany
+    {
+        return $this->notasMedicas();
+    }
+
     public function recetas(): HasMany
     {
         return $this->hasMany(Receta::class, 'id_expediente', 'id_expediente')->orderBy('fecha_hora_emision', 'desc');
