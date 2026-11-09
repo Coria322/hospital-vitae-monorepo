@@ -1,0 +1,25 @@
+info:
+  name: 02 - Consultar Capacidad Telemetria (200 OK)
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: "{{base_url}}/admin/infraestructura/capacidad?umbral=85"
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Authorization
+      value: Bearer {{admin_token}}
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("Administrador consulta telemetría y métricas de capacidad (PROV-RNF-004)", function() {
+          expect(res.getStatus()).to.equal(200);
+          expect(res.getBody().status).to.equal("success");
+          expect(res.getBody().data.metricas.disco).to.be.an("object");
+          expect(res.getBody().data.metricas.memoria).to.be.an("object");
+          expect(res.getBody().data.metricas.bcp_drp.rto_objetivo_horas).to.equal(4);
+        });

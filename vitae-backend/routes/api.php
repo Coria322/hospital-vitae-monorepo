@@ -254,6 +254,18 @@ Route::prefix('v1')->group(function () {
             Route::get('/auditoria/verificar-cadena', [\App\Http\Controllers\Api\V1\AuditoriaIController::class, 'verificarCadena']);
             Route::get('/auditoria', [\App\Http\Controllers\Api\V1\AuditoriaIController::class, 'index']);
             Route::match(['post', 'put', 'patch', 'delete'], '/auditoria/{id?}', [\App\Http\Controllers\Api\V1\AuditoriaIController::class, 'methodNotAllowed']);
+
+            // SPRINT 6: Gestión Formal de Cambios Post-Liberación (RFC / ISO-20000 / PROV-RN-012)
+            Route::get('/admin/rfcs', [\App\Http\Controllers\Api\V1\RfcController::class, 'index']);
+            Route::post('/admin/rfcs', [\App\Http\Controllers\Api\V1\RfcController::class, 'store']);
+            Route::get('/admin/rfcs/{id}', [\App\Http\Controllers\Api\V1\RfcController::class, 'show']);
+            Route::patch('/admin/rfcs/{id}/aprobar', [\App\Http\Controllers\Api\V1\RfcController::class, 'aprobar']);
+            Route::patch('/admin/rfcs/{id}/rechazar', [\App\Http\Controllers\Api\V1\RfcController::class, 'rechazar']);
+
+            // SPRINT 6: Monitoreo de Capacidad, Quality Gate y Repositorio Maestro de Evidencias (AI-06)
+            Route::get('/admin/infraestructura/capacidad', [\App\Http\Controllers\Api\V1\InfraestructuraController::class, 'capacidad']);
+            Route::get('/admin/quality-gate/status', [\App\Http\Controllers\Api\V1\InfraestructuraController::class, 'qualityGateStatus']);
+            Route::get('/admin/auditoria/evidencias-maestras', [\App\Http\Controllers\Api\V1\InfraestructuraController::class, 'evidenciasMaestras']);
         });
     });
 });

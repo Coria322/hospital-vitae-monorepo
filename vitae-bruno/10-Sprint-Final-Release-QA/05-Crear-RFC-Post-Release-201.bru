@@ -1,0 +1,41 @@
+meta {
+  name: 05-Crear-RFC-Post-Release-201
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/admin/rfcs
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{admin_token}}
+}
+
+body:json {
+  {
+    "titulo": "Actualización de índices en colas de urgencias",
+    "descripcion": "Optimización de índices concurrentes para salas rojas y amarillas",
+    "severidad": "P1",
+    "modulo": "triage",
+    "impacto_clinico": "Mejora de latencia en asignación de consultorios",
+    "analisis_riesgo": "Riesgo transitorio de concurrencia bajo",
+    "plan_rollback": "Reversión con DROP INDEX CONCURRENTLY y reinicio de réplica en slot Blue"
+  }
+}
+
+vars:post-response {
+  rfc_id: res.body.data.id_rfc
+}
+
+test {
+  test("Crea solicitud formal de cambio RFC severidad P1 con SLA 2h (PROV-RN-012)", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal('success');
+    expect(res.getBody().data.severidad).to.equal('P1');
+    expect(res.getBody().data.tiempo_estimado_resolucion_horas).to.equal(2);
+    expect(res.getBody().data.id_rfc).to.be.a('string');
+  });
+}

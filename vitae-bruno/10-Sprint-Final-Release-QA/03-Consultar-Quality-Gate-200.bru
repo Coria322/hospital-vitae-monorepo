@@ -1,0 +1,24 @@
+meta {
+  name: 03-Consultar-Quality-Gate-200
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/admin/quality-gate/status
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{admin_token}}
+}
+
+test {
+  test("Quality Gate de liberación certificado con 0 vulnerabilidades (PROV-RN-011)", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal('success');
+    expect(res.getBody().data.resultado_global).to.equal('APROBADO');
+    expect(res.getBody().data.checksum_acta_sha256).to.be.a('string');
+  });
+}

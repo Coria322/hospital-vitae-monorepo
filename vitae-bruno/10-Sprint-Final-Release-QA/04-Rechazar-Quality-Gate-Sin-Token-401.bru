@@ -1,0 +1,17 @@
+meta {
+  name: 04-Rechazar-Quality-Gate-Sin-Token-401
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base_url}}/admin/quality-gate/status
+  body: none
+  auth: none
+}
+
+test {
+  test("Rechaza consulta de Quality Gate sin autenticación con 401 (ISO-27001)", function() {
+    expect(res.getStatus()).to.equal(401);
+  });
+}

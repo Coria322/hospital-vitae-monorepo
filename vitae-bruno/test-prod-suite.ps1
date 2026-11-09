@@ -1,4 +1,4 @@
-# test-prod-suite.ps1 - Ejecucion Integral de Pruebas Bruno en Produccion
+﻿# test-prod-suite.ps1 - Ejecucion Integral de Pruebas Bruno en Produccion
 param(
     [string]$EnvName = "Production",
     [string]$BaseUrl = "https://auditoria-backend-u47a.onrender.com/api/v1",
@@ -102,6 +102,7 @@ $suites = @(
     @{ Folder = "07-Triage-Manchester"; Desc = "Triage Manchester, Reclasificacion Medica y Salas Urgencias" },
     @{ Folder = "08-ECE-Recetas-FHIR"; Desc = "ECE, Recetas Controladas, FHIR R4 e Interoperabilidad" },
     @{ Folder = "09-Portal-Movil-QA"; Desc = "Portal Movil Paciente, Anti-IDOR, NOM-035 y Agenda de Citas" },
+    @{ Folder = "10-Sprint-Final-Release-QA"; Desc = "Quality Gate AI-06, BCP/DRP, RFCs y Evidencias Maestras" },
     @{ Folder = "04-Logout"; Desc = "Revocacion Segura de Tokens de Sesion (Logout)" }
 )
 

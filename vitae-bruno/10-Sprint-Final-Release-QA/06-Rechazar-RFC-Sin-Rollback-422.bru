@@ -1,0 +1,33 @@
+meta {
+  name: 06-Rechazar-RFC-Sin-Rollback-422
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base_url}}/admin/rfcs
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{admin_token}}
+}
+
+body:json {
+  {
+    "titulo": "Cambio no planificado",
+    "descripcion": "Sin plan de reversión",
+    "severidad": "P2",
+    "modulo": "farmacia",
+    "impacto_clinico": "Medio",
+    "analisis_riesgo": "Desconocido"
+  }
+}
+
+test {
+  test("Rechaza creación de RFC sin plan de reversión obligatorio con 422 (PROV-RN-012)", function() {
+    expect(res.getStatus()).to.equal(422);
+    expect(res.getBody().errors.plan_rollback).to.be.an('array');
+  });
+}
