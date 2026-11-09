@@ -1,0 +1,14 @@
+{
+  "resourceType": "Patient",
+  "id": "demo-0001",
+  "meta": { "versionId": "3", "lastUpdated": "2026-10-20T15:00:00Z" },
+  "active": true,
+  "identifier": [
+    { "system": "urn:oid:2.16.840.1.113883.4.629", "value": "DEMO900517MDFRRN09" },
+    { "system": "urn:vitae:expediente", "value": "EXP-DEMO-1" }
+  ],
+  "name": [{ "use": "official", "family": "Pérez Demo", "given": ["Ana", "María"] }],
+  "gender": "female",
+  "birthDate": "1990-05-17",
+  "extension": [{ "url": "urn:vitae:seguro-activo", "valueBoolean": true }]
+}

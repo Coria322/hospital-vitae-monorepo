@@ -1,0 +1,17 @@
+{
+  "resourceType": "MedicationRequest",
+  "id": "rec-demo-1",
+  "status": "active",
+  "intent": "order",
+  "medicationCodeableConcept": { "text": "Paracetamol 500 mg tabletas" },
+  "dosageInstruction": [{
+    "text": "1 tableta cada 8 horas",
+    "route": { "text": "Oral" },
+    "doseAndRate": [{ "doseQuantity": { "value": 500, "unit": "mg" } }]
+  }],
+  "dispenseRequest": { "expectedSupplyDuration": { "value": 7, "unit": "días" } },
+  "extension": [
+    { "url": "urn:vitae:qr-codigo", "valueString": "QR-DEMO-0001" },
+    { "url": "urn:vitae:qr-estado", "valueString": "VIGENTE" }
+  ]
+}

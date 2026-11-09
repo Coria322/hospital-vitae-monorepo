@@ -1,0 +1,6 @@
+{
+  "resourceType": "MedicationRequest",
+  "id": "rec-demo-3",
+  "status": "cancelled",
+  "medicationCodeableConcept": { "coding": [{ "display": "Ibuprofeno 400 mg" }] }
+}

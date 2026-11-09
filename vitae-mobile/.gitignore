@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+.kotlin/
+# La raiz ignora *.jar; el wrapper debe versionarse para que ./gradlew funcione en clones y CI
+!gradle/wrapper/gradle-wrapper.jar

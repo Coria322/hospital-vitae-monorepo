@@ -1,0 +1,63 @@
+{
+  "status": "success",
+  "data": {
+    "id_paciente": "fb7d76f1-3a30-43d2-bea0-8eb350b6dbb7",
+    "curp": "SINT900101HDFR01",
+    "nombre_completo": "Paciente Sintético Alfa",
+    "fecha_nacimiento": "1990-01-01T00:00:00.000000Z",
+    "sexo": "MASCULINO",
+    "domicilio": "Calle Ficticia 100, Sector Pruebas, CDMX",
+    "seguro_activo": true,
+    "estado_activo": true,
+    "identificado": true,
+    "folio_urgencias": null,
+    "representante_legal": null,
+    "created_at": "2026-11-08T15:08:17.000000Z",
+    "updated_at": "2026-11-08T15:08:17.000000Z",
+    "expediente": {
+      "id_expediente": "EXP-SINT01",
+      "id_paciente": "fb7d76f1-3a30-43d2-bea0-8eb350b6dbb7",
+      "id_usuario": "MED-001",
+      "motivo_consulta": "Consulta de control general sintética",
+      "diagnostico": "Saludable para pruebas",
+      "estudios_previos": "Biometría hemática sintética en parámetros normales",
+      "fecha_creacion": "2026-05-08T15:08:17.000000Z",
+      "fecha_ultimo_acto_medico": "2026-05-08T15:08:17.000000Z",
+      "estado_activo": true,
+      "bloqueo_legal": false,
+      "created_at": "2026-11-08T15:08:17.000000Z",
+      "updated_at": "2026-11-08T15:08:17.000000Z"
+    },
+    "triages": [
+      {
+        "id_triage": "TRG-SINT01",
+        "id_paciente": "fb7d76f1-3a30-43d2-bea0-8eb350b6dbb7",
+        "id_usuario": "ENF-001",
+        "presion_art": "135/85",
+        "frecuencia_card": 88,
+        "frecuencia_resp": 18,
+        "temperatura": "37.1",
+        "spo2": 96,
+        "nivel_glucosa": 110,
+        "escala_eva": 6,
+        "nivel_conciencia": "ALERTA",
+        "color_asig": "AMARILLO",
+        "color_original": "AMARILLO",
+        "fecha_hora_ingreso": "2026-11-08T14:43:17.000000Z",
+        "estimacion_sangre_perdida": null,
+        "folio_ingreso": "FOL-TRI-SINT01",
+        "sla_vencimiento_en": "2026-11-08T15:43:17.000000Z",
+        "sla_vencido": false,
+        "desviacion_minutos": null,
+        "id_sala": null,
+        "estado_atencion": "EN_ESPERA",
+        "motivo_reclasificacion": null,
+        "es_necesario_auditoria_interna": false,
+        "captura_retroactiva": false,
+        "created_at": "2026-11-08T15:08:17.000000Z",
+        "updated_at": "2026-11-08T15:08:17.000000Z",
+        "sala": null
+      }
+    ]
+  }
+}
