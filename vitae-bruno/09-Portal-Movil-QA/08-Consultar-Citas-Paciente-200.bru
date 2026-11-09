@@ -1,0 +1,29 @@
+meta {
+  name: 08 - Consultar Citas Paciente (200 OK)
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{base_url}}/mobile/citas
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{paciente_token}}
+}
+
+headers {
+  Accept: application/json
+  X-Client-Version: 29
+}
+
+tests {
+  test("Consulta de citas propias del paciente exitosa (RF-011)", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data).to.be.an('array');
+  });
+}
+

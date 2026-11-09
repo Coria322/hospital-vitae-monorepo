@@ -1,0 +1,29 @@
+meta {
+  name: 10 - Confirmar Cita Recepcion (200 OK)
+  type: http
+  seq: 10
+}
+
+patch {
+  url: {{base_url}}/citas/{{cita_movil_id}}/confirmacion
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{recepcion_token}}
+}
+
+headers {
+  Accept: application/json
+}
+
+tests {
+  test("Recepción confirma cita médica válidamente (PROV-RF-002)", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.estado).to.equal("CONFIRMADA");
+    expect(res.getBody().data.confirmada_por).to.equal("REC-001");
+  });
+}
+

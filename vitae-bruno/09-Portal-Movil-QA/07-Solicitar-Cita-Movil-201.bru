@@ -1,0 +1,42 @@
+meta {
+  name: 07 - Solicitar Cita Movil (201 Created)
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base_url}}/mobile/citas
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{paciente_token}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Client-Version: 29
+}
+
+body:json {
+  {
+    "fecha_hora": "2026-11-20T10:00:00Z",
+    "especialidad": "Medicina General",
+    "motivo": "Consulta preventiva solicitada por el paciente"
+  }
+}
+
+vars:post-response {
+  cita_movil_id: res.body.data.id_cita
+}
+
+tests {
+  test("Paciente agenda cita propia correctamente desde app móvil (PROV-RF-002)", function() {
+    expect(res.getStatus()).to.equal(201);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.estado).to.equal("PENDIENTE");
+  });
+}
+

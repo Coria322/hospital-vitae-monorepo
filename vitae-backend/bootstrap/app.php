@@ -17,6 +17,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'account.active' => \App\Http\Middleware\VerifyAccountStatus::class,
             'role' => \App\Http\Middleware\RoleAuthorization::class,
+            'mobile.version' => \App\Http\Middleware\CheckClientVersion::class,
+            'mobile.isolation' => \App\Http\Middleware\MobilePatientIsolation::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

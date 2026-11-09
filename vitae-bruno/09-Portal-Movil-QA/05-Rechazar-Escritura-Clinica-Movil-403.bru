@@ -1,0 +1,35 @@
+meta {
+  name: 05 - Rechazar Escritura Clinica Movil (403 Forbidden)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/mobile/recetas
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{paciente_token}}
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-Client-Version: 29
+}
+
+body:json {
+  {
+    "medicamentos": "Intento de emision no autorizada"
+  }
+}
+
+tests {
+  test("Rechaza escrituras sobre recursos clínicos en API móvil conforme a RF-011", function() {
+    expect(res.getStatus()).to.equal(403);
+    expect(res.getBody().code).to.equal("CLINICAL_WRITE_FORBIDDEN");
+  });
+}
+

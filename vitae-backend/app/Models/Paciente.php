@@ -75,6 +75,16 @@ class Paciente extends Model
         return $this->hasMany(AccesoEmergencia::class, 'id_paciente', 'id_paciente')->orderBy('created_at', 'desc');
     }
 
+    public function citas(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Cita::class, 'id_paciente', 'id_paciente')->orderBy('fecha_hora', 'asc');
+    }
+
+    public function usuario(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Usuario::class, 'id_paciente', 'id_paciente');
+    }
+
     /**
      * Ejecuta la baja lógica del paciente y genera evento en AUDITORIA_I.
      */

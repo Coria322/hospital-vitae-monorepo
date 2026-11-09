@@ -1,0 +1,29 @@
+meta {
+  name: 12 - Consultar Tableros NOM-035 (200 OK)
+  type: http
+  seq: 12
+}
+
+get {
+  url: {{base_url}}/estadisticas/tableros
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{admin_token}}
+}
+
+headers {
+  Accept: application/json
+}
+
+tests {
+  test("Administrador consulta tableros NOM-035 agregados con CLUES y cero PII (PROV-RF-001)", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.equal("success");
+    expect(res.getBody().data.clues).to.be.a('string');
+    expect(res.getBody().data.cumplimiento_privacidad.cero_pii).to.equal(true);
+  });
+}
+

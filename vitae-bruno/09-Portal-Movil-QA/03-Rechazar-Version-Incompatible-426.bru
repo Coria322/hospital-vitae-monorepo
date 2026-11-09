@@ -1,0 +1,28 @@
+meta {
+  name: 03 - Rechazar Version Incompatible (426 Upgrade Required)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/mobile/perfil
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{paciente_token}}
+}
+
+headers {
+  Accept: application/json
+  X-Client-Version: 28
+}
+
+tests {
+  test("Rechaza clientes móviles con versión inferior a Android 10 / API 29 (RNF-006)", function() {
+    expect(res.getStatus()).to.equal(426);
+    expect(res.getBody().code).to.equal("UPGRADE_REQUIRED");
+  });
+}
+
