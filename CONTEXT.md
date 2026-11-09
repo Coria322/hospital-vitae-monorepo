@@ -104,13 +104,14 @@ cd vitae-bruno && powershell -ExecutionPolicy Bypass -File ./test-prod-suite.ps1
 
 ## Estado de la app móvil **[verificado en código]**
 
-*Actualizado el 5 de noviembre de 2026 (rama `feature/mobile-app`, etapas 0 a 7 del plan en [`vitae-mobile/PLAN.md`](vitae-mobile/PLAN.md); la 7 está hecha solo en lo local).*
+*Actualizado el 8 de noviembre de 2026 (rama `feature/mobile-app`, etapas 0 a 8 del plan en [`vitae-mobile/PLAN.md`](vitae-mobile/PLAN.md)).*
 
 - `applicationId = com.example.vitae_mobile`, `compileSdk` 37, `targetSdk` 36, **`minSdk` 29** (como pide la especificación).
 - Implementado: navegación y tema accesible; capa de red (Retrofit y OkHttp, pinning por `BuildConfig`, manejo de 401, 403, 423 y 426); sesión con OTP, PKCE y cierre a los 5 min de inactividad; Inicio y perfil (Patient FHIR); citas, recetas con QR y visor de resultados; aviso de privacidad (antes y después del login), consentimientos y ARCO; bloqueo por root o Magisk, pantalla de incompatibilidad, R8 en release y sin respaldo de datos.
-- **Todo corre contra repositorios simulados que solo existen en debug.** El backend aún no tiene `/api/v1/mobile/*` y el build release falla a propósito al crear los repositorios remotos. Los contratos que la app asume están listados en `vitae-mobile/PLAN.md` y hay que confirmarlos con el backend.
-- Pruebas: 191 unitarias y 44 instrumentadas (en un teléfono físico) en verde. Cobertura de líneas: ViewModels 100 %, lógica de datos 94 %. Paquete de evidencia AI-05 en `vitae-mobile/evidence/AI-05-mobile/`.
-- Falta: la matriz de dispositivos completa (hay un teléfono con API 31 y un emulador con API 28), la auditoría manual con TalkBack, los pines de certificado reales, la colección de contrato compartida y los cambios de backend de la sección 7 del plan.
+- **Conectada a los endpoints normales del backend** (decisión del PO del 8 de noviembre: no se necesita `/api/v1/mobile/*`): login con `id_usuario`, elección de un paciente, perfil FHIR, recetas y resultados del expediente, consentimientos y ARCO. Probada en un teléfono contra el Laravel local con la rama `dev`. Consecuencias aceptadas: entra personal (no el paciente), se envía `id_paciente`, no hay OTP ni PKCE ni citas. `-Pvitae.backend=simulado` vuelve a los datos simulados. **El servidor de producción (Render) corre `main` y no tiene los endpoints del Sprint 4, así que el release aún no puede funcionar allí.**
+- Estilo visual según la guía "Aetna Health App" (lienzo gris perla, tarjetas cálidas, azul cobalto, negro para la acción principal), sin cambiar opciones ni funciones; donde un par de colores de la guía no llega a WCAG AA se oscureció lo mínimo (`vitae-mobile/PLAN.md`, etapa 9).
+- Pruebas: 227 unitarias y 44 instrumentadas (en un teléfono físico, con datos simulados) en verde. Cobertura de líneas: ViewModels 100 %, lógica de datos 94 %. Paquete de evidencia AI-05 en `vitae-mobile/evidence/AI-05-mobile/`.
+- Falta: desplegar `dev` en producción (y exigir token en `/api/v1/fhir/*`, hoy abierto), la matriz de dispositivos completa (hay un teléfono con API 31 y un emulador con API 28), la auditoría manual con TalkBack, los pines de certificado reales y la colección de contrato compartida.
 
 ## Flujo de trabajo Git (de [AGENTS.md](AGENTS.md))
 

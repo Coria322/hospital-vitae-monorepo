@@ -98,6 +98,7 @@
 ---
 
 ### Sprint 5: Portal Móvil, Estadística y QA Integral (Auditoría AI-05)
+> *Porción móvil (`vitae-mobile/`): avance y evidencia en la sección 4. Las filas de esta tabla no se tachan hasta que exista la API móvil con token de paciente (hoy la app usa los endpoints normales del Sprint 4).*
 
 | ID | Tipo | Prioridad | Requerimiento / Descripción | Módulo | Normas Asociadas | Estado |
 | :--- | :---: | :---: | :--- | :--- | :--- | :---: |
@@ -140,3 +141,40 @@
 | **COFEPRIS / SAT** | Receta médica electrónica controlada: cédula profesional verificada, e.firma digital avanzada y código QR único. | ~~RF-001~~, ~~RF-009~~ | ✅ **Cumplida (100%)** | **Completado al 100%:** Validación obligatoria de cédula profesional para médicos en base de datos y control de accesos (Sprint 1 ✅). Emisión de recetas médicas para medicamentos controlados (Fracción I, II y III) con validación de e.firma, hash SHA-256, payload QR firmado de un solo uso, consumo irreversible en farmacia y alerta crítica de auditoría ante reuso no autorizado (Sprint 4 ✅). |
 | **WCAG 2.1 AA** | Accesibilidad web: contraste 4.5:1, accesibilidad por teclado y soporte para daltonismo en urgencias. | ~~PROV-BR-001~~, ~~PROV-UX-003~~ | ✅ **Cumplida (100%)** | **Completado al 100%:** Codificación redundante semántica de colores Manchester (icono SVG + nombre de texto + color), soporte estricto para daltonismo y formularios operables por teclado (Sprint 3 ✅). |
 | **CENAM / NTP** | Metrología y hora legal: sincronización horaria con deriva <= 1 segundo y almacenamiento en UTC. | ~~PROV-SEC-007~~ | ✅ **Cumplida (100%)** | **Completado al 100%:** Medición de desfase SNTP UDP 123 contra CENAM/NTP, comando `ntp:verificar-sincronizacion`, enforcement de zona horaria UTC en Laravel y PostgreSQL (Sprint 2 ✅). |
+
+
+---
+
+## 4. Avance de la Porción Móvil (`vitae-mobile/`, Sprint 5, Auditoría AI-05)
+
+*Actualizado el 8 de noviembre de 2026 sobre `dev` (Sprint 4 integrado, `6cebead`). Fuente: `vitae-mobile/PLAN.md` y `vitae-mobile/evidence/AI-05-mobile/`.*
+
+**Cómo está conectada la app.** Por decisión del Product Owner (decisión 16 del plan) la app consulta los **endpoints normales** del backend de `dev`, sin `/api/v1/mobile/*`: entra **personal** (no el paciente), elige de quién ve los datos y envía `id_paciente`. Eso cubre lo que el Sprint 4 ya entregó (recetas, resultados, FHIR `Patient`, consentimientos y ARCO) y deja sin cubrir lo que aún no existe en el backend: rol y token de paciente, aislamiento por `sub`, citas, OTP y PKCE.
+
+**Por qué aquí no hay tachado.** La regla de este documento reserva el tachado y `✅ Cumplido (Sprint N)` para requerimientos completos y certificados con pruebas. Los requerimientos del Sprint 4 ya están tachados por su parte de backend; la porción móvil se anota aparte y no los modifica. Los de la tabla del Sprint 5 siguen `⏳` hasta que exista la API móvil con token de paciente.
+
+**Leyenda:** 🟢 la porción móvil está hecha y probada contra el backend real; 🟡 hecha pero con un supuesto o algo sin verificar; 🔴 no se cumple con el backend actual (se cumple solo con datos simulados o no se puede); ⏳ sin empezar.
+
+| ID | Porción móvil | Estado móvil | Evidencia | Falta para cerrarlo |
+| :--- | :--- | :---: | :--- | :--- |
+| **PROV-SEC-001** | Login con usuario y contraseña, sesión de 15 min y cierre por 5 min de inactividad. El OTP de dispositivo nuevo existe **solo con datos simulados** | 🟡 | `AuthYPacienteRemotoTest`, `InactivityMonitorTest`, `SessionManagerTest`, `LoginViewModelTest`, `OtpViewModelTest` | OTP en el backend (no existe); medir los 5 min reales en el teléfono |
+| **PROV-SEC-002** | Tokens cifrados con Keystore y renovación con `/auth/refresh` (rota con el Bearer vigente). PKCE S256 existe **solo con datos simulados** | 🟡 | `KeystoreTokenStoreTest` (teléfono: sin tokens en claro), `SessionManagerTest`, `PkceTest`, `BackendTest` | PKCE y refresh token en el backend; hoy el token dura 15 min y no hay segundo factor |
+| **RF-002** | La app pide acceso con rol `PACIENTE`; un 403 muestra "Acceso no disponible". Con el backend real entra **personal** | 🔴 | `LoginViewModelTest`, `MockAuthRepositoryTest` (simulado); `PacienteViewModelTest` (elegir paciente) | Rol `PACIENTE` en el backend; sin él la app no distingue al titular |
+| **RF-002.1** | Con el backend real **la app sí envía `id_paciente`**; `SoloLecturaTest` lo limita a un único archivo (`ApiBackend.kt`). Con datos simulados nunca lo envía | 🔴 | `SoloLecturaTest`, `PacienteViewModelTest` | Token de paciente con claim `sub` y aislamiento horizontal en el backend (fila RF-002.1 del Sprint 5) |
+| **RF-003** | Un 401 con sesión la invalida; un 403 no | 🟢 | `ApiClientTest`, `SessionManagerTest`, `SeguridadTest`; login erróneo con 401 comprobado en vivo contra `dev` | El 403 real (`BREAK_THE_GLASS_REQUIRED`) se probó con respuesta simulada, no en el teléfono |
+| **RF-011** | Solo lectura: 0 controles de edición; los repositorios clínicos solo leen; las únicas escrituras son `auth`, `consentimientos` y `solicitudes-arco` | 🟡 | `SinEdicionTest`, `SoloLecturaTest` | La API móvil de solo lectura (fila RF-011 del Sprint 5) y el rechazo de escrituras clínicas en el servidor (TASK-W-080) |
+| **RF-009** | Lista y detalle de recetas con dosis, vía, duración, estado y QR, leídos de `recetas/{id}` | 🟡 | `ClinicoRemotoTest` (respuestas reales), `ClinicoTest`, `QrTest`; probado en el teléfono | El backend solo entrega la receta al médico dueño del expediente; falta el acceso del propio paciente |
+| **RF-010** | Lista de resultados y visor interno. El backend los devuelve como **texto descifrado**; el visor de PDF e imagen solo se probó con datos simulados | 🟡 | `ClinicoRemotoTest`, `ResultadoVisorViewModelTest`, `ClinicoTest` | Formato de descarga binario en el backend (AMB-012) |
+| **PROV-RF-002** | Lista de citas. **`dev` no tiene citas ni agenda**: la pantalla muestra "no disponible" | 🔴 | `ClinicoRemotoTest` (citas → no disponible), `ResumenViewModelTest` | Endpoints de agenda (fila PROV-RF-002 del Sprint 5) |
+| **RNF-003** | Sin tráfico en claro, pinning por host, TLS 1.2 o superior | 🟡 | `PinningTest`, `SeguridadRedTest` | Pines del certificado de producción (`API_PINES` vacío: el release no arranca sin ellos) |
+| **RNF-007** | `Patient` FHIR R4 leído de `fhir/Patient/{id}` y mostrado en el perfil, con error controlado | 🟡 | `ClinicoRemotoTest`, `FhirParserTest`, `ContratoFhirTest`; forma de las respuestas vivas comprobada contra los fixtures (7 de los 13) | Las rutas `/fhir/*` de `dev` **no exigen token** (hallazgo de seguridad para el backend); `MedicationRequest` se lee hoy por `recetas`, no por FHIR |
+| **RNF-006** | `minSdk 29` (Android 10+) | 🟡 | Teléfono con Android 12: instrumentadas en verde; en Android 9 el sistema rechaza la app (`INSTALL_FAILED_OLDER_SDK`) | Matriz con API 29, API 34+ y 3 tamaños de pantalla |
+| **PROV-RN-008** | Aviso previo al login, aviso con versión, finalidades opcionales sin marcar (recordatorios, estadística), consulta, alta y revocación contra `consentimientos` | 🟡 | `PrivacidadArcoRemotoTest` (respuestas reales), `AvisoPrevioTest`, `PrivacidadTest`, `AvisoViewModelTest` | Legal debe validar el texto y la vigencia del aviso (`VIGENTE_DESDE` es un supuesto) |
+| **PROV-RN-009** | Solicitud ARCO con folio y plazos, consulta por folio. La app marca `acreditacion_identidad = true` | 🟡 | `PrivacidadArcoRemotoTest`, `ArcoTest`, `ArcoViewModelTest` | Confirmar con Legal el supuesto `acreditacion_identidad`; valores del campo `derecho` |
+| **PROV-UX-003** | Accesibilidad WCAG 2.1 AA: contraste, objetivos de 48 dp, texto hablable, encabezados. La paleta de la guía de estilo se oscureció donde no llegaba a AA | 🟡 | `AccesibilidadTest` (14 pantallas), `ContrasteTest` | Auditoría manual con TalkBack y Accessibility Scanner |
+
+**Sin fila propia en esta matriz** (vienen del ERS móvil): PROV-SEC-011 (bloqueo por root, R8, `FLAG_SECURE`), PROV-UI-003 (14 rutas del `UI_UX_SPEC`) y PROV-RNF-005 (firma del APK, SBOM). Su avance está en `vitae-mobile/PLAN.md`.
+
+**Cifras de la porción móvil:** 227 pruebas unitarias y 44 instrumentadas (teléfono físico, datos simulados) en verde; cobertura de líneas ViewModels 100 % y lógica de datos 93,9 % (MC-10 ≥ 80 %); lint sin errores; APK de release con R8 compilado. La mezcla con `dev` no toca `vitae-mobile/`, y las respuestas vivas del backend local (en `dev`) coinciden con los fixtures de la app.
+
+**Sin cumplir y sin resolver desde la app:** desplegar `dev` en Render (hoy sirve `main`, sin los endpoints del Sprint 4), autenticar `/api/v1/fhir/*`, el rol y token de paciente, las citas, los pines de producción, la matriz de dispositivos completa y la auditoría manual de accesibilidad. Detalle en `vitae-mobile/evidence/AI-05-mobile/README.md`.
