@@ -16,12 +16,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.vitae_mobile.R
+import com.example.vitae_mobile.ui.components.Encabezado
 import com.example.vitae_mobile.data.auth.LONGITUD_OTP
 
 @Composable
@@ -33,11 +32,7 @@ fun OtpScreen(viewModel: OtpViewModel, modifier: Modifier = Modifier) {
             modifier = Modifier.padding(innerPadding).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = stringResource(R.string.pantalla_otp),
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.semantics { heading() },
-            )
+            Encabezado(stringResource(R.string.pantalla_otp))
             Text(text = stringResource(R.string.otp_instruccion, LONGITUD_OTP), style = MaterialTheme.typography.bodyLarge)
             OutlinedTextField(
                 value = estado.codigo,

@@ -1,6 +1,7 @@
 package com.example.vitae_mobile.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,12 +16,14 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.vitae_mobile.AppContainer
 import com.example.vitae_mobile.R
 import com.example.vitae_mobile.data.auth.EstadoSesion
 import com.example.vitae_mobile.data.auth.MotivoCierre
 import com.example.vitae_mobile.data.seguridad.EstadoDispositivo
+import com.example.vitae_mobile.ui.components.LocalAtras
 import com.example.vitae_mobile.ui.login.LoginScreen
 import com.example.vitae_mobile.ui.login.LoginViewModel
 import com.example.vitae_mobile.ui.otp.OtpScreen
@@ -98,6 +101,15 @@ fun VitaeNavHost(
         }
     }
 
+    // El botón de volver de cada cabecera aparece solo si hay una pantalla anterior; hace lo mismo que el gesto de atrás.
+    val entradaActual by navController.currentBackStackEntryAsState()
+    val atras: (() -> Unit)? = if (entradaActual != null && navController.previousBackStackEntry != null) {
+        { navController.popBackStack() }
+    } else {
+        null
+    }
+
+    CompositionLocalProvider(LocalAtras provides atras) {
     NavHost(navController, startDestination = destinoInicial.ruta, modifier = modifier) {
         composable(Ruta.AvisoPrevio.ruta) {
             AvisoPrevioScreen(
@@ -169,6 +181,7 @@ fun VitaeNavHost(
         composable(Ruta.RootBloqueado.ruta) {
             PantallaBloqueo(R.string.pantalla_root, R.string.bloqueo_root_texto, alSalir)
         }
+    }
     }
 }
 

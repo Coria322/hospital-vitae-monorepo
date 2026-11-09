@@ -16,14 +16,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.vitae_mobile.R
 import com.example.vitae_mobile.core.ApiError
 import com.example.vitae_mobile.ui.components.EstadoError
 import com.example.vitae_mobile.ui.components.mensajeDeError
+import com.example.vitae_mobile.ui.components.Encabezado
 import com.example.vitae_mobile.ui.seguridad.PantallaSegura
 
 /**
@@ -40,11 +39,7 @@ fun ResultadoVisorScreen(viewModel: ResultadoVisorViewModel, modifier: Modifier 
                 modifier = Modifier.padding(innerPadding).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text(
-                    text = stringResource(R.string.pantalla_resultado_visor),
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.semantics { heading() },
-                )
+                Encabezado(stringResource(R.string.pantalla_resultado_visor))
                 when (val e = estado) {
                     is ArchivoUiState.Descargando -> Descarga(e.progreso)
                     is ArchivoUiState.Error -> EstadoError(

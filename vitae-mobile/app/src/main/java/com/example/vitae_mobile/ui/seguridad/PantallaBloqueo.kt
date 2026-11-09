@@ -16,10 +16,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.vitae_mobile.R
+import com.example.vitae_mobile.ui.components.Encabezado
 
 /**
  * Pantalla de sistema para un dispositivo bloqueado (RNF-006, PROV-SEC-011): un título, un mensaje genérico (nunca
@@ -37,11 +36,7 @@ fun PantallaBloqueo(
             modifier = Modifier.padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = stringResource(titulo),
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.semantics { heading() },
-            )
+            Encabezado(stringResource(titulo))
             Text(text = stringResource(mensaje), style = MaterialTheme.typography.bodyLarge)
             Button(onClick = onSalir, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                 Text(stringResource(R.string.bloqueo_salir))

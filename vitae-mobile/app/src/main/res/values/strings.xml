@@ -31,6 +31,7 @@
     <string name="error_no_disponible">Esta sección aún no está disponible en el servidor.</string>
 
     <string name="abrir">Abrir</string>
+    <string name="volver">Volver</string>
 
     <string name="resumen_proxima_cita">Próxima cita</string>
     <string name="resumen_sin_cita">Sin citas próximas</string>

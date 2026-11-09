@@ -3,6 +3,11 @@ package com.example.vitae_mobile
 import androidx.compose.ui.graphics.Color
 import com.example.vitae_mobile.ui.navigation.Ruta
 import com.example.vitae_mobile.ui.theme.EsquemaClaro
+import com.example.vitae_mobile.ui.theme.VitaeBlanco
+import com.example.vitae_mobile.ui.theme.VitaeCobalto
+import com.example.vitae_mobile.ui.theme.VitaeCobaltoBrillante
+import com.example.vitae_mobile.ui.theme.VitaeCobaltoProfundo
+import com.example.vitae_mobile.ui.theme.VitaeTinta
 import kotlin.math.pow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -36,6 +41,15 @@ class ContrasteTest {
             // Los componentes de Material usan estos pares sobre el fondo gris (etiquetas, botón de contorno, subtítulos).
             "onSurfaceVariant/background" to (c.onSurfaceVariant to c.background),
             "primary/background" to (c.primary to c.background),
+            // Guía de estilo: tarjetas cálidas, tarjeta azul destacada y mensajes de error sobre cada superficie.
+            "onSurface/surfaceVariant (tarjeta cálida)" to (c.onSurface to c.surfaceVariant),
+            "onSurfaceVariant/surfaceVariant (etiqueta gris en tarjeta cálida)" to (c.onSurfaceVariant to c.surfaceVariant),
+            "blanco/cobalto (tarjeta destacada)" to (Color.White to VitaeCobalto),
+            "blanco/cobalto profundo (elementos sobre la tarjeta azul)" to (Color.White to VitaeCobaltoProfundo),
+            "tinta/blanco" to (VitaeTinta to VitaeBlanco),
+            "error/background" to (c.error to c.background),
+            "error/surface" to (c.error to c.surface),
+            "error/surfaceVariant" to (c.error to c.surfaceVariant),
         )
         pares.forEach { (nombre, par) ->
             assertTrue("$nombre = ${contraste(par.first, par.second)}", contraste(par.first, par.second) >= 4.5)
@@ -49,6 +63,9 @@ class ContrasteTest {
         mapOf(
             "outline/background" to (c.outline to c.background),
             "outline/surface" to (c.outline to c.surface),
+            "outline/surfaceVariant (tarjeta cálida)" to (c.outline to c.surfaceVariant),
+            // El Cobalt Blue de la guía solo se usa como borde de lo seleccionado, sin texto encima.
+            "cobalto brillante/background (borde de selección)" to (VitaeCobaltoBrillante to c.background),
             "outline/surfaceContainerHighest (pulgar sobre la pista apagada)" to (c.outline to c.surfaceContainerHighest),
         ).forEach { (nombre, par) ->
             assertTrue("$nombre = ${contraste(par.first, par.second)}", contraste(par.first, par.second) >= 3.0)

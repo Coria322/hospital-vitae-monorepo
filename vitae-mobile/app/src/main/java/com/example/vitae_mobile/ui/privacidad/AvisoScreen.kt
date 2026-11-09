@@ -15,7 +15,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,9 +22,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.vitae_mobile.R
@@ -37,6 +36,7 @@ import com.example.vitae_mobile.ui.components.CargandoEsqueleto
 import com.example.vitae_mobile.ui.components.EstadoError
 import com.example.vitae_mobile.ui.components.formatearFecha
 import com.example.vitae_mobile.ui.components.mensajeDeError
+import com.example.vitae_mobile.ui.components.Encabezado
 
 /**
  * Aviso de privacidad simplificado con enlace al integral, y las finalidades opcionales en interruptores
@@ -62,11 +62,7 @@ fun AvisoScreen(
             modifier = Modifier.padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(
-                text = stringResource(if (modo == ModoAviso.Aceptacion) R.string.pantalla_aviso else R.string.pantalla_privacidad),
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.semantics { heading() },
-            )
+            Encabezado(stringResource(if (modo == ModoAviso.Aceptacion) R.string.pantalla_aviso else R.string.pantalla_privacidad))
             when (val carga = estado.aviso) {
                 Carga.Cargando -> CargandoEsqueleto(filas = 4)
                 is Carga.Error -> EstadoError(stringResource(mensajeDeError(carga.error)), alReintentar = viewModel::cargar)
@@ -91,7 +87,7 @@ private fun ContenidoAviso(aviso: AvisoPrivacidad, estado: AvisoUiState, viewMod
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-    TextButton(onClick = { uri.openUri(aviso.urlIntegral) }, modifier = Modifier.heightIn(min = 48.dp)) {
+    BotonSecundario(onClick = { uri.openUri(aviso.urlIntegral) }) {
         Text(stringResource(R.string.aviso_enlace_integral))
     }
 

@@ -13,10 +13,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.example.vitae_mobile.R
+import com.example.vitae_mobile.ui.components.Encabezado
 
 /** Se muestra tras 5 min de inactividad o un 401; los datos locales ya se borraron. */
 @Composable
@@ -26,11 +25,7 @@ fun SesionExpiradaScreen(onIniciarSesion: () -> Unit, modifier: Modifier = Modif
             modifier = Modifier.padding(innerPadding).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = stringResource(R.string.pantalla_sesion_expirada),
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.semantics { heading() },
-            )
+            Encabezado(stringResource(R.string.pantalla_sesion_expirada))
             Text(text = stringResource(R.string.sesion_expirada_texto), style = MaterialTheme.typography.bodyLarge)
             Button(onClick = onIniciarSesion, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                 Text(stringResource(R.string.pantalla_login))

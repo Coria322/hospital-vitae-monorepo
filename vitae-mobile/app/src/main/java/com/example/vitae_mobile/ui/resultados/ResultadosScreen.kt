@@ -16,8 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.vitae_mobile.R
@@ -27,6 +25,7 @@ import com.example.vitae_mobile.ui.components.CargaViewModel
 import com.example.vitae_mobile.ui.components.ContenidoCarga
 import com.example.vitae_mobile.ui.components.Tarjeta
 import com.example.vitae_mobile.ui.components.formatearFecha
+import com.example.vitae_mobile.ui.components.Encabezado
 import com.example.vitae_mobile.ui.seguridad.PantallaSegura
 
 /** Lista de resultados propios (RF-010). La única acción por fila es "Abrir". */
@@ -40,11 +39,7 @@ fun ResultadosScreen(viewModel: CargaViewModel<List<ResultadoEstudio>>, alAbrir:
                 modifier = Modifier.padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text(
-                    text = stringResource(R.string.pantalla_resultados),
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.semantics { heading() },
-                )
+                Encabezado(stringResource(R.string.pantalla_resultados))
                 ContenidoCarga(
                     estado = estado,
                     alReintentar = viewModel::cargar,

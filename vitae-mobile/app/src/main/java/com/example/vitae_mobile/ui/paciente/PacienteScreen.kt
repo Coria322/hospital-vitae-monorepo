@@ -17,8 +17,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.vitae_mobile.R
@@ -28,6 +26,7 @@ import com.example.vitae_mobile.ui.components.Campo
 import com.example.vitae_mobile.ui.components.ContenidoCarga
 import com.example.vitae_mobile.ui.components.Tarjeta
 import com.example.vitae_mobile.ui.components.mensajeDeError
+import com.example.vitae_mobile.ui.components.Encabezado
 import com.example.vitae_mobile.ui.seguridad.PantallaSegura
 
 @Composable
@@ -49,11 +48,7 @@ fun PacienteScreen(
                 modifier = Modifier.padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text(
-                    text = stringResource(R.string.pantalla_paciente),
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.semantics { heading() },
-                )
+                Encabezado(stringResource(R.string.pantalla_paciente))
                 Text(text = stringResource(R.string.paciente_ayuda), style = MaterialTheme.typography.bodyLarge)
                 estado.error?.let {
                     Text(text = stringResource(mensajeDeError(it)), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)

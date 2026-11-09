@@ -22,9 +22,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.vitae_mobile.R
@@ -32,6 +32,8 @@ import com.example.vitae_mobile.data.recetas.Receta
 import com.example.vitae_mobile.ui.components.Campo
 import com.example.vitae_mobile.ui.components.CargaViewModel
 import com.example.vitae_mobile.ui.components.ContenidoCarga
+import com.example.vitae_mobile.ui.components.Encabezado
+import com.example.vitae_mobile.ui.components.Tarjeta
 import com.example.vitae_mobile.ui.seguridad.PantallaSegura
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
@@ -73,11 +75,7 @@ fun RecetaDetalleScreen(viewModel: CargaViewModel<Receta>, modifier: Modifier = 
                 modifier = Modifier.padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text(
-                    text = stringResource(R.string.pantalla_receta_detalle),
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.semantics { heading() },
-                )
+                Encabezado(stringResource(R.string.pantalla_receta_detalle))
                 ContenidoCarga(estado = estado, alReintentar = viewModel::cargar) { DatosReceta(it) }
             }
         }
@@ -87,18 +85,21 @@ fun RecetaDetalleScreen(viewModel: CargaViewModel<Receta>, modifier: Modifier = 
 @Composable
 private fun DatosReceta(receta: Receta) {
     val noDisponible = stringResource(R.string.dato_no_disponible)
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Campo(stringResource(R.string.receta_medicamento), receta.medicamento ?: noDisponible)
-        Campo(stringResource(R.string.receta_dosis), receta.dosis ?: noDisponible)
-        Campo(stringResource(R.string.receta_via), receta.via ?: noDisponible)
-        Campo(stringResource(R.string.receta_duracion), receta.duracion ?: noDisponible)
-        Campo(stringResource(R.string.receta_estado), stringResource(textoEstado(receta.estado)))
-
-        val codigo = receta.codigoQr
-        if (codigo == null) {
-            Text(stringResource(R.string.receta_sin_qr), style = MaterialTheme.typography.bodyLarge)
-        } else {
-            CodigoQr(texto = codigo, vigente = receta.qrVigente)
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Tarjeta(espacio = 16.dp) {
+            Campo(stringResource(R.string.receta_medicamento), receta.medicamento ?: noDisponible)
+            Campo(stringResource(R.string.receta_dosis), receta.dosis ?: noDisponible)
+            Campo(stringResource(R.string.receta_via), receta.via ?: noDisponible)
+            Campo(stringResource(R.string.receta_duracion), receta.duracion ?: noDisponible)
+            Campo(stringResource(R.string.receta_estado), stringResource(textoEstado(receta.estado)))
+        }
+        Tarjeta {
+            val codigo = receta.codigoQr
+            if (codigo == null) {
+                Text(stringResource(R.string.receta_sin_qr), style = MaterialTheme.typography.bodyLarge)
+            } else {
+                CodigoQr(texto = codigo, vigente = receta.qrVigente)
+            }
         }
     }
 }

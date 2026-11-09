@@ -2,6 +2,11 @@ package com.example.vitae_mobile.ui.arco
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,9 +26,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.vitae_mobile.R
@@ -34,6 +39,7 @@ import com.example.vitae_mobile.ui.components.Campo
 import com.example.vitae_mobile.ui.components.ContenidoCarga
 import com.example.vitae_mobile.ui.components.Tarjeta
 import com.example.vitae_mobile.ui.components.formatearFecha
+import com.example.vitae_mobile.ui.components.Encabezado
 
 @StringRes
 private fun nombre(derecho: DerechoArco) = when (derecho) {
@@ -61,11 +67,7 @@ fun ArcoScreen(viewModel: ArcoViewModel, modifier: Modifier = Modifier) {
             modifier = Modifier.padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(
-                text = stringResource(R.string.pantalla_arco),
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.semantics { heading() },
-            )
+            Encabezado(stringResource(R.string.pantalla_arco))
 
             Text(
                 text = stringResource(R.string.arco_nueva),
@@ -75,23 +77,35 @@ fun ArcoScreen(viewModel: ArcoViewModel, modifier: Modifier = Modifier) {
             Text(text = stringResource(R.string.arco_elige), style = MaterialTheme.typography.bodyMedium)
             DerechoArco.entries.forEach { derecho ->
                 val elegido = estado.derecho == derecho
-                // Toda la fila es el botón de opción (objetivo táctil >= 48 dp y una sola parada en TalkBack).
+                // Tarjeta de opción de la guía: cálida con borde cuando no está elegida, azul con texto blanco cuando sí. El estado
+                // no depende solo del color: el botón de radio sigue visible. Toda la tarjeta es el botón de opción (>= 48 dp).
+                val forma = MaterialTheme.shapes.large
+                val fondo = if (elegido) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant
+                val tinta = if (elegido) Color.White else MaterialTheme.colorScheme.onSurface
+                val tintaSuave = if (elegido) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(min = 48.dp)
-                        .selectable(selected = elegido, enabled = !estado.enviando, role = Role.RadioButton, onClick = { viewModel.seleccionar(derecho) }),
+                        .heightIn(min = 72.dp)
+                        .clip(forma)
+                        .background(fondo)
+                        .then(if (elegido) Modifier else Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, forma))
+                        .selectable(selected = elegido, enabled = !estado.enviando, role = Role.RadioButton, onClick = { viewModel.seleccionar(derecho) })
+                        .padding(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    RadioButton(selected = elegido, onClick = null)
+                    RadioButton(
+                        selected = elegido,
+                        onClick = null,
+                        colors = RadioButtonDefaults.colors(
+                            selectedColor = if (elegido) Color.White else MaterialTheme.colorScheme.primary,
+                            unselectedColor = MaterialTheme.colorScheme.outline,
+                        ),
+                    )
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(text = stringResource(nombre(derecho)), style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            text = stringResource(descripcion(derecho)),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        Text(text = stringResource(nombre(derecho)), style = MaterialTheme.typography.titleLarge, color = tinta)
+                        Text(text = stringResource(descripcion(derecho)), style = MaterialTheme.typography.bodySmall, color = tintaSuave)
                     }
                 }
             }

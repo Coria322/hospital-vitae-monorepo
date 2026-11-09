@@ -51,6 +51,7 @@ com.example.vitae_mobile/
 | 6 | Estados y hardening | 014, 007 | RNF-006, PROV-SEC-011 | L | 426 | **Hecha** (con mock) |
 | 7 | Calidad y evidencia | 015–020 | RF-011, PROV-UX-003, RF-002.1, RNF-007 | M | colección de contrato | **Hecha en lo local** (ver pendientes) |
 | 8 | Conexión al backend real | — | RF-003, RNF-003, RNF-007, PROV-RN-008/009 | L | endpoints normales de `dev` | **Hecha**, probada con el backend local (ver etapa 8) |
+| 9 | Estilo visual (guía "Aetna Health App") | — | PROV-UX-003, PROV-UI-003 | M | no | **Hecha** (ver etapa 9) |
 
 Fuera de alcance por ahora: release (TASK-M-021 a 023).
 Cada etapa termina con: build + tests unitarios + lint en verde, tu autorización y un commit `feat(mobile): …` con `Refs: #TASK-M-xxx, Req: …, Audit: AI-05`.
@@ -167,6 +168,28 @@ Compose + Navigation, 12 rutas, `InicioScreen`, `PantallaBase`, tema con contras
 - **Seguridad:** las rutas `/api/v1/fhir/*` de `dev` **no exigen token** (Patient por id o por CURP responde 200 sin autenticar); no están en producción. Corregirlas en el backend antes de desplegar el Sprint 4.
 - **Plan original:** ninguno; la etapa nace de la decisión del PO.
 
+### Etapa 9 — Estilo visual según la guía "Aetna Health App" — hecha
+- **Pedido del PO (8 de noviembre de 2026):** cambiar solo el estilo y la organización con las reglas de esa guía, **sin cambiar las opciones ni las funciones**. No se tocó ningún repositorio, ViewModel ni flujo; los textos, botones y secciones son los mismos.
+- **Resultado:**
+  - **Tema:** paleta (lienzo gris perla, tarjetas cálidas, azul cobalto, negro para la acción principal), formas (28 dp en tarjetas, 32 dp en la destacada, píldoras y círculos completos, nada por debajo de 14 dp) y tipografía con pesos 400 y 500 (`ui/theme`).
+  - **Componentes:** `Tarjeta` (cálida con borde de 1 dp), `TarjetaDestacada` (azul, texto blanco), `BotonSecundario` (píldora blanca), `Campo`, `Encabezado` (título de 24 sp y botón circular de volver), `BotonCircular`, `CirculoIcono` e `IconoFlecha` (← y ↗ dibujadas a mano, sin dependencias).
+  - **Organización:** Inicio con la tarjeta azul del resumen (valor arriba y etiqueta abajo) y las secciones en una cuadrícula de dos columnas con su círculo ↗; Perfil y detalle de receta agrupados en tarjetas; la elección del derecho en ARCO como tarjetas de opción (cálida, y azul al elegir, con el botón de radio visible); el enlace al aviso integral pasa de texto suelto a botón.
+  - **Botón de volver:** aparece en cada cabecera solo si hay pantalla anterior (lo provee `VitaeNavHost`) y hace lo mismo que el gesto de atrás.
+- **Adaptaciones por accesibilidad (WCAG AA, PROV-UX-003):** la guía tiene pares que no llegan a AA y `ContrasteTest` los exige; se oscureció lo mínimo y está anotado en `Color.kt`:
+  - blanco sobre Cobalt Blue `#5584D9` da 3,7:1 → el fondo de la tarjeta azul usa el "Deep Cobalt" de la propia guía, `#4A74C4` (4,6:1); el `#5584D9` queda solo para bordes sin texto;
+  - el gris `#8A8A8A` da 3,1:1 → el texto secundario usa `#6B6B6B` (4,8:1);
+  - el rojo `#E5484D` de la guía (3,5:1) es solo para puntos de notificación; los mensajes de error usan `#C62F34` (4,9:1);
+  - el borde de los controles (campos de texto, interruptores) usa `#767676` (≥ 3:1) en lugar del hairline, que es decorativo;
+  - el texto de la tarjeta azul va en blanco puro: con transparencia deja de llegar a 4,5:1.
+- **Lo que no se aplicó y por qué:**
+  - **Fuente:** la guía pide Manrope, Plus Jakarta Sans o Inter Tight; no vienen con Android y no se descargó ninguna. Se usa la sans del sistema y cambiarla es poner la `FontFamily` en `Type.kt`.
+  - **Tamaño mínimo 12 sp** en lugar de los 11 px de las etiquetas (ilegible con fuente grande).
+  - **Acción principal como círculo negro con ↗ o "+":** se mantienen botones con texto (píldora negra); las pruebas y TalkBack dependen de la etiqueta, y quitarla cambiaría la accesibilidad.
+  - **No existen en la app y no se inventaron:** pestañas o píldoras de filtro, conmutador lista/mapa, tarjeta de doctor, chips de fecha, gráficas de barras ni hoja inferior.
+  - **Modo oscuro:** la guía es solo tema claro.
+- **Verificado:** 227 pruebas unitarias en verde (`ContrasteTest` ampliado con los pares nuevos) y las 44 instrumentadas en el teléfono con datos simulados (incluyen objetivos de 48 dp, etiquetas y encabezados en 14 pantallas); lint sin errores; release con R8; y recorrido a ojo en el teléfono, conectado al backend local, de aviso previo, login, elegir paciente, Inicio, Recetas (lista y detalle), Citas, Resultados y su visor, Perfil, Privacidad y ARCO.
+- **No verificado:** OTP, sesión expirada y las pantallas de bloqueo no se revisaron a ojo con el estilo nuevo (sí las cubren las pruebas automáticas); fuente grande del sistema; modo oscuro del teléfono.
+
 ## 5. Dependencias nuevas (se añaden en la etapa que las usa)
 
 | Etapa | Dependencia | Motivo | Alternativa más ligera |
@@ -219,6 +242,7 @@ Versiones limitadas por el compilador: el proyecto usa Kotlin 2.2.10, que lee me
 15. **Token tras un bloqueo por root:** la sesión se borra en local sin revocarla en el servidor (no se envían peticiones desde un dispositivo bloqueado); el token vive hasta que vence. Si Seguridad quiere revocación inmediata, tiene que hacerse del lado del servidor.
 16. **Conexión a los endpoints normales** (adoptada el 8 de noviembre de 2026): la app consulta el backend actual. Consecuencias que el PO aceptó: (a) entra **personal**, no el paciente, y elige de quién ve los datos; (b) **se envía `id_paciente`** (RF-002.1 ya no se cumple al pie de la letra: `SoloLecturaTest` lo limita al único archivo `ApiBackend.kt`); (c) sin OTP ni PKCE (lo de PROV-SEC-001 y PROV-SEC-002 sobre OTP y PKCE solo existe con datos simulados); (d) no hay citas; (e) las recetas y resultados solo los ve el médico dueño del expediente; (f) la app marca `acreditacion_identidad = true` en ARCO (supuesto a confirmar con Legal). Si más adelante se crea `/mobile`, el cambio queda acotado a `data/remoto` y a la pantalla de paciente.
 17. **Producción sin los endpoints del Sprint 4:** Render sirve `main`. Hay que desplegar `dev` (y corregir la autenticación de `/fhir/*`) para que el release funcione.
+18. **Estilo:** la guía "Aetna Health App" manda sobre el estilo anterior (basado en la web), salvo donde chocaría con WCAG AA; ahí se oscurece lo mínimo (etapa 9). Si el PO quiere los colores exactos de la guía, hay que relajar `ContrasteTest` y asumir el 3,7:1 del blanco sobre el azul.
 
 ## 9. Verificación en cada etapa
 
