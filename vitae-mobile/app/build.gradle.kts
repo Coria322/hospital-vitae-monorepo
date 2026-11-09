@@ -11,6 +11,10 @@ val apiUrlDebug = providers.gradleProperty("vitae.apiUrl").getOrElse("http://10.
 // Solo debug: -Pvitae.permitirCapturas=true quita FLAG_SECURE para poder hacer capturas al desarrollar. El release nunca.
 val permitirCapturasDebug = providers.gradleProperty("vitae.permitirCapturas").getOrElse("false").toBoolean()
 
+// -Pvitae.backend=simulado usa los datos simulados de debug (lo que necesitan las pruebas instrumentadas); por omisión
+// debug y release hablan con el backend real (la URL sale de vitae.apiUrl en debug).
+val backendRealDebug = providers.gradleProperty("vitae.backend").getOrElse("real") != "simulado"
+
 // Solo para pruebas: -Pvitae.minificarDebug=true pasa el debug por R8 para ver en el teléfono que las reglas keep bastan.
 // El release no necesita nada: el release siempre se minifica.
 val minificarDebug = providers.gradleProperty("vitae.minificarDebug").getOrElse("false").toBoolean()
@@ -36,6 +40,7 @@ android {
             buildConfigField("String", "API_BASE_URL", "\"$apiUrlDebug\"")
             buildConfigField("String", "API_PINES", "\"\"")
             buildConfigField("boolean", "PERMITIR_CAPTURAS", "$permitirCapturasDebug")
+            buildConfigField("boolean", "BACKEND_REAL", "$backendRealDebug")
             enableUnitTestCoverage = true
             optimization {
                 enable = minificarDebug
@@ -47,6 +52,7 @@ android {
             buildConfigField("String", "API_BASE_URL", "\"https://auditoria-backend-u47a.onrender.com/api/v1/\"")
             buildConfigField("String", "API_PINES", "\"\"")
             buildConfigField("boolean", "PERMITIR_CAPTURAS", "false")
+            buildConfigField("boolean", "BACKEND_REAL", "true")
             // PROV-SEC-011: ofuscación y reducción con R8 (reglas en src/main/keepRules).
             optimization {
                 enable = true

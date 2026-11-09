@@ -1,5 +1,5 @@
 package com.example.vitae_mobile.data.arco
 
-/** ponytail: el release no lleva datos simulados; falla de forma explícita hasta que exista el backend móvil (ver PLAN.md). */
+/** Release no lleva datos simulados y usa siempre el backend real: `AppContainer` no llama a esta función. */
 fun crearArcoRepository(): ArcoRepository =
-    error("Sin implementación remota de ARCO: pendiente del backend móvil")
+    error("Sin datos simulados en release de ARCO: release usa siempre el backend real (BACKEND_REAL)")

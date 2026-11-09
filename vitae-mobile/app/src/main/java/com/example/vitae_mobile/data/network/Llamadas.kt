@@ -28,3 +28,9 @@ internal fun errorHttp(codigo: Int): ApiError = when {
     codigo >= 500 -> ApiError.Servidor
     else -> ApiError.Desconocido
 }
+
+/** Como [llamar], pero devuelve el `data` del envoltorio; un `data` ausente es una respuesta ilegible. */
+suspend fun <T> llamarDatos(bloque: suspend () -> ApiEnvelope<T>): Resultado<T> = when (val r = llamar(bloque)) {
+    is Resultado.Fallo -> r
+    is Resultado.Exito -> r.valor.data?.let { Resultado.Exito(it) } ?: Resultado.Fallo(ApiError.Desconocido)
+}

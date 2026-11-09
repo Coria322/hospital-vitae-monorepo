@@ -1,0 +1,35 @@
+{
+  "status": "success",
+  "data": [
+    {
+      "folio": "ARCO-20261108-JTQX",
+      "id_paciente": "fb7d76f1-3a30-43d2-bea0-8eb350b6dbb7",
+      "derecho": "ACCESO",
+      "fecha_recepcion": "2026-11-08T00:00:00.000000Z",
+      "respuesta_limite": "2026-12-04T00:00:00.000000Z",
+      "ejecucion_limite": "2026-12-25T00:00:00.000000Z",
+      "estado": "RECIBIDA",
+      "motivo_improcedencia": null,
+      "acreditacion_identidad": true,
+      "documento_acreditacion": null,
+      "observaciones": null,
+      "created_at": "2026-11-08T17:29:02.000000Z",
+      "updated_at": "2026-11-08T17:29:02.000000Z",
+      "paciente": {
+        "id_paciente": "fb7d76f1-3a30-43d2-bea0-8eb350b6dbb7",
+        "curp": "SINT900101HDFR01",
+        "nombre_completo": "Paciente Sintético Alfa",
+        "fecha_nacimiento": "1990-01-01T00:00:00.000000Z",
+        "sexo": "MASCULINO",
+        "domicilio": "Calle Ficticia 100, Sector Pruebas, CDMX",
+        "seguro_activo": true,
+        "estado_activo": true,
+        "identificado": true,
+        "folio_urgencias": null,
+        "representante_legal": null,
+        "created_at": "2026-11-08T15:08:17.000000Z",
+        "updated_at": "2026-11-08T15:08:17.000000Z"
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "status": "success",
+  "message": "Token renovado exitosamente",
+  "data": {
+    "token": "TOKEN_DE_PRUEBA",
+    "token_type": "Bearer",
+    "expires_in": 900
+  }
+}

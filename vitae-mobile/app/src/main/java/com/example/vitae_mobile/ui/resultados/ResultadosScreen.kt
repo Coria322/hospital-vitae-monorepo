@@ -65,7 +65,7 @@ private fun FilaResultado(resultado: ResultadoEstudio, alAbrir: (String) -> Unit
         Campo(stringResource(R.string.resultado_fecha), formatearFecha(resultado.fechaHora))
         Campo(
             stringResource(R.string.resultado_archivo),
-            stringResource(if (resultado.esPdf) R.string.resultado_pdf else R.string.resultado_imagen),
+            stringResource(when { resultado.esPdf -> R.string.resultado_pdf; resultado.esTexto -> R.string.resultado_texto; else -> R.string.resultado_imagen }),
         )
         Button(onClick = { alAbrir(resultado.id) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
             Text(stringResource(R.string.abrir))

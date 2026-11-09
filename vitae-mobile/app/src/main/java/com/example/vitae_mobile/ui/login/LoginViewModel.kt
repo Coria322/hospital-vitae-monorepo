@@ -61,5 +61,5 @@ internal fun ApiError.aErrorLogin(): ErrorLogin = when (this) {
     ApiError.CuentaBloqueada -> ErrorLogin.CuentaBloqueada
     ApiError.AppIncompatible -> ErrorLogin.Incompatible
     ApiError.Red, ApiError.Servidor -> ErrorLogin.Red
-    ApiError.SesionInvalida, ApiError.Desconocido -> ErrorLogin.Credenciales
+    ApiError.SesionInvalida, ApiError.NoDisponible, ApiError.Desconocido -> ErrorLogin.Credenciales
 }

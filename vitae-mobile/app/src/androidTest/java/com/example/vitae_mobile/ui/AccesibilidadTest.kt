@@ -24,6 +24,8 @@ class AccesibilidadTest : AppTest() {
     @After
     fun restaurar() {
         SimulacionRoot.activo = false
+        // Sin esto el guardián se queda en "root" hasta el siguiente onStart y contamina la prueba que viene después.
+        enHiloPrincipal { dispositivo.verificar() }
         AvisoPrevioLocal(contexto).marcarVisto()
     }
 

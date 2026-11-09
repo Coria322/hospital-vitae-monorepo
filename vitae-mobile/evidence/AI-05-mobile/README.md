@@ -10,7 +10,8 @@ Paquete de TASK-M-020. Reúne lo que se midió en `vitae-mobile/` hasta la etapa
 | 4 | [04-matriz-dispositivos.md](04-matriz-dispositivos.md) | TASK-M-016, RNF-006 | **Parcial**: 1 teléfono con API ≥ 29 y 1 emulador API 28 |
 | 5 | [05-cobertura-contrato-y-solo-lectura.md](05-cobertura-contrato-y-solo-lectura.md) | TASK-M-015, M-018, M-019 | Cumplido en lo local. Colección compartida y repositorios remotos pendientes |
 | 6 | [06-accesibilidad.md](06-accesibilidad.md) | TASK-M-017, PROV-UX-003 | Comprobaciones propias en 14 pantallas. **Sin TalkBack ni Accessibility Scanner** |
-| — | [resultados-pruebas.md](resultados-pruebas.md) | todas | 191 unitarias y 44 instrumentadas en verde |
+| 7 | [07-conexion-backend.md](07-conexion-backend.md) | RF-003, RNF-007, PROV-RN-008/009 | **Probado contra el backend local** (dev). Producción sin los endpoints |
+| — | [resultados-pruebas.md](resultados-pruebas.md) | todas | 227 unitarias y 44 instrumentadas en verde |
 | — | `cobertura.mjs`, `resumen-pruebas.mjs` | M-019 | Scripts para reproducir las cifras |
 
 ## Cómo reproducirlo
@@ -29,7 +30,7 @@ node evidence/AI-05-mobile/resumen-pruebas.mjs instrumentadas.txt > evidence/AI-
 
 ## Lo que falta para cerrar AI-05 (no se puede hacer sin otra persona o sin backend)
 
-1. **Backend `/api/v1/mobile/*`** (cambios fuera de `vitae-mobile/`, `PLAN.md` sección 7): sin él no hay tráfico real, ni pinning contra el servidor, ni colección de contrato (TASK-W-091), ni inspección de proxy.
+1. **Backend**: la app ya habla con los endpoints normales (PLAN.md, etapa 8), pero el servidor de producción no tiene los del Sprint 4, y siguen sin existir la colección de contrato (TASK-W-091) y las cuentas de paciente con OTP y PKCE. Faltan pinning contra el servidor real e inspección de proxy.
 2. **Pines de certificado de producción** (`API_PINES` en `app/build.gradle.kts`): el release se niega a crear el cliente sin ellos, por diseño.
 3. **Dispositivos**: dos tamaños de pantalla más y APIs 29 y 34 o superior. Hoy solo hay un Xiaomi M2007J20CG con Android 12 y una imagen de emulador de API 28.
 4. **Root real**: un teléfono con Magisk para medir falsos negativos y positivos.

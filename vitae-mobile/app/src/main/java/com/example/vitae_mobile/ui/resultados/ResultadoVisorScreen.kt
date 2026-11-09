@@ -57,6 +57,7 @@ fun ResultadoVisorScreen(viewModel: ResultadoVisorViewModel, modifier: Modifier 
                         when {
                             mime == "application/pdf" -> VisorPdf(archivo)
                             mime.startsWith("image/") -> Column(Modifier.verticalScroll(rememberScrollState())) { VisorImagen(archivo) }
+                            mime.startsWith("text/") -> VisorTexto(archivo)
                             else -> EstadoError(stringResource(R.string.error_recurso), alReintentar = null)
                         }
                     }

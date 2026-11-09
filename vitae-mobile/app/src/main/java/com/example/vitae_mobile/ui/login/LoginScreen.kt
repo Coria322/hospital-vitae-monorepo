@@ -27,6 +27,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.vitae_mobile.BuildConfig
 import com.example.vitae_mobile.R
 
 @Composable
@@ -53,9 +54,9 @@ fun LoginScreen(viewModel: LoginViewModel, onOtp: () -> Unit, modifier: Modifier
             OutlinedTextField(
                 value = estado.correo,
                 onValueChange = viewModel::cambiarCorreo,
-                label = { Text(stringResource(R.string.login_correo)) },
+                label = { Text(stringResource(if (BuildConfig.BACKEND_REAL) R.string.login_usuario else R.string.login_correo)) },
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                keyboardOptions = KeyboardOptions(keyboardType = if (BuildConfig.BACKEND_REAL) KeyboardType.Text else KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth(),
             )
             OutlinedTextField(

@@ -25,6 +25,8 @@ import com.example.vitae_mobile.ui.login.LoginScreen
 import com.example.vitae_mobile.ui.login.LoginViewModel
 import com.example.vitae_mobile.ui.otp.OtpScreen
 import com.example.vitae_mobile.ui.otp.OtpViewModel
+import com.example.vitae_mobile.ui.paciente.PacienteScreen
+import com.example.vitae_mobile.ui.paciente.PacienteViewModel
 import com.example.vitae_mobile.ui.perfil.PerfilScreen
 import com.example.vitae_mobile.ui.perfil.PerfilViewModel
 import com.example.vitae_mobile.ui.privacidad.AvisoPrevioScreen
@@ -50,6 +52,12 @@ fun VitaeNavHost(
     // Sin sesión se entra por el aviso de privacidad la primera vez (y cuando cambia su versión), después por Login.
     fun destinoSinSesion() = if (contenedor.avisoPrevio.visto()) Ruta.Login else Ruta.AvisoPrevio
 
+    // Con el backend real, antes del aviso hay que elegir el paciente del que se consultan los datos.
+    fun destinoTrasLogin(): Ruta {
+        val backend = contenedor.backend
+        return if (backend != null && backend.activo == null) Ruta.Paciente else Ruta.Aviso
+    }
+
     // PROV-SEC-011 / RNF-006: un dispositivo bloqueado manda sobre todo lo demás y no tiene salida.
     LaunchedEffect(estadoDispositivo) {
         if (estadoDispositivo != dispositivoPrevio) {
@@ -70,7 +78,7 @@ fun VitaeNavHost(
             // Si el cierre vino de un bloqueo del dispositivo, la pantalla de bloqueo es la que manda.
             val destino = if (contenedor.dispositivo.bloqueado()) null else when (val e = estadoSesion) {
                 // Tras iniciar sesión se pasa por el aviso de privacidad; si ya está aceptado, sigue solo a Inicio.
-                is EstadoSesion.Autenticada -> Ruta.Aviso
+                is EstadoSesion.Autenticada -> destinoTrasLogin()
                 is EstadoSesion.SinSesion ->
                     if (e.motivo == MotivoCierre.Inactividad || e.motivo == MotivoCierre.Expirada) Ruta.SesionExpirada else Ruta.Login
             }
@@ -85,7 +93,7 @@ fun VitaeNavHost(
         when {
             estadoDispositivo == EstadoDispositivo.RootDetectado -> Ruta.RootBloqueado
             estadoDispositivo == EstadoDispositivo.Incompatible -> Ruta.Incompatible
-            estadoSesion is EstadoSesion.Autenticada -> Ruta.Aviso
+            estadoSesion is EstadoSesion.Autenticada -> destinoTrasLogin()
             else -> destinoSinSesion()
         }
     }
@@ -110,6 +118,18 @@ fun VitaeNavHost(
                 factory = viewModelFactory { initializer { OtpViewModel(contenedor.authRepository, contenedor.sesion) } },
             )
             OtpScreen(vm)
+        }
+        composable(Ruta.Paciente.ruta) {
+            contenedor.backend?.let { backend ->
+                val vm: PacienteViewModel = viewModel(
+                    factory = viewModelFactory { initializer { PacienteViewModel(backend) } },
+                )
+                PacienteScreen(
+                    vm,
+                    alElegir = { navController.irLimpiando(Ruta.Aviso) },
+                    alCerrarSesion = { alcance.launch { contenedor.sesion.cerrar(MotivoCierre.Voluntario) } },
+                )
+            }
         }
         composable(Ruta.Inicio.ruta) {
             val vm: PerfilViewModel = viewModel(

@@ -127,4 +127,31 @@ class ResumenViewModelTest {
         assertFalse(modelo.estado.value.hayError)
         assertEquals(Carga.Listo(cita("c", 1)), modelo.estado.value.proximaCita)
     }
+
+    // El backend no tiene citas: esa fila dice "No disponible" y no ofrece reintentar, el resto del resumen sigue.
+    @Test
+    fun unaSeccionNoDisponibleNoCuentaComoError() = runTest {
+        val vm = ResumenViewModel(
+            Citas(Resultado.Fallo(ApiError.NoDisponible)),
+            Recetas(Resultado.Exito(listOf(receta("r1", EstadoReceta.Activa)))),
+            Resultados(Resultado.Exito(emptyList())),
+            reloj,
+        )
+
+        assertTrue(vm.estado.value.proximaCita is Carga.Error)
+        assertFalse(vm.estado.value.hayError)
+        assertEquals(Carga.Listo(1), vm.estado.value.recetasActivas)
+    }
+
+    @Test
+    fun unFalloDeRedSiCuentaComoError() = runTest {
+        val vm = ResumenViewModel(
+            Citas(Resultado.Fallo(ApiError.Red)),
+            Recetas(Resultado.Exito(emptyList())),
+            Resultados(Resultado.Exito(emptyList())),
+            reloj,
+        )
+
+        assertTrue(vm.estado.value.hayError)
+    }
 }

@@ -13,6 +13,7 @@ data class ResultadoEstudio(
 ) {
     val esPdf get() = mime == "application/pdf"
     val esImagen get() = mime.startsWith("image/")
+    val esTexto get() = mime.startsWith("text/")
 }
 
 /** Archivo ya descargado en la caché interna de la app, nunca en almacenamiento compartido. */

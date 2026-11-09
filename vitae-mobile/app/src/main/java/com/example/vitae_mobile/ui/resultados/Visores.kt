@@ -7,6 +7,11 @@ import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -150,3 +155,12 @@ private fun decodificar(archivo: File): ImageBitmap =
     }.asImageBitmap()
 
 private const val LADO_MAXIMO_PX = 2048
+
+/** Resultado en texto plano (el backend entrega el contenido descifrado como texto). */
+@Composable
+fun VisorTexto(archivo: File, modifier: Modifier = Modifier) {
+    val texto = remember(archivo) { archivo.readText(Charsets.UTF_8) }
+    Column(modifier.verticalScroll(rememberScrollState())) {
+        Text(text = texto, style = MaterialTheme.typography.bodyLarge)
+    }
+}

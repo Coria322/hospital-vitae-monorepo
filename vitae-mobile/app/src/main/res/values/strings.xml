@@ -4,6 +4,7 @@
     <string name="pantalla_login">Iniciar sesión</string>
     <string name="pantalla_otp">Verificación de dispositivo</string>
     <string name="pantalla_aviso">Aviso de privacidad</string>
+    <string name="pantalla_paciente">Elegir paciente</string>
     <string name="pantalla_inicio">Inicio</string>
     <string name="pantalla_citas">Citas</string>
     <string name="pantalla_recetas">Recetas</string>
@@ -27,6 +28,7 @@
     <string name="error_carga">No pudimos cargar tu información. Revisa tu conexión e inténtalo de nuevo.</string>
     <string name="error_permisos">No tienes permiso para ver esta información.</string>
     <string name="error_recurso">No pudimos mostrar tu información. Inténtalo de nuevo.</string>
+    <string name="error_no_disponible">Esta sección aún no está disponible en el servidor.</string>
 
     <string name="abrir">Abrir</string>
 
@@ -61,6 +63,7 @@
     <string name="resultado_archivo">Archivo</string>
     <string name="resultado_pdf">PDF</string>
     <string name="resultado_imagen">Imagen</string>
+    <string name="resultado_texto">Texto</string>
     <string name="resultado_descargando">Descargando… %1$d%%</string>
     <string name="visor_pagina_desc">Página %1$d de %2$d</string>
     <string name="visor_imagen_desc">Imagen del resultado</string>
@@ -99,6 +102,11 @@
     <string name="arco_plazo_ejecucion">Plazo de ejecución</string>
     <string name="arco_actualizar">Actualizar estado</string>
 
+    <string name="paciente_ayuda">Elige al paciente cuyos datos quieres consultar.</string>
+    <string name="paciente_vacio">No hay pacientes registrados.</string>
+    <string name="paciente_folio">Folio de urgencias</string>
+    <string name="paciente_seleccionar">Seleccionar</string>
+
     <string name="perfil_nombre">Nombre</string>
     <string name="perfil_curp">CURP</string>
     <string name="perfil_fecha_nacimiento">Fecha de nacimiento</string>
@@ -107,6 +115,7 @@
     <string name="perfil_seguro_inactivo">Sin seguro activo</string>
 
     <string name="login_correo">Correo electrónico</string>
+    <string name="login_usuario">Usuario</string>
     <string name="login_contrasena">Contraseña</string>
     <string name="login_entrar">Entrar</string>
     <string name="login_cargando">Verificando…</string>

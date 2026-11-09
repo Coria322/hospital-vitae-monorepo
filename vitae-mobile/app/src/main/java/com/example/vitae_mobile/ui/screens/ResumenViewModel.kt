@@ -2,6 +2,7 @@ package com.example.vitae_mobile.ui.screens
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.vitae_mobile.core.ApiError
 import com.example.vitae_mobile.core.Resultado
 import com.example.vitae_mobile.data.citas.Cita
 import com.example.vitae_mobile.data.citas.CitasRepository
@@ -22,7 +23,8 @@ data class ResumenUiState(
     val recetasActivas: Carga<Int> = Carga.Cargando,
     val ultimoResultado: Carga<ResultadoEstudio?> = Carga.Cargando,
 ) {
-    val hayError get() = proximaCita is Carga.Error || recetasActivas is Carga.Error || ultimoResultado is Carga.Error
+    // Un dato que el servidor no ofrece (NoDisponible) se muestra como "No disponible"; no es un fallo que se pueda reintentar.
+    val hayError get() = listOf(proximaCita, recetasActivas, ultimoResultado).any { it is Carga.Error && it.error != ApiError.NoDisponible }
 }
 
 /** Resumen de Inicio: próxima cita, recetas activas y último resultado, solo datos propios (TASK-M-008). */

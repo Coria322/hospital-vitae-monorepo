@@ -14,6 +14,7 @@ import androidx.test.espresso.Espresso
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
 import androidx.test.runner.lifecycle.Stage
+import com.example.vitae_mobile.BuildConfig
 import com.example.vitae_mobile.MainActivity
 import com.example.vitae_mobile.R
 import com.example.vitae_mobile.VitaeApplication
@@ -79,7 +80,11 @@ abstract class AppTest {
     }
 
     @Before
-    fun iniciar() = abrirApp()
+    fun iniciar() {
+        // Estas pruebas recorren la app con los datos simulados (los mocks de debug); con el backend real no aplican.
+        check(!BuildConfig.BACKEND_REAL) { "Las pruebas instrumentadas usan datos simulados: ejecutarlas con -Pvitae.backend=simulado" }
+        abrirApp()
+    }
 
     /**
      * Inicia sesión si hace falta (con OTP si el mock aún no conoce el dispositivo) y espera a que aparezca el aviso
@@ -167,7 +172,12 @@ abstract class AppTest {
 
     /** Pulsa "atrás" [veces] veces y espera a estar de nuevo en Inicio. */
     protected fun volverAInicio(veces: Int = 1) {
-        repeat(veces) { Espresso.pressBack() }
+        repeat(veces) {
+            // El teclado del login puede aparecer con retraso (arranque en frío del teclado del teléfono) cuando la app ya
+            // está en otra pantalla, y entonces el primer "atrás" solo lo cerraría sin navegar: se cierra antes.
+            Espresso.closeSoftKeyboard()
+            Espresso.pressBack()
+        }
         esperar { visible(saludo) }
     }
 

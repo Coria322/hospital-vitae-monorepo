@@ -69,7 +69,8 @@ fun <T> ContenidoCarga(
         Carga.Cargando -> CargandoEsqueleto(filas = 4, modifier = modifier)
         is Carga.Error -> EstadoError(
             mensaje = stringResource(mensajeDeError(estado.error)),
-            alReintentar = if (estado.error == ApiError.SinPermisos) null else alReintentar,
+            // Reintentar no cambia nada si no hay permiso o si el servidor no ofrece esa sección.
+            alReintentar = if (estado.error == ApiError.SinPermisos || estado.error == ApiError.NoDisponible) null else alReintentar,
             modifier = modifier,
         )
         is Carga.Listo ->
@@ -86,5 +87,6 @@ fun <T> ContenidoCarga(
 fun mensajeDeError(error: ApiError): Int = when (error) {
     ApiError.SinPermisos -> R.string.error_permisos
     ApiError.Red, ApiError.Servidor -> R.string.error_carga
+    ApiError.NoDisponible -> R.string.error_no_disponible
     ApiError.SesionInvalida, ApiError.CuentaBloqueada, ApiError.AppIncompatible, ApiError.Desconocido -> R.string.error_recurso
 }

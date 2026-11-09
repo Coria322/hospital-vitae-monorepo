@@ -50,6 +50,7 @@ com.example.vitae_mobile/
 | 5 | Privacidad y ARCO | 012, 013 | PROV-RN-008/009 | M | `/mobile/{aviso,consentimientos,solicitudes-arco}` | **Hecha** (con mock) |
 | 6 | Estados y hardening | 014, 007 | RNF-006, PROV-SEC-011 | L | 426 | **Hecha** (con mock) |
 | 7 | Calidad y evidencia | 015–020 | RF-011, PROV-UX-003, RF-002.1, RNF-007 | M | colección de contrato | **Hecha en lo local** (ver pendientes) |
+| 8 | Conexión al backend real | — | RF-003, RNF-003, RNF-007, PROV-RN-008/009 | L | endpoints normales de `dev` | **Hecha**, probada con el backend local (ver etapa 8) |
 
 Fuera de alcance por ahora: release (TASK-M-021 a 023).
 Cada etapa termina con: build + tests unitarios + lint en verde, tu autorización y un commit `feat(mobile): …` con `Refs: #TASK-M-xxx, Req: …, Audit: AI-05`.
@@ -149,6 +150,23 @@ Compose + Navigation, 12 rutas, `InicioScreen`, `PantallaBase`, tema con contras
 - **Matriz de dispositivos:** 3 tamaños con API >= 29 y 1 con API 28. Hoy hay un teléfono físico con Android 12 (API 31) y solo la imagen de sistema de API 28 instalada; faltan imágenes de API >= 29 para los emuladores.
 - **Evidencia AI-05:** paquete con resultados de pruebas, cobertura y capturas de accesibilidad.
 
+### Etapa 8 — Conexión a los endpoints normales del backend — hecha, probada contra el backend local
+- **Decisión del PO (8 de noviembre de 2026):** la app no necesita `/api/v1/mobile/*`; se conecta a los endpoints normales de `vitae-backend`. Se verificó en `dev` (Sprint 4) y no hay ningún endpoint móvil ni cuentas de paciente.
+- **Resultado:** `data/remoto` (contrato Retrofit `ApiBackend`, `SesionBackend`, `AuthRemoto`, `PerfilRemoto`, `CitasRemoto`, `RecetasRemoto`, `ResultadosRemoto`, `PrivacidadRemoto`, `ArcoRemoto`), pantalla y ViewModel para elegir paciente, visor de texto para resultados y `ApiError.NoDisponible`. `AppContainer` usa los repositorios remotos si `BuildConfig.BACKEND_REAL` es verdadero: **por omisión en debug y siempre en release**. `-Pvitae.backend=simulado` vuelve a los datos simulados (las pruebas instrumentadas lo exigen y fallan con un mensaje si no se usa). La URL de debug sale de `-Pvitae.apiUrl` (en teléfono: `adb reverse tcp:8080 tcp:8080` y `http://localhost:8080/api/v1/`).
+- **Mapeo contra el backend real** (formas capturadas del backend y guardadas como fixtures en `app/src/test/resources/backend`):
+  - **Sesión:** `POST /auth/login` con `id_usuario` y `password` (el campo "Correo" pasa a "Usuario"); token de 15 min. No hay OTP ni PKCE ni refresh token: se renueva con `POST /auth/refresh` usando el Bearer vigente, y `POST /auth/logout` lo revoca.
+  - **Quién entra:** el personal del hospital (`MED-001` etc.). Tras el login se **elige un paciente** (`GET /pacientes`); sus datos salen de `GET /pacientes/{id}`.
+  - **Perfil:** `GET /fhir/Patient/{id}` (FHIR R4); el seguro viene de `seguro_activo` del paciente porque el Patient no lo trae.
+  - **Recetas:** no hay lista; salen de `GET /expedientes-clinicos/{id}` (solo el médico dueño del expediente; otro usuario recibe 403) y el detalle de `GET /recetas/{id}`. Estado y QR salen de `qr_estado` y `qr_codigo` (el QR existe solo tras firmar). Dosis = `indicaciones` (texto libre); vía y duración no existen.
+  - **Resultados:** solicitudes de estudio del expediente que ya tienen resultado; el contenido llega descifrado como **texto** en `GET /solicitudes-estudio/{id}/resultados` (un PDF o imagen binario no cabe en ese JSON).
+  - **Citas:** el backend no tiene agenda: la sección dice "no disponible".
+  - **Aviso y consentimientos:** el backend no sirve el aviso; texto y finalidades van en la app. El estado sale de `GET /consentimientos`; aceptar guarda una fila de aviso y otra de finalidades opcionales; revocar crea una fila REVOCADO que apunta a la original (los registros son inmutables).
+  - **ARCO:** `POST/GET /solicitudes-arco`; el backend exige `acreditacion_identidad = true` y la app lo envía siempre. No hay consulta por folio.
+- **Verificado:** 227 pruebas unitarias en verde (36 nuevas; las del backend sobre respuestas reales capturadas) y 44 instrumentadas en el teléfono con datos simulados. **Flujo real en el teléfono contra Laravel local** (`dev`, SQLite, datos sintéticos): login, elegir paciente, aviso, Inicio, Perfil, Recetas con QR vigente y no válido, Resultados con visor de texto, Citas "no disponible", ARCO (solicitud creada en la base) y revocación de una finalidad (fila REVOCADO creada en la base). También con la compilación minificada por R8: sin caídas ni excepciones de serialización.
+- **No verificado:** el servidor de producción de Render **no tiene estos endpoints** (corre lo de `main`, hasta el Sprint 3: sin FHIR, recetas, consentimientos, ARCO ni laboratorio), así que el release no puede funcionar allí todavía; pines de certificado de producción; las pantallas nuevas con el lector de pantalla y con una prueba instrumentada propia (las instrumentadas corren con datos simulados).
+- **Seguridad:** las rutas `/api/v1/fhir/*` de `dev` **no exigen token** (Patient por id o por CURP responde 200 sin autenticar); no están en producción. Corregirlas en el backend antes de desplegar el Sprint 4.
+- **Plan original:** ninguno; la etapa nace de la decisión del PO.
+
 ## 5. Dependencias nuevas (se añaden en la etapa que las usa)
 
 | Etapa | Dependencia | Motivo | Alternativa más ligera |
@@ -172,7 +190,7 @@ Versiones limitadas por el compilador: el proyecto usa Kotlin 2.2.10, que lee me
 - Códigos: 401 sin sesión, 403 sin permisos, 423 bloqueo tras 3 intentos.
 - El móvil recibe FHIR **solo a través de `/mobile/*`** (web/ARCHITECTURE.md, convenciones). Eso resuelve la contradicción con la tabla de `mobile/ARCHITECTURE.md`, que lista también `/fhir/*`.
 
-## 7. Cambios fuera de esta carpeta (no se hacen)
+## 7. Cambios fuera de esta carpeta (no se hacen; el PO decidió no pedir `/mobile`, ver etapa 8)
 
 1. Rol `PACIENTE` y cuentas con correo y contraseña (hoy `id_usuario` más contraseña, solo roles de personal).
 2. `POST /api/v1/mobile/auth/{token,otp-verify,refresh,logout}`, un endpoint que entregue el código PKCE y el claim `client ∈ {web, mobile}` en el token.
@@ -199,6 +217,8 @@ Versiones limitadas por el compilador: el proyecto usa Kotlin 2.2.10, que lee me
 13. **Commits:** `AGENTS.md` pide tu autorización previa y el 100% de las pruebas.
 14. **Root y emuladores** (adoptado): los emuladores sin Play Store traen `test-keys` y no son root. El detector de debug ignora esa señal (`SimulacionRoot.kt`, un test lo comprueba) para poder usar emuladores en la matriz de dispositivos de la etapa 7; el release la mantiene.
 15. **Token tras un bloqueo por root:** la sesión se borra en local sin revocarla en el servidor (no se envían peticiones desde un dispositivo bloqueado); el token vive hasta que vence. Si Seguridad quiere revocación inmediata, tiene que hacerse del lado del servidor.
+16. **Conexión a los endpoints normales** (adoptada el 8 de noviembre de 2026): la app consulta el backend actual. Consecuencias que el PO aceptó: (a) entra **personal**, no el paciente, y elige de quién ve los datos; (b) **se envía `id_paciente`** (RF-002.1 ya no se cumple al pie de la letra: `SoloLecturaTest` lo limita al único archivo `ApiBackend.kt`); (c) sin OTP ni PKCE (lo de PROV-SEC-001 y PROV-SEC-002 sobre OTP y PKCE solo existe con datos simulados); (d) no hay citas; (e) las recetas y resultados solo los ve el médico dueño del expediente; (f) la app marca `acreditacion_identidad = true` en ARCO (supuesto a confirmar con Legal). Si más adelante se crea `/mobile`, el cambio queda acotado a `data/remoto` y a la pantalla de paciente.
+17. **Producción sin los endpoints del Sprint 4:** Render sirve `main`. Hay que desplegar `dev` (y corregir la autenticación de `/fhir/*`) para que el release funcione.
 
 ## 9. Verificación en cada etapa
 
@@ -210,4 +230,13 @@ export JAVA_HOME="/c/Program Files/Android/Android Studio/jbr"   # JDK 21 de And
 ./gradlew connectedDebugAndroidTest
 ```
 
-Qué no se puede verificar sin backend: tráfico real, OTP, PKCE y pinning contra el servidor. Se prueban contra mocks y se marcan como pendientes en el reporte de cada etapa.
+Qué no se puede verificar: pinning contra el servidor de producción y todo lo que dependa de los endpoints del Sprint 4 desplegados (hoy solo existen en el backend local). El tráfico real se probó contra Laravel local (etapa 8); OTP y PKCE no existen en el backend actual.
+
+Pruebas instrumentadas (datos simulados) y conexión real:
+
+```bash
+./gradlew assembleDebug assembleDebugAndroidTest -Pvitae.backend=simulado   # las instrumentadas exigen esto
+# conectado al backend local: php artisan serve --port=8080, y en el teléfono
+adb reverse tcp:8080 tcp:8080
+./gradlew installDebug -Pvitae.apiUrl=http://localhost:8080/api/v1/
+```
