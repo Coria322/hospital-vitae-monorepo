@@ -18,6 +18,16 @@ class DispositivoInterceptor(private val bloqueado: () -> Boolean, private val a
     }
 }
 
+/**
+ * El portal móvil (`/api/v1/mobile/…`) exige `X-Client-Version` con el nivel de API de Android (RNF-006): sin la cabecera
+ * responde 400, y con un nivel menor que 29 responde 426. Se manda en todas las peticiones; el servidor la ignora fuera
+ * de `/mobile`.
+ */
+class VersionInterceptor(private val nivelApi: Int) : Interceptor {
+    override fun intercept(chain: Interceptor.Chain): Response =
+        chain.proceed(chain.request().newBuilder().header("X-Client-Version", "API-$nivelApi").build())
+}
+
 /** Agrega `Authorization: Bearer` cuando hay token y la petición no lo trae (login y refresh no lo llevan). */
 class AuthInterceptor(private val token: () -> String?) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {

@@ -1,0 +1,43 @@
+{
+  "status": "success",
+  "data": [
+    {
+      "id_cita": "a0000000-0000-0000-0000-000000000001",
+      "id_paciente": "fb7d76f1-3a30-43d2-bea0-8eb350b6dbb7",
+      "id_usuario": "MED-001",
+      "fecha_hora": "2026-11-13T10:00:00.000000Z",
+      "estado": "CONFIRMADA",
+      "especialidad": "Medicina Interna",
+      "motivo": "Seguimiento de control clínico sintético",
+      "consultorio": "Consultorio 104",
+      "confirmada_por": "REC-001",
+      "confirmada_en": "2026-11-09T22:50:44.000000Z",
+      "created_at": "2026-11-10T00:50:44.000000Z",
+      "updated_at": "2026-11-10T00:50:44.000000Z",
+      "medico": {
+        "id_usuario": "MED-001",
+        "nombre_completo": "Dr. Carlos Rivera",
+        "cedula": "1234567890"
+      }
+    },
+    {
+      "id_cita": "a0000000-0000-0000-0000-000000000002",
+      "id_paciente": "fb7d76f1-3a30-43d2-bea0-8eb350b6dbb7",
+      "id_usuario": "MED-001",
+      "fecha_hora": "2026-11-17T16:30:00.000000Z",
+      "estado": "PENDIENTE",
+      "especialidad": "Cardiología Preventiva",
+      "motivo": "Revisión periódica de presión arterial",
+      "consultorio": "Consultorio 202",
+      "confirmada_por": null,
+      "confirmada_en": null,
+      "created_at": "2026-11-10T00:50:44.000000Z",
+      "updated_at": "2026-11-10T00:50:44.000000Z",
+      "medico": {
+        "id_usuario": "MED-001",
+        "nombre_completo": "Dr. Carlos Rivera",
+        "cedula": "1234567890"
+      }
+    }
+  ]
+}

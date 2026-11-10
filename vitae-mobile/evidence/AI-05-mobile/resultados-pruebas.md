@@ -1,6 +1,6 @@
 # Resultados de pruebas
 
-Generado con `resumen-pruebas.mjs` a partir de las ejecuciones reales.
+Generado a partir de los XML de las ejecuciones reales (etapa 10, 10 de noviembre de 2026).
 
 ## Unitarias (JVM): `./gradlew testDebugUnitTest`
 
@@ -22,29 +22,28 @@ Generado con `resumen-pruebas.mjs` a partir de las ejecuciones reales.
 | data.perfil.MockPerfilRepositoryTest | 2 | 0 |
 | data.perfil.PerfilTest | 3 | 0 |
 | data.privacidad.MockPrivacidadYArcoTest | 8 | 0 |
-| data.remoto.AuthYPacienteRemotoTest | 8 | 0 |
-| data.remoto.ClinicoRemotoTest | 10 | 0 |
-| data.remoto.PrivacidadArcoRemotoTest | 12 | 0 |
+| data.remoto.AuthRemotoTest | 8 | 0 |
+| data.remoto.ClinicoRemotoTest | 11 | 0 |
+| data.remoto.PrivacidadArcoRemotoTest | 15 | 0 |
 | data.seguridad.DetectorRootDebugTest | 3 | 0 |
 | data.seguridad.DetectorRootTest | 12 | 0 |
 | data.seguridad.GuardiaDispositivoTest | 7 | 0 |
-| data.SoloLecturaTest | 4 | 0 |
+| data.SoloLecturaTest | 5 | 0 |
 | ExampleUnitTest | 1 | 0 |
 | ui.arco.ArcoViewModelTest | 9 | 0 |
 | ui.components.CargaViewModelTest | 4 | 0 |
 | ui.components.FormatoTest | 2 | 0 |
 | ui.login.LoginViewModelTest | 8 | 0 |
 | ui.otp.OtpViewModelTest | 5 | 0 |
-| ui.paciente.PacienteViewModelTest | 4 | 0 |
 | ui.perfil.PerfilViewModelTest | 5 | 0 |
 | ui.privacidad.AvisoViewModelTest | 14 | 0 |
 | ui.recetas.QrTest | 6 | 0 |
 | ui.resultados.ResultadoVisorViewModelTest | 5 | 0 |
 | ui.screens.ResumenViewModelTest | 9 | 0 |
 | ui.seguridad.ContadorProteccionTest | 3 | 0 |
-| **Total** | **227** | **0** |
+| **Total** | **228** | **0** |
 
-## Instrumentadas (teléfono físico): `am instrument`
+## Instrumentadas (teléfono físico): `./gradlew connectedDebugAndroidTest -Pvitae.backend=simulado`
 
 | Clase | Pruebas OK | Fallos |
 |---|---|---|

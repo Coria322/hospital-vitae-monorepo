@@ -4,9 +4,9 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-// Backend local: 10.0.2.2 desde el emulador; en teléfono físico usar `adb reverse tcp:8080 tcp:8080`
-// y -Pvitae.apiUrl=http://localhost:8080/api/v1/
-val apiUrlDebug = providers.gradleProperty("vitae.apiUrl").getOrElse("http://10.0.2.2:8080/api/v1/")
+// Por omisión debug habla con el servidor de Render, igual que el release. Backend local: -Pvitae.apiUrl=http://10.0.2.2:8080/api/v1/
+// desde el emulador; en teléfono físico `adb reverse tcp:8080 tcp:8080` y -Pvitae.apiUrl=http://localhost:8080/api/v1/
+val apiUrlDebug = providers.gradleProperty("vitae.apiUrl").getOrElse("https://auditoria-backend-u47a.onrender.com/api/v1/")
 
 // Solo debug: -Pvitae.permitirCapturas=true quita FLAG_SECURE para poder hacer capturas al desarrollar. El release nunca.
 val permitirCapturasDebug = providers.gradleProperty("vitae.permitirCapturas").getOrElse("false").toBoolean()

@@ -4,7 +4,6 @@
     <string name="pantalla_login">Iniciar sesión</string>
     <string name="pantalla_otp">Verificación de dispositivo</string>
     <string name="pantalla_aviso">Aviso de privacidad</string>
-    <string name="pantalla_paciente">Elegir paciente</string>
     <string name="pantalla_inicio">Inicio</string>
     <string name="pantalla_citas">Citas</string>
     <string name="pantalla_recetas">Recetas</string>
@@ -102,11 +101,6 @@
     <string name="arco_plazo_respuesta">Plazo de respuesta</string>
     <string name="arco_plazo_ejecucion">Plazo de ejecución</string>
     <string name="arco_actualizar">Actualizar estado</string>
-
-    <string name="paciente_ayuda">Elige al paciente cuyos datos quieres consultar.</string>
-    <string name="paciente_vacio">No hay pacientes registrados.</string>
-    <string name="paciente_folio">Folio de urgencias</string>
-    <string name="paciente_seleccionar">Seleccionar</string>
 
     <string name="perfil_nombre">Nombre</string>
     <string name="perfil_curp">CURP</string>
