@@ -159,6 +159,8 @@ const todosLosEstudios = computed(() => {
     codigo_tubo: `BC-${h.folio.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8)}`,
     paciente_nombre: h.paciente_nombre || h.paciente,
     paciente_iniciales: h.paciente || 'P.N.',
+    paciente_curp: h.curp,
+    expediente_id: h.expediente_id,
     paciente_edad: parseInt(h.edad) || 35,
     paciente_sexo: h.sexo === 'Femenino' ? 'F' : 'M',
     prioridad: 'ORDINARIA',
@@ -228,6 +230,8 @@ const cargarSolicitudesBackend = async () => {
           codigo_tubo: `BC-${s.id_solicitud.substring(0, 8).toUpperCase()}`,
           paciente_nombre: pacNombre,
           paciente_iniciales: iniciales,
+          paciente_curp: s.expediente?.paciente?.curp,
+          expediente_id: s.id_expediente,
           paciente_edad: edad,
           paciente_sexo: (s.expediente?.paciente?.sexo === 'F' ? 'F' : 'M') as 'M' | 'F',
           prioridad,
@@ -244,10 +248,13 @@ const cargarSolicitudesBackend = async () => {
         }
       })
 
-      // Pendientes
+      // Pendientes o en proceso
       const pendientes = transformados.filter(t => t.estado === 'PENDIENTE' || t.estado === 'EN_PROCESO')
       if (pendientes.length > 0) {
         orders.value = pendientes
+        selectedOrder.value = orders.value[0] as EstudioDiagnostico
+      } else if (transformados.length > 0) {
+        orders.value = transformados
         selectedOrder.value = orders.value[0] as EstudioDiagnostico
       }
 
@@ -260,6 +267,8 @@ const cargarSolicitudesBackend = async () => {
           hora: `${v.hora_solicitud} h`,
           paciente: v.paciente_iniciales,
           paciente_nombre: v.paciente_nombre,
+          curp: v.paciente_curp,
+          expediente_id: v.expediente_id,
           edad: `${v.paciente_edad}a`,
           sexo: v.paciente_sexo === 'F' ? 'Femenino' : 'Masculino',
           estudio: v.estudio_requerido,

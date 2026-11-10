@@ -49,8 +49,8 @@ export interface SolicitudCamaPendiente {
   tiempoEspera: string
 }
 
-const STORAGE_KEY_BOXES = 'vitae_camas_hospital_master_v4'
-const STORAGE_KEY_GUARDIAS = 'vitae_guardia_boxes_v4'
+const STORAGE_KEY_BOXES = 'vitae_camas_hospital_master_v5'
+const STORAGE_KEY_GUARDIAS = 'vitae_guardia_boxes_v5'
 const STORAGE_KEY_SOLICITUDES_CAMA = 'vitae_solicitudes_cama_v1'
 
 // Catalogo predeterminado de personal clinico (Usuarios predeterminados del sistema)
@@ -75,7 +75,7 @@ export const CATALOGO_ENFERMERIA: PersonalGuardia[] = [
 // TODAS LIBRES / DISPONIBLES para inicio de operaciones
 export const PLANTILLA_INICIAL_CAMAS: AsignacionGuardiaBox[] = [
   // =========================================================================
-  // PISO 1: URGENCIAS MEDICAS Y CHOQUE (8 BOXES) - TODAS LIBRES
+  // PISO 1: URGENCIAS MEDICAS Y CHOQUE (8 BOXES)
   // =========================================================================
   {
     id: 'BOX-U01',
@@ -87,7 +87,13 @@ export const PLANTILLA_INICIAL_CAMAS: AsignacionGuardiaBox[] = [
     estadoOperativo: 'OPERATIVO',
     estatusCenso: 'disponible',
     pacienteInfo: 'Libre para asignacion inmediata',
-    servicio: 'Urgencias'
+    servicio: 'Urgencias',
+    medicoId: 'MED-001',
+    medicoNombre: 'Dr. Carlos Rivera',
+    medicoEspecialidad: 'Medicina Interna / Urgencias',
+    enfermeroId: 'ENF-001',
+    enfermeroNombre: 'Lic. Gabriela Ramos',
+    enfermeroEspecialidad: 'Triage y Choque Critico'
   },
   {
     id: 'BOX-U02',
@@ -99,7 +105,13 @@ export const PLANTILLA_INICIAL_CAMAS: AsignacionGuardiaBox[] = [
     estadoOperativo: 'OPERATIVO',
     estatusCenso: 'disponible',
     pacienteInfo: 'Libre para asignacion inmediata',
-    servicio: 'Urgencias'
+    servicio: 'Urgencias',
+    medicoId: 'MED-002',
+    medicoNombre: 'Dra. Elena Vasconcelos',
+    medicoEspecialidad: 'Cirugia General y Laparoscopia',
+    enfermeroId: 'ENF-002',
+    enfermeroNombre: 'Lic. Marco Morales',
+    enfermeroEspecialidad: 'Hospitalizacion Adultos'
   },
   {
     id: 'BOX-U03',
@@ -111,7 +123,13 @@ export const PLANTILLA_INICIAL_CAMAS: AsignacionGuardiaBox[] = [
     estadoOperativo: 'OPERATIVO',
     estatusCenso: 'disponible',
     pacienteInfo: 'Libre para derivacion',
-    servicio: 'Urgencias'
+    servicio: 'Urgencias',
+    medicoId: 'usr-med-3',
+    medicoNombre: 'Dr. Roberto Garza Morales',
+    medicoEspecialidad: 'Medicina Critica y Choque',
+    enfermeroId: 'usr-2',
+    enfermeroNombre: 'Lic. Enf. Carlos Ramos Nava',
+    enfermeroEspecialidad: 'Triage y Reanimacion'
   },
   {
     id: 'BOX-U04',
@@ -123,7 +141,13 @@ export const PLANTILLA_INICIAL_CAMAS: AsignacionGuardiaBox[] = [
     estadoOperativo: 'OPERATIVO',
     estatusCenso: 'disponible',
     pacienteInfo: 'Libre para asignacion inmediata',
-    servicio: 'Urgencias'
+    servicio: 'Urgencias',
+    medicoId: 'usr-1',
+    medicoNombre: 'Dra. Mariana Gomez Trevino',
+    medicoEspecialidad: 'Urgencias Adultos / ECE',
+    enfermeroId: 'usr-enf-3',
+    enfermeroNombre: 'Enf. Laura Sanchez Pineda',
+    enfermeroEspecialidad: 'Cuidados Intensivos UCI'
   },
   {
     id: 'BOX-U05',
@@ -661,6 +685,39 @@ class GuardiasService {
       })
       if (asignado) return true
     }
+
+    // AUTO-ASIGNACIÓN ASISTENCIAL DE RESGUARDO:
+    // Si el profesional no tiene puesto asignado en el turno actual (ej. primer inicio de sesión o reinicio de caché),
+    // se le asigna de inmediato el primer box/consultorio disponible en Urgencias para garantizar la continuidad asistencial
+    // y evitar bloqueos de acceso durante la operación clínica.
+    try {
+      const asignacionesActuales = this.obtenerAsignaciones(turnoActual)
+      const boxAsignar = asignacionesActuales.find(b => {
+        if (rolMayus === 'MEDICO') return !b.medicoId || b.medicoId === ''
+        if (rolMayus === 'ENFERMERIA' || rolMayus === 'ENFERMERO') return !b.enfermeroId || b.enfermeroId === ''
+        return false
+      }) || asignacionesActuales[0]
+
+      if (boxAsignar) {
+        const medCat = CATALOGO_MEDICOS.find(m => (uId && clean(m.id) === uId) || (uNom && clean(m.nombre) === uNom) || (uCed && m.cedula && clean(m.cedula) === uCed))
+        const enfCat = CATALOGO_ENFERMERIA.find(e => (uId && clean(e.id) === uId) || (uNom && clean(e.nombre) === uNom) || (uCed && e.cedula && clean(e.cedula) === uCed))
+
+        if (rolMayus === 'MEDICO') {
+          boxAsignar.medicoId = usuarioId || medCat?.id || 'MED-001'
+          boxAsignar.medicoNombre = nombreUsuario || medCat?.nombre || 'Dr. Carlos Rivera'
+          boxAsignar.medicoEspecialidad = medCat?.especialidad || 'Medicina Interna / Urgencias'
+        } else {
+          boxAsignar.enfermeroId = usuarioId || enfCat?.id || 'ENF-001'
+          boxAsignar.enfermeroNombre = nombreUsuario || enfCat?.nombre || 'Lic. Gabriela Ramos'
+          boxAsignar.enfermeroEspecialidad = enfCat?.especialidad || 'Triage y Choque Crítico'
+        }
+        this.guardarAsignaciones(turnoActual, asignacionesActuales)
+        return true
+      }
+    } catch (e) {
+      console.warn('Error en auto-asignación asistencial:', e)
+    }
+
     return false
   }
 

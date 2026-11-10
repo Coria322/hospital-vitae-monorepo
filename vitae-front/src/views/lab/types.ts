@@ -46,6 +46,8 @@ export interface EstudioDiagnostico {
   codigo_tubo?: string
   paciente_nombre: string
   paciente_iniciales: string
+  paciente_curp?: string
+  expediente_id?: string
   paciente_edad: number
   paciente_sexo: 'M' | 'F'
   prioridad: PrioridadEstudio

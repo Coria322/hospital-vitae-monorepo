@@ -8,17 +8,20 @@ use App\Models\ResultadoEstudio;
 use App\Models\SolicitudEstudio;
 use App\Services\AuditLogger;
 use App\Services\CifradoAdjuntosService;
+use App\Services\Pdf\PdfPlantillasService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Response;
 
 class LaboratorioController extends Controller
 {
     public function __construct(
-        protected CifradoAdjuntosService $cifradoService
+        protected CifradoAdjuntosService $cifradoService,
+        protected PdfPlantillasService $pdfPlantillasService
     ) {}
 
     /**
@@ -319,5 +322,41 @@ class LaboratorioController extends Controller
                 'integridad_sha256' => $resultado->hash_sha256,
             ],
         ], 200);
+    }
+
+    /**
+     * Descarga de Volante de Solicitud de Laboratorio en PDF (NOM-007-SSA3-2011).
+     */
+    public function descargarSolicitudPdf(Request $request, string $id): Response
+    {
+        $solicitud = SolicitudEstudio::with(['expediente.paciente', 'medicoSolicitante'])
+            ->where('id_solicitud', $id)
+            ->firstOrFail();
+
+        $builder = $this->pdfPlantillasService->generarSolicitudEstudioPdf($solicitud);
+        $filename = "Volante-Laboratorio-{$solicitud->id_solicitud}.pdf";
+
+        return $request->boolean('inline')
+            ? $builder->inlineResponse($filename)
+            : $builder->downloadResponse($filename);
+    }
+
+    /**
+     * Descarga de Reporte de Resultados Validados de Laboratorio en PDF (NOM-007-SSA3-2011).
+     */
+    public function descargarResultadoPdf(Request $request, string $id): Response
+    {
+        // $id puede ser el id de solicitud o id de resultado
+        $resultado = ResultadoEstudio::with(['solicitud.expediente.paciente', 'laboratorista'])
+            ->where('id_solicitud', $id)
+            ->orWhere('id_resultado', $id)
+            ->firstOrFail();
+
+        $builder = $this->pdfPlantillasService->generarResultadoEstudioPdf($resultado);
+        $filename = "Resultado-Laboratorio-{$resultado->id_resultado}.pdf";
+
+        return $request->boolean('inline')
+            ? $builder->inlineResponse($filename)
+            : $builder->downloadResponse($filename);
     }
 }

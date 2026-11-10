@@ -51,9 +51,21 @@ class Sprint2SincronizacionHorariaTest extends TestCase
 
     public function test_comando_alerta_y_registra_auditoria_cuando_deriva_supera_tolerancia(): void
     {
-        // Forzar tolerancia de 0.0000001 segundos para provocar desincronización deliberada
+        $this->mock(\App\Services\NtpService::class, function ($mock) {
+            $mock->shouldReceive('medirDerivaHoraria')->andReturn([
+                'sincronizado' => true,
+                'offset_segundos' => 5.24,
+                'offset_ms' => 5240.0,
+                'fuente' => 'time.cenam.mx',
+                'metodo' => 'SNTP',
+                'hora_local_utc' => now('UTC')->toIso8601String(),
+                'hora_referencia_utc' => now('UTC')->subSeconds(5)->toIso8601String(),
+                'deriva_conforme' => false,
+            ]);
+        });
+
         $exitCode = Artisan::call('ntp:verificar-sincronizacion', [
-            '--max-offset' => '0.00000001',
+            '--max-offset' => '1.0',
         ]);
 
         $this->assertSame(1, $exitCode);

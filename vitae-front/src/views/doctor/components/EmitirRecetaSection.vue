@@ -3,6 +3,7 @@ import { ref, watch, onMounted } from 'vue'
 import type { Paciente, Doctor } from '../types'
 import api from '@/services/api'
 import { eceService } from '@/services/eceService'
+import { pdfExportService } from '@/services/pdfExportService'
 
 const props = defineProps<{
   doctor: Doctor
@@ -104,9 +105,27 @@ const adjuntarPautaHidratacion = ref(true)
 // Configuración de receta (columna derecha)
 const tipoPrescripcion = ref<'urgencias' | 'ordinaria' | 'controlada'>('urgencias')
 const dispensacionFarmacia = ref(true)
-const impresionVolanteQr = ref(false)
+const impresionVolanteQr = ref(true)
 const envioCifrado = ref(false)
 const guardandoReceta = ref(false)
+const recetaRecienEmitida = ref<any>(null)
+const descargandoPdfReceta = ref(false)
+
+const descargarPdfUltimaReceta = async (abrirPestana = false) => {
+  if (!recetaRecienEmitida.value?.id_receta) return
+  descargandoPdfReceta.value = true
+  try {
+    if (abrirPestana) {
+      await pdfExportService.abrirPdfEnPestana(`/recetas/${recetaRecienEmitida.value.id_receta}/pdf`)
+    } else {
+      await pdfExportService.descargarRecetaPdf(recetaRecienEmitida.value.id_receta, recetaRecienEmitida.value.folio)
+    }
+  } catch (err: any) {
+    alert('Error al descargar receta en PDF: ' + (err?.response?.data?.message || err.message))
+  } finally {
+    descargandoPdfReceta.value = false
+  }
+}
 
 // Conexión oficial con endpoint real POST /api/v1/recetas y POST /api/v1/recetas/{id}/firma
 const firmarYEmitir = async () => {
@@ -195,7 +214,18 @@ const firmarYEmitir = async () => {
       firma_electronica: `EFIRMA-${props.doctor.cedula}-${Date.now()}`
     })
 
-    alert(`Receta Médica (${recetaFirmada.folio}) emitida y firmada con e.firma.\n\nCódigo QR de un solo uso activado para surtido en Farmacia Hospitalaria.\nHash SHA-256: ${recetaFirmada.hash_sha256?.substring(0, 32)}...\nFracción: ${recetaFirmada.fraccion}`)
+    recetaRecienEmitida.value = recetaFirmada
+
+    // Si está marcada la opción de impresión o envío de volante con QR, descargar PDF de inmediato
+    if (impresionVolanteQr.value || envioCifrado.value) {
+      try {
+        await pdfExportService.descargarRecetaPdf(recetaFirmada.id_receta, recetaFirmada.folio)
+      } catch (ePdf) {
+        console.warn('Descarga automática de PDF diferida:', ePdf)
+      }
+    }
+
+    alert(`Receta Médica (${recetaFirmada.folio}) emitida y firmada con e.firma.\n\nCódigo QR de un solo uso activado para surtido en Farmacia Hospitalaria.\nHash SHA-256: ${recetaFirmada.hash_sha256?.substring(0, 32)}...\nFracción: ${recetaFirmada.fraccion}\n\nDocumento PDF oficial listo para descarga e impresión.`)
 
     emit('emitirReceta')
 
@@ -642,9 +672,26 @@ const descartarReceta = () => {
           </div>
 
           <div class="action-buttons-group">
-            <button class="btn-firmar-receta" @click="firmarYEmitir">
-              <svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Firmar y Emitir Receta [Ctrl+Enter]
+            <button class="btn-firmar-receta" @click="firmarYEmitir" :disabled="guardandoReceta">
+              <svg viewBox="0 0 24 24" class="svg-inline-check" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> {{ guardandoReceta ? 'Firmando y emitiendo...' : 'Firmar y Emitir Receta [Ctrl+Enter]' }}
             </button>
+
+            <!-- Banner de Descarga de PDF de la Receta Emitida -->
+            <div v-if="recetaRecienEmitida" class="pdf-emitida-banner">
+              <div class="pdf-banner-text">
+                <strong>Receta Emitida: {{ recetaRecienEmitida.folio }}</strong>
+                <small>Sellado SHA-256 verificado</small>
+              </div>
+              <div class="pdf-banner-actions">
+                <button type="button" class="btn-descargar-pdf-receta" :disabled="descargandoPdfReceta" @click="descargarPdfUltimaReceta(false)">
+                  <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  <span>{{ descargandoPdfReceta ? 'Descargando...' : 'Descargar PDF' }}</span>
+                </button>
+                <button type="button" class="btn-imprimir-pdf-receta" title="Abrir para impresión directa" @click="descargarPdfUltimaReceta(true)">
+                  <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                </button>
+              </div>
+            </div>
 
             <div class="row-2-btn">
               <button class="btn-draft" @click="guardarBorrador">
@@ -1487,6 +1534,65 @@ kbd {
 
 .btn-draft:hover, .btn-discard:hover {
   background-color: #F1F5F9;
+}
+
+.pdf-emitida-banner {
+  background-color: #F0FDF4;
+  border: 1px solid #86EFAC;
+  border-radius: 6px;
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pdf-banner-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #166534;
+}
+
+.pdf-banner-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.btn-descargar-pdf-receta {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  background-color: #16A34A;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 5px;
+  padding: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-descargar-pdf-receta:hover {
+  background-color: #15803D;
+}
+
+.btn-imprimir-pdf-receta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #DCFCE7;
+  color: #166534;
+  border: 1px solid #86EFAC;
+  border-radius: 5px;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+}
+
+.btn-imprimir-pdf-receta:hover {
+  background-color: #BBF7D0;
 }
 
 .legal-footnote {

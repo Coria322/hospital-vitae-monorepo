@@ -42,16 +42,21 @@ const ejecutarBusqueda = async () => {
   scanFeedback.value = ''
   const q = terminoBusqueda.value.trim().toLowerCase()
   if (!q) {
-    errorBusqueda.value = 'Ingrese un folio de estudio, código de tubo o nombre para buscar.'
+    errorBusqueda.value = 'Ingrese un folio de estudio, CURP, expediente o nombre de paciente para buscar.'
     return
   }
+
+  const qLimpia = q.replace(/^est-|^bc-/, '')
 
   // 1. Buscar en lista unificada
   const lista = props.todosEstudios || []
   const match = lista.find(e =>
     e.folio.toLowerCase().includes(q) ||
-    (e.id && e.id.toLowerCase().includes(q)) ||
-    (e.codigo_tubo && e.codigo_tubo.toLowerCase().includes(q)) ||
+    e.folio.toLowerCase().includes(qLimpia) ||
+    (e.id && (e.id.toLowerCase().includes(q) || e.id.toLowerCase().includes(qLimpia))) ||
+    (e.codigo_tubo && (e.codigo_tubo.toLowerCase().includes(q) || e.codigo_tubo.toLowerCase().includes(qLimpia))) ||
+    (e.paciente_curp && e.paciente_curp.toLowerCase().includes(q)) ||
+    (e.expediente_id && e.expediente_id.toLowerCase().includes(q)) ||
     e.paciente_nombre.toLowerCase().includes(q) ||
     e.paciente_iniciales.toLowerCase().includes(q) ||
     e.estudio_requerido.toLowerCase().includes(q)
@@ -59,7 +64,7 @@ const ejecutarBusqueda = async () => {
 
   if (match) {
     estudioActual.value = match
-    scanFeedback.value = `Estudio localizado: ${match.folio} (${match.estudio_requerido}) • ${match.estado}`
+    scanFeedback.value = `Estudio localizado: ${match.folio} (${match.estudio_requerido}) • Paciente: ${match.paciente_nombre} • Estado: ${match.estado}`
     return
   }
 
@@ -70,19 +75,30 @@ const ejecutarBusqueda = async () => {
     if (Array.isArray(items)) {
       const apiMatch = items.find((s: any) =>
         s.id_solicitud.toLowerCase().includes(q) ||
+        s.id_solicitud.toLowerCase().includes(qLimpia) ||
+        (s.id_expediente && s.id_expediente.toLowerCase().includes(q)) ||
         (s.tipo_estudio && s.tipo_estudio.toLowerCase().includes(q)) ||
+        (s.expediente?.paciente?.curp && s.expediente.paciente.curp.toLowerCase().includes(q)) ||
         (s.expediente?.paciente?.nombre_completo && s.expediente.paciente.nombre_completo.toLowerCase().includes(q))
       )
       if (apiMatch) {
         const pacNombre = apiMatch.expediente?.paciente?.nombre_completo || 'Paciente'
+        const curpPac = apiMatch.expediente?.paciente?.curp || ''
         const esStat = apiMatch.prioridad === 'STAT' || apiMatch.prioridad === 'URGENTE'
+        let edad = 35
+        if (apiMatch.expediente?.paciente?.fecha_nacimiento) {
+          const birth = new Date(apiMatch.expediente.paciente.fecha_nacimiento)
+          edad = Math.floor((Date.now() - birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25)) || 35
+        }
         estudioActual.value = {
           id: apiMatch.id_solicitud,
           folio: `EST-${apiMatch.id_solicitud.substring(0, 8).toUpperCase()}`,
           codigo_tubo: `BC-${apiMatch.id_solicitud.substring(0, 8).toUpperCase()}`,
           paciente_nombre: pacNombre,
           paciente_iniciales: pacNombre.split(' ').map((n: string) => n[0]).join('').substring(0, 4).toUpperCase(),
-          paciente_edad: 35,
+          paciente_curp: curpPac,
+          expediente_id: apiMatch.id_expediente,
+          paciente_edad: edad,
           paciente_sexo: apiMatch.expediente?.paciente?.sexo === 'F' ? 'F' : 'M',
           prioridad: esStat ? 'STAT' : 'ORDINARIA',
           codigo_color: esStat ? 'ROJO' : 'GRIS',
@@ -92,15 +108,15 @@ const ejecutarBusqueda = async () => {
           servicio_solicitante: apiMatch.indicaciones_clinicas || 'Servicio Hospitalario',
           medico_prescriptor: apiMatch.medico_solicitante?.nombre_completo || 'Dr. Médico Adscrito',
           sla_restante_min: 15,
-          hora_solicitud: '10:00'
+          hora_solicitud: apiMatch.fecha_hora_solicitud ? new Date(apiMatch.fecha_hora_solicitud).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '10:00'
         }
-        scanFeedback.value = `Estudio localizado en base de datos LIS: ${estudioActual.value.folio} • Estado: ${estudioActual.value.estado}`
+        scanFeedback.value = `Estudio localizado en base de datos LIS: ${estudioActual.value.folio} • Paciente: ${pacNombre} • Estado: ${estudioActual.value.estado}`
         return
       }
     }
   } catch (_) {}
 
-  errorBusqueda.value = `No se localizó ningún estudio registrado para el término "${terminoBusqueda.value}". Verifique el folio oficial o código de tubo.`
+  errorBusqueda.value = `No se localizó ningún estudio registrado para el término "${terminoBusqueda.value}". Verifique el folio oficial, CURP, expediente o código de tubo.`
 }
 </script>
 
@@ -262,11 +278,18 @@ const ejecutarBusqueda = async () => {
             <div class="study-found-info">
               <div class="folio-priority-row">
                 <span class="found-folio">{{ estudioActual.folio }}</span>
-                <span class="badge-red-stat">STAT CÓDIGO ROJO</span>
+                <span :class="estudioActual.prioridad === 'STAT' ? 'badge-red-stat' : (estudioActual.prioridad === 'URGENTE' ? 'badge-orange-urgente' : 'badge-gray-ord')">
+                  {{ estudioActual.prioridad }} • CÓDIGO {{ estudioActual.codigo_color }}
+                </span>
+                <span class="badge-status-pill" style="margin-left: 8px; font-weight: 600; font-size: 0.8rem; padding: 2px 8px; border-radius: 4px; background: #e0f2fe; color: #0369a1;">
+                  ESTADO: {{ estudioActual.estado }}
+                </span>
               </div>
               <div class="patient-id-row">
                 <span class="patient-nom">
-                  Identificador NOM-024: <strong>{{ estudioActual.paciente_iniciales }}</strong> ({{ estudioActual.paciente_edad }} años, Femenino)
+                  Paciente: <strong>{{ estudioActual.paciente_nombre }}</strong> ({{ estudioActual.paciente_edad }} años, {{ estudioActual.paciente_sexo === 'F' ? 'Femenino' : 'Masculino' }})
+                  <span v-if="estudioActual.paciente_curp" style="margin-left: 8px; font-weight: 600; color: #475569;">· CURP: {{ estudioActual.paciente_curp }}</span>
+                  <span v-if="estudioActual.expediente_id" style="margin-left: 8px; font-weight: 600; color: #0284c7;">· ECE: {{ estudioActual.expediente_id }}</span>
                 </span>
                 <span class="barcode-pill">
                   <svg viewBox="0 0 24 24" class="barcode-mini-svg" fill="none" stroke="currentColor" stroke-width="2">
@@ -276,7 +299,7 @@ const ejecutarBusqueda = async () => {
                     <line x1="16" y1="4" x2="16" y2="20"/>
                     <line x1="20" y1="4" x2="20" y2="20"/>
                   </svg>
-                  BC-HEP-88190
+                  {{ estudioActual.codigo_tubo || estudioActual.folio }}
                 </span>
               </div>
             </div>
@@ -286,10 +309,10 @@ const ejecutarBusqueda = async () => {
                 <svg viewBox="0 0 24 24" class="loc-svg" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
                 </svg>
-                <strong class="loc-title">Urgencias Adultos • Box 01 (Choque)</strong>
+                <strong class="loc-title">{{ estudioActual.servicio_solicitante || 'Servicio Hospitalario' }}</strong>
               </div>
-              <span class="loc-doc">Médico Tratante: Dr. Carlos Mendoza P.</span>
-              <span class="loc-time">Recepción de Solicitud: 10:35:12 h</span>
+              <span class="loc-doc">Médico Prescriptor: {{ estudioActual.medico_prescriptor }}</span>
+              <span class="loc-time">Estudio: <strong>{{ estudioActual.estudio_requerido }}</strong> • Solicitud: {{ estudioActual.hora_solicitud }}</span>
             </div>
           </div>
 

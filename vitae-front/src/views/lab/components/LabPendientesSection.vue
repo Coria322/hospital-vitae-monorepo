@@ -27,9 +27,11 @@ const pedidosFiltrados = computed(() => {
       const q = busquedaTexto.value.toLowerCase().trim()
       const matchFolio = item.folio.toLowerCase().includes(q)
       const matchPac = item.paciente_iniciales.toLowerCase().includes(q) || item.paciente_nombre.toLowerCase().includes(q)
+      const matchCurp = item.paciente_curp ? item.paciente_curp.toLowerCase().includes(q) : false
+      const matchExp = item.expediente_id ? item.expediente_id.toLowerCase().includes(q) : false
       const matchEstudio = item.estudio_requerido.toLowerCase().includes(q)
       const matchServicio = item.servicio_solicitante.toLowerCase().includes(q)
-      return matchFolio || matchPac || matchEstudio || matchServicio
+      return matchFolio || matchPac || matchCurp || matchExp || matchEstudio || matchServicio
     }
 
     return true
@@ -153,7 +155,10 @@ const countImg = computed(() => props.orders.filter(o => o.categoria === 'IMAGEN
 
           <div class="order-identifiers">
             <span class="order-folio">{{ orden.folio }}</span>
-            <span class="patient-pill">PAC: {{ orden.paciente_iniciales }} ({{ orden.paciente_edad }}a, {{ orden.paciente_sexo }})</span>
+            <span class="patient-pill" :title="orden.paciente_nombre">
+              PACIENTE: <strong>{{ orden.paciente_nombre }}</strong> ({{ orden.paciente_edad }}a, {{ orden.paciente_sexo }})
+              <small v-if="orden.paciente_curp" style="margin-left: 6px; font-weight: normal; opacity: 0.9;">· CURP: {{ orden.paciente_curp }}</small>
+            </span>
           </div>
 
           <div class="sla-pill" :class="{ danger: orden.sla_restante_min <= 10 }">
