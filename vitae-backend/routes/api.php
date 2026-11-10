@@ -15,47 +15,50 @@ Route::get('/ping', function () {
     ]);
 });
 
-// Hello World endpoints
-Route::get('/hello', function () {
-    return response()->json([
-        'message' => '¡Hola Mundo! (GET request exitoso)',
-        'status' => 200,
-    ]);
-});
+// Hello World endpoints (limitados defensivamente contra DoS)
+Route::middleware('throttle:60,1')->group(function () {
+    Route::get('/hello', function () {
+        return response()->json([
+            'message' => '¡Hola Mundo! (GET request exitoso)',
+            'status' => 200,
+        ]);
+    });
 
-Route::post('/hello', function (Request $request) {
-    $name = $request->input('name', 'Mundo');
-    return response()->json([
-        'message' => "¡Hola, {$name}! (POST request exitoso)",
-        'received_data' => $request->all(),
-        'status' => 201,
-    ], 201);
-});
+    Route::post('/hello', function (Request $request) {
+        $name = $request->input('name', 'Mundo');
+        return response()->json([
+            'message' => "¡Hola, {$name}! (POST request exitoso)",
+            'received_data' => $request->all(),
+            'status' => 201,
+        ], 201);
+    });
 
-Route::put('/hello/{id}', function (Request $request, $id) {
-    return response()->json([
-        'message' => "Elemento con ID {$id} actualizado (PUT request exitoso)",
-        'id' => $id,
-        'updated_fields' => $request->all(),
-        'status' => 200,
-    ]);
-});
+    Route::put('/hello/{id}', function (Request $request, $id) {
+        return response()->json([
+            'message' => "Elemento con ID {$id} actualizado (PUT request exitoso)",
+            'id' => $id,
+            'updated_fields' => $request->all(),
+            'status' => 200,
+        ]);
+    });
 
-Route::delete('/hello/{id}', function ($id) {
-    return response()->json([
-        'message' => "Elemento con ID {$id} eliminado (DELETE request exitoso)",
-        'id' => $id,
-        'status' => 200,
-    ]);
-});
+    Route::delete('/hello/{id}', function ($id) {
+        return response()->json([
+            'message' => "Elemento con ID {$id} eliminado (DELETE request exitoso)",
+            'id' => $id,
+            'status' => 200,
+        ]);
+    });
 
-// Rutas de Auditoría existentes
-Route::apiResource('auditorias', AuditoriaController::class);
+    // Rutas de Auditoría existentes
+    Route::apiResource('auditorias', AuditoriaController::class);
+});
 
 // API v1: Prefijo oficial para Hospital Vitae
 Route::prefix('v1')->group(function () {
-    // Auth pública
-    Route::post('/auth/login', [AuthController::class, 'login']);
+    // Auth pública con limitación de tasa contra ataques de fuerza bruta (OWASP ASVS / RNF-003)
+    Route::post('/auth/login', [AuthController::class, 'login'])
+        ->middleware('throttle:15,1');
 
     // Endpoint normativo de alta disponibilidad y salud global de la API (RNF-004 / ISO/IEC-25010)
     Route::get('/salud', function () {
@@ -109,8 +112,8 @@ Route::prefix('v1')->group(function () {
     // Catálogo institucional de médicos para agendamiento de citas y asignaciones
     Route::get('/medicos', [\App\Http\Controllers\Api\V1\UsuarioController::class, 'medicos']);
 
-    // Interoperabilidad HL7 FHIR R4 (RNF-007 / NOM-024)
-    Route::prefix('fhir')->group(function () {
+    // Interoperabilidad HL7 FHIR R4 (RNF-007 / NOM-024) con limitación de tasa contra scraping
+    Route::prefix('fhir')->middleware('throttle:60,1')->group(function () {
         Route::get('/Patient/{id}', [\App\Http\Controllers\Api\V1\FhirController::class, 'getPatient']);
         Route::get('/Encounter/{id}', [\App\Http\Controllers\Api\V1\FhirController::class, 'getEncounter']);
         Route::get('/Observation/{id}', [\App\Http\Controllers\Api\V1\FhirController::class, 'getObservation']);
@@ -168,7 +171,8 @@ Route::prefix('v1')->group(function () {
         Route::post('/recetas/{id}/firma', [\App\Http\Controllers\Api\V1\RecetaController::class, 'firmar'])
             ->middleware('role:MEDICO');
         Route::get('/recetas/{id}', [\App\Http\Controllers\Api\V1\RecetaController::class, 'show']);
-        Route::post('/recetas/{folio}/surtir', [\App\Http\Controllers\Api\V1\RecetaController::class, 'surtir']);
+        Route::post('/recetas/{folio}/surtir', [\App\Http\Controllers\Api\V1\RecetaController::class, 'surtir'])
+            ->middleware('role:ADMINISTRADOR,FARMACIA,FARMACEUTICO');
         Route::get('/recetas/{id}/pdf', [\App\Http\Controllers\Api\V1\RecetaController::class, 'descargarPdf']);
 
         // SPRINT 4: Solicitudes y Resultados de Laboratorio e Imagen (RF-010 / RNF-003)
@@ -183,9 +187,12 @@ Route::prefix('v1')->group(function () {
             ->middleware('role:LABORATORISTA,ADMINISTRADOR');
         Route::post('/solicitudes-estudio/{id}/resultados', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'storeResultado'])
             ->middleware('role:LABORATORISTA,ADMINISTRADOR');
-        Route::get('/solicitudes-estudio/{id}/resultados', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'showResultado']);
-        Route::get('/solicitudes-estudio/{id}/resultados/pdf', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'descargarResultadoPdf']);
-        Route::get('/resultados-estudio/{id}/pdf', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'descargarResultadoPdf']);
+        Route::get('/solicitudes-estudio/{id}/resultados', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'showResultado'])
+            ->middleware('role:MEDICO,LABORATORISTA,ADMINISTRADOR');
+        Route::get('/solicitudes-estudio/{id}/resultados/pdf', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'descargarResultadoPdf'])
+            ->middleware('role:MEDICO,LABORATORISTA,ADMINISTRADOR');
+        Route::get('/resultados-estudio/{id}/pdf', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'descargarResultadoPdf'])
+            ->middleware('role:MEDICO,LABORATORISTA,ADMINISTRADOR');
 
         // SPRINT 4: Consentimiento Informado (PROV-RN-008 / LFPDPPP)
         Route::post('/consentimientos', [\App\Http\Controllers\Api\V1\ConsentimientoController::class, 'store']);

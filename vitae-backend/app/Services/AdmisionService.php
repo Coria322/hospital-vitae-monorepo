@@ -87,6 +87,25 @@ class AdmisionService
             motivo: 'Alta de paciente identificado en admisión'
         );
 
+        // Aprovisionamiento automático de credenciales para Portal Móvil (RF-011 / PROV-RF-002)
+        try {
+            $usuarioService = app(\App\Services\UsuarioService::class);
+            $idUsuario = $usuarioService->generarSiguienteIdUsuario('PACIENTE');
+            $passwordInicial = $datos['password'] ?? 'password123';
+
+            $cuentaUsuario = $usuarioService->crearUsuario([
+                'id_usuario' => $idUsuario,
+                'nombre_completo' => $paciente->nombre_completo,
+                'rol' => 'PACIENTE',
+                'password' => $passwordInicial,
+                'id_paciente' => $paciente->id_paciente,
+            ]);
+
+            $paciente->setRelation('usuario', $cuentaUsuario);
+        } catch (\Throwable $e) {
+            // La falla en creación de credenciales no cancela la admisión de urgencias
+        }
+
         return $paciente;
     }
 

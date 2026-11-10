@@ -16,8 +16,9 @@ class StoreUsuarioRequest extends FormRequest
         return [
             'id_usuario' => 'nullable|string|max:10|unique:usuario,id_usuario',
             'nombre_completo' => 'required|string|max:100',
-            'rol' => 'required|string|in:ADMINISTRADOR,MEDICO,ENFERMERIA,RECEPCION,LABORATORISTA,LABORATORIO,AUDITOR',
+            'rol' => 'required|string|in:ADMINISTRADOR,MEDICO,ENFERMERIA,RECEPCION,LABORATORISTA,LABORATORIO,AUDITOR,PACIENTE',
             'password' => 'required|string|min:8',
+            'id_paciente' => 'nullable|uuid|exists:paciente,id_paciente',
             'cedula' => [
                 'nullable',
                 'string',

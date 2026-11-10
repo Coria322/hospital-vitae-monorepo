@@ -63,7 +63,11 @@ class PacienteController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Paciente::with(['expediente', 'triages.sala'])->where('estado_activo', true);
+        $user = $request->user();
+        $esAsistencial = $user && in_array(strtoupper($user->rol), ['MEDICO', 'ENFERMERIA'], true);
+        $relaciones = $esAsistencial ? ['expediente', 'triages.sala'] : ['triages.sala'];
+
+        $query = Paciente::with($relaciones)->where('estado_activo', true);
 
         if ($request->filled('q')) {
             $rawTerm = trim((string) $request->input('q'));
