@@ -110,7 +110,8 @@ const actualizarProximoId = async (rol: string) => {
         ENFERMERIA: 'ENF',
         RECEPCION: 'REC',
         LABORATORIO: 'LAB',
-        ADMINISTRADOR: 'ADM'
+        ADMINISTRADOR: 'ADM',
+        PACIENTE: 'PAC'
       }
       formIdUsuario.value = `${prefixMap[rol] || 'USR'}-001`
     }
@@ -120,7 +121,8 @@ const actualizarProximoId = async (rol: string) => {
       ENFERMERIA: 'ENF',
       RECEPCION: 'REC',
       LABORATORIO: 'LAB',
-      ADMINISTRADOR: 'ADM'
+      ADMINISTRADOR: 'ADM',
+      PACIENTE: 'PAC'
     }
     formIdUsuario.value = `${prefixMap[rol] || 'USR'}-001`
   }
@@ -259,7 +261,7 @@ const handleGuardarUsuario = () => {
     correo_institucional: formCorreo.value.trim() || `${idCorto.toLowerCase()}@hospitalvitae.mx`,
     departamento: formDept.value,
     rol: formRol.value,
-    rol_etiqueta: formRol.value === 'MEDICO' ? 'Médico ECE' : formRol.value === 'ENFERMERIA' ? 'Enfermería Operativa' : formRol.value === 'LABORATORIO' ? 'Laboratorio / Imagen' : formRol.value === 'RECEPCION' ? 'Admisión / Cajas' : 'Administrador TI',
+    rol_etiqueta: formRol.value === 'MEDICO' ? 'Médico ECE' : formRol.value === 'ENFERMERIA' ? 'Enfermería Operativa' : formRol.value === 'LABORATORIO' ? 'Laboratorio / Imagen' : formRol.value === 'RECEPCION' ? 'Admisión / Cajas' : formRol.value === 'PACIENTE' ? 'Portal Móvil (Paciente)' : 'Administrador TI',
     mfa_activo: true,
     estado: 'ACTIVO',
     ultimo_acceso_fecha: 'Hoy, Reciente',
@@ -464,6 +466,7 @@ const handleGuardarUsuario = () => {
                 <option value="ENFERMERIA">Enfermería Operativa (Kardex)</option>
                 <option value="RECEPCION">Admisión / Cajas (Demográfico)</option>
                 <option value="LABORATORIO">Laboratorio / Imagen (LIS/RIS)</option>
+                <option value="PACIENTE">Portal Móvil (Paciente)</option>
                 <option value="ADMINISTRADOR">Administrador TI (SysAdmin)</option>
               </select>
               <span class="fhint">Determina permisos RBAC y acceso al módulo correspondiente.</span>
@@ -832,6 +835,7 @@ const handleGuardarUsuario = () => {
                 <option value="ENFERMERIA">Enfermería Operativa (Kardex)</option>
                 <option value="RECEPCION">Admisión / Cajas (Demográfico)</option>
                 <option value="LABORATORIO">Laboratorio / Imagen (LIS/RIS)</option>
+                <option value="PACIENTE">Portal Móvil (Paciente)</option>
                 <option value="ADMINISTRADOR">Administrador TI (SysAdmin)</option>
               </select>
             </div>

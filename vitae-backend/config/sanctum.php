@@ -47,7 +47,7 @@ return [
     |
     */
 
-    'expiration' => null,
+    'expiration' => 480, // 8 horas (480 minutos) conforme a jornada clínica y NOM-024 / ISO-27001
 
     /*
     |--------------------------------------------------------------------------

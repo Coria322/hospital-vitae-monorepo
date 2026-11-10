@@ -4,6 +4,7 @@ export type RolHospitalario =
   | 'RECEPCION'
   | 'LABORATORIO'
   | 'ADMINISTRADOR'
+  | 'PACIENTE'
 
 export type EstadoUsuario = 'ACTIVO' | 'INACTIVO' | 'BLOQUEADO'
 
