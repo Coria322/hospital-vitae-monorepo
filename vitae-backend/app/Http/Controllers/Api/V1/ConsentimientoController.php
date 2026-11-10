@@ -5,14 +5,17 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Consentimiento;
 use App\Services\ConsentimientoService;
+use App\Services\Pdf\PdfPlantillasService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class ConsentimientoController extends Controller
 {
     public function __construct(
-        protected ConsentimientoService $consentimientoService
+        protected ConsentimientoService $consentimientoService,
+        protected PdfPlantillasService $pdfPlantillasService
     ) {}
 
     /**
@@ -141,5 +144,22 @@ class ConsentimientoController extends Controller
                 'message' => $e->getMessage(),
             ], 422);
         }
+    }
+
+    /**
+     * Descarga de formato oficial de consentimiento informado en PDF (NOM-004-SSA3-2012 / LFPDPPP).
+     */
+    public function descargarPdf(Request $request, string $id): Response
+    {
+        $consentimiento = Consentimiento::with(['paciente', 'medicoResponsable'])
+            ->where('id_consentimiento', $id)
+            ->firstOrFail();
+
+        $builder = $this->pdfPlantillasService->generarConsentimientoPdf($consentimiento);
+        $filename = "Consentimiento-{$consentimiento->id_consentimiento}.pdf";
+
+        return $request->boolean('inline')
+            ? $builder->inlineResponse($filename)
+            : $builder->downloadResponse($filename);
     }
 }

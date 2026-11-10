@@ -22,7 +22,7 @@ const router = createRouter({
       path: '/medico',
       name: 'medico',
       component: DoctorWorkspaceView,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, roles: ['MEDICO', 'ADMINISTRADOR'] },
     },
     {
       path: '/doctor',
@@ -32,7 +32,7 @@ const router = createRouter({
       path: '/enfermeria',
       name: 'enfermeria',
       component: NurseWorkspaceView,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, roles: ['ENFERMERIA', 'ENFERMERO', 'ADMINISTRADOR'] },
     },
     {
       path: '/triage',
@@ -42,7 +42,7 @@ const router = createRouter({
       path: '/recepcion',
       name: 'recepcion',
       component: ReceptionWorkspaceView,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, roles: ['RECEPCION', 'ADMINISTRADOR'] },
     },
     {
       path: '/admision',
@@ -52,7 +52,7 @@ const router = createRouter({
       path: '/laboratorio',
       name: 'laboratorio',
       component: LabWorkspaceView,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, roles: ['LABORATORISTA', 'LABORATORIO', 'ADMINISTRADOR'] },
     },
     {
       path: '/lab',
@@ -62,7 +62,7 @@ const router = createRouter({
       path: '/administrador',
       name: 'administrador',
       component: AdminWorkspaceView,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, roles: ['ADMINISTRADOR'] },
     },
     {
       path: '/admin',
@@ -72,7 +72,7 @@ const router = createRouter({
       path: '/home',
       name: 'home',
       component: HomeView,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, roles: ['ADMINISTRADOR', 'MEDICO', 'ENFERMERIA', 'ENFERMERO', 'RECEPCION', 'LABORATORISTA', 'LABORATORIO'] },
     },
     {
       path: '/sala-espera',
@@ -91,12 +91,32 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const isAuth = authService.isAuthenticated()
 
+  // 1. Verificación de autenticación general
   if (to.meta.requiresAuth && !isAuth) {
     authService.limpiarSesion()
     return next({ path: '/' })
   }
 
-  // Validación de asignación física de guardia (Médico y Enfermero requieren Box/Consultorio asignado)
+  // 2. Control de Acceso Basado en Roles (RBAC / Menor Privilegio - NOM-024 / ISO-27001)
+  if (isAuth && to.meta.roles && Array.isArray(to.meta.roles)) {
+    const usuario = authService.getUsuario()
+    const rol = (usuario?.rol || '').toUpperCase()
+    const rolesPermitidos = (to.meta.roles as string[]).map(r => r.toUpperCase())
+
+    if (!rolesPermitidos.includes(rol)) {
+      const nombreModulo = String(to.name || to.path).toUpperCase()
+      alert(`ACCESO ASISTENCIAL DENEGADO (RBAC / NOM-024)\n\nEl módulo '${nombreModulo}' está reservado exclusivamente para perfiles: [${rolesPermitidos.join(', ')}].\n\nTu sesión activa tiene el rol '${rol}'. Por principio de menor privilegio y seguridad clínica, serás redirigido a tu módulo autorizado.`)
+
+      if (rol === 'MEDICO') return next({ path: '/medico' })
+      if (rol === 'ENFERMERIA' || rol === 'ENFERMERO') return next({ path: '/enfermeria' })
+      if (rol === 'LABORATORISTA' || rol === 'LABORATORIO') return next({ path: '/laboratorio' })
+      if (rol === 'RECEPCION') return next({ path: '/recepcion' })
+      if (rol === 'ADMINISTRADOR') return next({ path: '/administrador' })
+      return next({ path: '/' })
+    }
+  }
+
+  // 3. Validación de asignación física de guardia (Médico y Enfermero requieren Box/Consultorio asignado)
   const esRutaClinica = to.path.startsWith('/medico') || to.path.startsWith('/doctor') || to.path.startsWith('/enfermeria') || to.path.startsWith('/triage')
   if (isAuth && esRutaClinica) {
     const usuario = authService.getUsuario()
@@ -115,20 +135,7 @@ router.beforeEach((to, from, next) => {
     }
   }
 
-  // Protección de rutas por rol institucional
-  if (isAuth && (to.path.startsWith('/administrador') || to.path === '/admin')) {
-    const usuario = authService.getUsuario()
-    const rol = (usuario?.rol || '').toUpperCase()
-    if (rol !== 'ADMINISTRADOR') {
-      alert(`Acceso restringido: El panel de administración requiere credenciales de ADMINISTRADOR (ej. ADM-001). Tu sesión actual tiene rol '${rol}'.`)
-      if (rol === 'MEDICO') return next({ path: '/medico' })
-      if (rol === 'ENFERMERIA') return next({ path: '/enfermeria' })
-      if (rol === 'LABORATORISTA' || rol === 'LABORATORIO') return next({ path: '/laboratorio' })
-      return next({ path: '/recepcion' })
-    }
-  }
-
-  // Si ya tiene sesión activa e intenta ir al login, dirigir a su área de trabajo
+  // 4. Si ya tiene sesión activa e intenta ir al login, dirigir a su área de trabajo
   if (to.path === '/' && isAuth) {
     const usuario = authService.getUsuario()
     const rol = (usuario?.rol || '').toUpperCase()

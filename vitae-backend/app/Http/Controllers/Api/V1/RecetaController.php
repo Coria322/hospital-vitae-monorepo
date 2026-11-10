@@ -4,16 +4,19 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Receta;
+use App\Services\Pdf\PdfPlantillasService;
 use App\Services\RecetaMedicaService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 class RecetaController extends Controller
 {
     public function __construct(
-        protected RecetaMedicaService $recetaMedicaService
+        protected RecetaMedicaService $recetaMedicaService,
+        protected PdfPlantillasService $pdfPlantillasService
     ) {}
 
     /**
@@ -136,9 +139,9 @@ class RecetaController extends Controller
     }
 
     /**
-     * Generación de PDF / Carga de impresión de receta médica.
+     * Generación de PDF / Carga y descarga de impresión de receta médica oficial.
      */
-    public function descargarPdf(string $id): JsonResponse
+    public function descargarPdf(Request $request, string $id): Response|JsonResponse
     {
         $receta = Receta::where('id_receta', $id)
             ->orWhere('folio', $id)
@@ -153,17 +156,27 @@ class RecetaController extends Controller
             ], 409);
         }
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Documento de receta médica listo para impresión.',
-            'data' => [
-                'folio' => $receta->folio,
-                'fraccion' => $receta->fraccion,
-                'qr_codigo' => $receta->qr_codigo,
-                'qr_estado' => $receta->qr_estado,
-                'pdf_url' => url("/api/v1/recetas/{$receta->folio}/render"),
-                'sellado_tiempo_utc' => now('UTC')->toIso8601String(),
-            ],
-        ], 200);
+        // Si solicita explícitamente JSON estructurado de metadatos
+        if ($request->query('format') === 'json' || ($request->wantsJson() && !$request->has('download') && !$request->accepts('application/pdf'))) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Documento de receta médica listo para impresión.',
+                'data' => [
+                    'folio' => $receta->folio,
+                    'fraccion' => $receta->fraccion,
+                    'qr_codigo' => $receta->qr_codigo,
+                    'qr_estado' => $receta->qr_estado,
+                    'pdf_url' => url("/api/v1/recetas/{$receta->folio}/pdf?download=1"),
+                    'sellado_tiempo_utc' => now('UTC')->toIso8601String(),
+                ],
+            ], 200);
+        }
+
+        $builder = $this->pdfPlantillasService->generarRecetaPdf($receta);
+        $filename = "Receta-{$receta->folio}.pdf";
+
+        return $request->boolean('inline')
+            ? $builder->inlineResponse($filename)
+            : $builder->downloadResponse($filename);
     }
 }

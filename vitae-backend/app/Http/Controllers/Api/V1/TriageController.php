@@ -8,6 +8,7 @@ use App\Models\SalaAtencion;
 use App\Models\Triage;
 use App\Services\AuditLogger;
 use App\Services\ColaUrgenciasService;
+use App\Services\Pdf\PdfPlantillasService;
 use App\Services\TriageManchesterService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
@@ -15,12 +16,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use Symfony\Component\HttpFoundation\Response;
 
 class TriageController extends Controller
 {
     public function __construct(
         protected TriageManchesterService $manchesterService,
-        protected ColaUrgenciasService $colaService
+        protected ColaUrgenciasService $colaService,
+        protected PdfPlantillasService $pdfPlantillasService
     ) {}
 
     /**
@@ -399,5 +402,24 @@ class TriageController extends Controller
             'status' => 'success',
             'data' => $triage,
         ]);
+    }
+
+    /**
+     * Descarga de Hoja Oficial de Enfermería y Somatometría en PDF (NOM-004-SSA3-2012, num 9).
+     */
+    public function descargarPdf(Request $request, string $id): Response
+    {
+        $triage = Triage::with(['paciente', 'enfermera', 'sala'])
+            ->where('id_triage', $id)
+            ->orWhere('folio_ingreso', $id)
+            ->firstOrFail();
+
+        $builder = $this->pdfPlantillasService->generarTriageEnfermeriaPdf($triage);
+        $folio = $triage->folio_ingreso ?: "TRI-{$triage->id_triage}";
+        $filename = "Hoja-Enfermeria-Triage-{$folio}.pdf";
+
+        return $request->boolean('inline')
+            ? $builder->inlineResponse($filename)
+            : $builder->downloadResponse($filename);
     }
 }

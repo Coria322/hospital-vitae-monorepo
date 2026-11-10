@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { pdfExportService } from '@/services/pdfExportService'
 
 const props = defineProps<{
   pacienteActivo?: {
@@ -343,8 +344,20 @@ const guardarNotaEnfermeria = () => {
   limpiarFormularioNota()
 }
 
-// Impresión de Formato Oficial de Hoja de Enfermería NOM-004-SSA3-2012
-const imprimirHojaEnfermeria = () => {
+// Impresión y Descarga de Formato Oficial de Hoja de Enfermería NOM-004-SSA3-2012
+const imprimirHojaEnfermeria = async () => {
+  const targetId = props.pacienteActivo?.id ? String(props.pacienteActivo.id) : null
+  const folio = props.pacienteActivo?.folio || 'TRIAGE'
+
+  if (targetId) {
+    try {
+      await pdfExportService.descargarTriagePdf(targetId, folio)
+      return
+    } catch (e) {
+      console.warn('Descarga de PDF de enfermería no disponible vía API, activando vista de impresión nativa:', e)
+    }
+  }
+
   window.print()
 }
 

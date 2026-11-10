@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import type { EstudioDiagnostico, ArchivoResultado } from '../types'
+import { pdfExportService } from '@/services/pdfExportService'
 
 const props = defineProps<{
   selectedOrder: EstudioDiagnostico | null
@@ -126,6 +127,24 @@ const handleRechazo = () => {
   const motivo = prompt('Ingrese el motivo técnico de rechazo de muestra (ej. Muestra hemolizada, volumen insuficiente, coágulo con EDTA):')
   if (motivo) {
     emit('rechazar-muestra', { folio: folioInput.value, motivo })
+  }
+}
+
+const descargandoPdf = ref(false)
+
+const descargarReportePdf = async () => {
+  const targetId = (props.selectedOrder as any)?.id_solicitud || props.selectedOrder?.id || folioInput.value
+  if (!targetId) {
+    errorMessage.value = 'Debe seleccionar o procesar un estudio para descargar su informe oficial en PDF.'
+    return
+  }
+  descargandoPdf.value = true
+  try {
+    await pdfExportService.descargarResultadoEstudioPdf(targetId)
+  } catch (err: any) {
+    errorMessage.value = 'Error al descargar reporte de resultados en PDF: ' + (err?.response?.data?.message || err.message)
+  } finally {
+    descargandoPdf.value = false
   }
 }
 </script>
@@ -581,6 +600,21 @@ const handleRechazo = () => {
                   <polyline points="22 4 12 14.01 9 11.01"/>
                 </svg>
                 <span>Firmar y Notificar a Urgencias [Enter]</span>
+              </button>
+
+              <button
+                type="button"
+                class="btn-descargar-reporte"
+                :disabled="descargandoPdf"
+                @click="descargarReportePdf"
+              >
+                <svg viewBox="0 0 24 24" class="btn-svg-lg" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="12" y1="18" x2="12" y2="12"/>
+                  <line x1="9" y1="15" x2="15" y2="15"/>
+                </svg>
+                <span>{{ descargandoPdf ? 'Descargando...' : 'Descargar Reporte Oficial PDF (NOM-007)' }}</span>
               </button>
 
               <div class="secondary-btn-row">
@@ -1497,6 +1531,32 @@ const handleRechazo = () => {
 
 .btn-firmar-notificar:hover {
   background-color: #0369a1;
+}
+
+.btn-descargar-reporte {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background-color: #059669;
+  color: #ffffff;
+  padding: 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-descargar-reporte:hover {
+  background-color: #047857;
+}
+
+.btn-descargar-reporte:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-svg-lg {

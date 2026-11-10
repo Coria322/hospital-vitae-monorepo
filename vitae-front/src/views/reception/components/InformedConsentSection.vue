@@ -2,6 +2,7 @@
 import { ref, onMounted, watch } from 'vue'
 import api from '@/services/api'
 import authService from '@/services/authService'
+import { pdfExportService } from '@/services/pdfExportService'
 
 type SeccionRecepcion = 'curp' | 'registrar' | 'agendar' | 'consentimiento' | 'monitor' | 'censo'
 
@@ -195,6 +196,7 @@ const guardarConsentimientoLegal = async () => {
     const res = await api.post('/consentimientos', payload)
     const nuevo = res.data?.data
     if (nuevo) {
+      ultimoConsentimientoId.value = nuevo.id_consentimiento
       historialConsentimientosExpediente.value.unshift({
         documento: nuevo.tipo,
         fecha: new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }),
@@ -202,13 +204,31 @@ const guardarConsentimientoLegal = async () => {
         hash: nuevo.hash_sha256 ? `${nuevo.hash_sha256.substring(0, 8)}...${nuevo.hash_sha256.substring(nuevo.hash_sha256.length - 5)}` : 'Sellado SHA-256'
       })
     }
-    mostrarAlerta(`Consentimiento formalizado con sellado de tiempo criptográfico SHA-256 e incorporado al expediente clínico institucional (Hash: ${nuevo?.hash_sha256?.substring(0, 12)}...).`)
+    mostrarAlerta(`Consentimiento formalizado con sellado de tiempo criptográfico SHA-256 e incorporado al expediente clínico institucional (Hash: ${nuevo?.hash_sha256?.substring(0, 12)}...). Ya puede descargar la copia en PDF.`)
   } catch (error: any) {
     console.error('Error registrando consentimiento:', error)
     const msg = error.response?.data?.message || 'Error al registrar el consentimiento legal en el servidor.'
     mostrarAlerta(`Error: ${msg}`)
   } finally {
     guardandoConsentimiento.value = false
+  }
+}
+
+const ultimoConsentimientoId = ref<string | null>(null)
+const descargandoConsentimiento = ref(false)
+
+const descargarPdfConsentimiento = async () => {
+  if (!ultimoConsentimientoId.value) {
+    mostrarAlerta('Debe guardar y formalizar primero el consentimiento para generar el PDF oficial foliado.')
+    return
+  }
+  descargandoConsentimiento.value = true
+  try {
+    await pdfExportService.descargarConsentimientoPdf(ultimoConsentimientoId.value)
+  } catch (err: any) {
+    mostrarAlerta('Error descargando consentimiento en PDF: ' + (err?.response?.data?.message || err.message))
+  } finally {
+    descargandoConsentimiento.value = false
   }
 }
 </script>
@@ -579,9 +599,9 @@ const guardarConsentimientoLegal = async () => {
               <span class="btn-save-icon"><svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/></svg></span>
               <span>Guardar Consentimiento [Enter]</span>
             </button>
-            <button type="button" class="btn-download-pdf" @click="mostrarAlerta('Generando PDF foliado del consentimiento con código de barras y firma digital...')">
+            <button type="button" class="btn-download-pdf" :disabled="descargandoConsentimiento" @click="descargarPdfConsentimiento">
               <span><svg viewBox="0 0 24 24" class="svg-inline-doc" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
-              <span>Descargar Copia Foliada en PDF</span>
+              <span>{{ descargandoConsentimiento ? 'Descargando PDF...' : 'Descargar Copia Foliada en PDF' }}</span>
             </button>
 
             <div class="notify-email-row">

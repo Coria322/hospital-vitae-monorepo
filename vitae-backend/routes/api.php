@@ -141,6 +141,7 @@ Route::prefix('v1')->group(function () {
             ->middleware('role:MEDICO,ENFERMERIA,ADMINISTRADOR');
         Route::post('/triages/{id}/egreso', [\App\Http\Controllers\Api\V1\TriageController::class, 'egreso'])
             ->middleware('role:ENFERMERIA,MEDICO,ADMINISTRADOR');
+        Route::get('/triages/{id}/pdf', [\App\Http\Controllers\Api\V1\TriageController::class, 'descargarPdf']);
 
         // Gestión de Salas de Atención y Liberación de Consultorios
         Route::get('/salas', [\App\Http\Controllers\Api\V1\TriageController::class, 'salas']);
@@ -159,6 +160,7 @@ Route::prefix('v1')->group(function () {
             ->middleware('role:MEDICO');
         Route::match(['put', 'patch', 'delete'], '/expedientes-clinicos/{id}/notas/{nid}', [\App\Http\Controllers\Api\V1\ExpedienteClinicoController::class, 'bloquearModificacionNota']);
         Route::post('/expedientes-clinicos/{id}/exportaciones', [\App\Http\Controllers\Api\V1\ExpedienteClinicoController::class, 'exportarPdf']);
+        Route::get('/expedientes-clinicos/{id}/pdf', [\App\Http\Controllers\Api\V1\ExpedienteClinicoController::class, 'descargarPdf']);
 
         // SPRINT 4: Recetas Médicas Controladas (RF-009 / COFEPRIS / SAT)
         Route::post('/recetas', [\App\Http\Controllers\Api\V1\RecetaController::class, 'store'])
@@ -174,6 +176,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/solicitudes-estudio', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'storeSolicitud'])
             ->middleware('role:MEDICO');
         Route::get('/solicitudes-estudio', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'indexSolicitudes']);
+        Route::get('/solicitudes-estudio/{id}/pdf', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'descargarSolicitudPdf']);
         Route::post('/solicitudes-estudio/{id}/procesar', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'marcarEnProceso'])
             ->middleware('role:LABORATORISTA,ADMINISTRADOR');
         Route::post('/solicitudes-estudio/{id}/rechazo', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'rechazarMuestra'])
@@ -181,10 +184,13 @@ Route::prefix('v1')->group(function () {
         Route::post('/solicitudes-estudio/{id}/resultados', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'storeResultado'])
             ->middleware('role:LABORATORISTA,ADMINISTRADOR');
         Route::get('/solicitudes-estudio/{id}/resultados', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'showResultado']);
+        Route::get('/solicitudes-estudio/{id}/resultados/pdf', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'descargarResultadoPdf']);
+        Route::get('/resultados-estudio/{id}/pdf', [\App\Http\Controllers\Api\V1\LaboratorioController::class, 'descargarResultadoPdf']);
 
         // SPRINT 4: Consentimiento Informado (PROV-RN-008 / LFPDPPP)
         Route::post('/consentimientos', [\App\Http\Controllers\Api\V1\ConsentimientoController::class, 'store']);
         Route::get('/consentimientos', [\App\Http\Controllers\Api\V1\ConsentimientoController::class, 'index']);
+        Route::get('/consentimientos/{id}/pdf', [\App\Http\Controllers\Api\V1\ConsentimientoController::class, 'descargarPdf']);
         Route::post('/consentimientos/{id}/revocaciones', [\App\Http\Controllers\Api\V1\ConsentimientoController::class, 'revocar']);
         Route::post('/consentimientos/urgencia-excepcion', [\App\Http\Controllers\Api\V1\ConsentimientoController::class, 'urgenciaExcepcion']);
 

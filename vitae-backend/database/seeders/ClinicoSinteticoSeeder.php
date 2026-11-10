@@ -162,5 +162,35 @@ class ClinicoSinteticoSeeder extends Seeder
                 'consultorio' => 'Consultorio 202',
             ]
         );
+
+        // 7. Solicitudes de Laboratorio Pendientes y en Proceso (NOM-007 / RF-010)
+        \App\Models\SolicitudEstudio::updateOrCreate(
+            ['id_solicitud' => '01a1c000-0000-7000-8000-000000000001'],
+            [
+                'id_expediente' => 'EXP-SINT01',
+                'id_usuario' => $idMedico,
+                'tipo_estudio' => 'Biometría Hemática Completa + Perfil Bioquímico',
+                'prioridad' => 'URGENTE',
+                'indicaciones_clinicas' => 'Consulta Externa Consultorio 104 - Evaluación metabólica general',
+                'estado' => 'PENDIENTE',
+                'fecha_hora_solicitud' => Carbon::now('UTC')->subMinutes(30),
+            ]
+        );
+
+        $expMorales = ExpedienteClinico::where('id_expediente', 'EXP-9KA8P3')->first();
+        if ($expMorales) {
+            \App\Models\SolicitudEstudio::updateOrCreate(
+                ['id_solicitud' => '01a1c000-0000-7000-8000-000000000002'],
+                [
+                    'id_expediente' => 'EXP-9KA8P3',
+                    'id_usuario' => $idMedico,
+                    'tipo_estudio' => 'Gasometría Arterial + Perfil Coronario Enzimático (hs-cTnI)',
+                    'prioridad' => 'STAT',
+                    'indicaciones_clinicas' => 'Urgencias Box 01 (Choque) - Protocolo de Dolor Torácico',
+                    'estado' => 'EN_PROCESO',
+                    'fecha_hora_solicitud' => Carbon::now('UTC')->subMinutes(15),
+                ]
+            );
+        }
     }
 }

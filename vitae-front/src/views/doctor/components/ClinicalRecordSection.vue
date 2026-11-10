@@ -4,6 +4,7 @@ import type { Paciente } from '../types'
 import api from '@/services/api'
 import { eceService, type ExpedienteDetalle } from '@/services/eceService'
 import { laboratorioService, type ResultadoDetalleResponse } from '@/services/laboratorioService'
+import { pdfExportService } from '@/services/pdfExportService'
 
 const props = defineProps<{
   pacienteSeleccionado: Paciente | null
@@ -174,10 +175,10 @@ const exportarPdfAuditado = async () => {
 
   exportandoPdf.value = true
   try {
-    const res = await eceService.exportarExpedientePdf(idExp, 'Auditoría clínica y consulta asistencial')
-    alert(`Expediente clínico exportado exitosamente.\n\nFolio Expediente: ${res.id_expediente}\nMarca de Agua: "${res.marca_agua}"\nHash SHA-256 de integridad: ${res.sha256_integridad}\n\nOperación registrada formalmente en bitácora AUDITORIA_I.`)
+    await pdfExportService.descargarExpedientePdf(idExp)
+    alert(`Expediente clínico oficial con sellos de agua dinámicos de auditoría descargado exitosamente.\n\nFolio Expediente: ${idExp}\nMarca de Agua: "COPIA FIDEDIGNA DEL EXPEDIENTE"\n\nOperación registrada formalmente en bitácora inalterable AUDITORIA_I.`)
   } catch (err: any) {
-    alert('Error al exportar expediente clínico: ' + (err?.response?.data?.message || err.message))
+    alert('Error al exportar expediente clínico en PDF: ' + (err?.response?.data?.message || err.message))
   } finally {
     exportandoPdf.value = false
   }

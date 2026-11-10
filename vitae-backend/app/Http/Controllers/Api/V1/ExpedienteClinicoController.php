@@ -9,18 +9,21 @@ use App\Models\NotaMedica;
 use App\Models\Paciente;
 use App\Services\AuditLogger;
 use App\Services\BreakTheGlassService;
+use App\Services\Pdf\PdfPlantillasService;
 use App\Services\PdfExpedienteService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\Response;
 
 class ExpedienteClinicoController extends Controller
 {
     public function __construct(
         protected BreakTheGlassService $breakTheGlassService,
-        protected PdfExpedienteService $pdfExpedienteService
+        protected PdfExpedienteService $pdfExpedienteService,
+        protected PdfPlantillasService $pdfPlantillasService
     ) {}
 
     /**
@@ -345,7 +348,7 @@ class ExpedienteClinicoController extends Controller
     /**
      * Exportación de expediente clínico con marcas de agua de auditoría (PROV-SEC-008).
      */
-    public function exportarPdf(Request $request, string $id): JsonResponse
+    public function exportarPdf(Request $request, string $id): Response|JsonResponse
     {
         $expediente = ExpedienteClinico::with(['paciente', 'antecedentes', 'notasMedicas', 'recetas'])
             ->where('id_expediente', $id)
@@ -366,6 +369,21 @@ class ExpedienteClinicoController extends Controller
         $enmascarar = $request->boolean('enmascarar_pii', false);
         $ipOrigen = $request->ip() ?? '127.0.0.1';
 
+        // Si se solicita la descarga directa del binario PDF
+        if ($request->has('download') || $request->accepts('application/pdf') || $request->query('format') === 'pdf') {
+            $builder = $this->pdfPlantillasService->generarExpedienteCompletoPdf(
+                expediente: $expediente,
+                solicitante: $usuario,
+                ipOrigen: $ipOrigen,
+                enmascararPii: $enmascarar
+            );
+            $filename = "Expediente-{$expediente->id_expediente}.pdf";
+
+            return $request->boolean('inline')
+                ? $builder->inlineResponse($filename)
+                : $builder->downloadResponse($filename);
+        }
+
         $documentoExportado = $this->pdfExpedienteService->exportarExpedienteSeguro(
             expediente: $expediente,
             solicitante: $usuario,
@@ -378,5 +396,37 @@ class ExpedienteClinicoController extends Controller
             'message' => 'Expediente clínico exportado con sellos de agua dinámicos de auditoría.',
             'data' => $documentoExportado,
         ], 200);
+    }
+
+    /**
+     * Descarga directa en PDF del expediente clínico completo (NOM-004-SSA3-2012, 5.6 y 5.7).
+     */
+    public function descargarPdf(Request $request, string $id): Response
+    {
+        $expediente = ExpedienteClinico::with(['paciente', 'antecedentes', 'notasMedicas', 'recetas'])
+            ->where('id_expediente', $id)
+            ->firstOrFail();
+
+        $usuario = Auth::user();
+        $tieneAcceso = $this->breakTheGlassService->tieneRelacionAsistencial($usuario, $expediente);
+
+        if (!$tieneAcceso && $usuario->rol !== 'MEDICO') {
+            abort(403, 'No autorizado para exportar información clínica confidencial.');
+        }
+
+        $enmascarar = $request->boolean('enmascarar_pii', false);
+        $ipOrigen = $request->ip() ?? '127.0.0.1';
+
+        $builder = $this->pdfPlantillasService->generarExpedienteCompletoPdf(
+            expediente: $expediente,
+            solicitante: $usuario,
+            ipOrigen: $ipOrigen,
+            enmascararPii: $enmascarar
+        );
+        $filename = "Expediente-{$expediente->id_expediente}.pdf";
+
+        return $request->boolean('inline')
+            ? $builder->inlineResponse($filename)
+            : $builder->downloadResponse($filename);
     }
 }

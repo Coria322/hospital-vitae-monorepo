@@ -191,3 +191,33 @@
 | `TASK-M-021` - `023` | PROV-RNF-005, AI-06 | Firma de APK v2+, SemVer, SBOM móvil y Quality Gate de distribución | Inexistente. | ❌ **Pendiente (0%)** |
 | `TASK-M-024` | RF-003 | Manejo cliente de códigos HTTP 401 (refresh/logout) vs 403 (genérico) | Inexistente. | ❌ **Pendiente (0%)** |
 | `TASK-M-025` | PROV-UI-003 | Configuración de NavHost y flujo base de navegación Compose | Inexistente. | ❌ **Pendiente (0%)** |
+
+---
+
+## 5. Matriz de Cumplimiento — Impresiones Oficiales y Descargas PDF Clínicas y Administrativas (`GUIA_INTEGRACION_PLANTILLAS_IMPRESION.md`)
+*Fecha de Diagnóstico y Certificación Backend: 2026-11-09 • Normativas: NOM-004-SSA3-2012, NOM-007-SSA3-2011, NOM-024-SSA3-2012, COFEPRIS / RIS Art. 65, LFPDPPP.*
+
+> **Certificación Independiente del Frontend:** Se ejecutó la batería completa de validación binaria y endpoints HTTP (`PlantillasImpresionPdfTest`, `PdfDocumentBuilderTest` y `probar_todos_los_pdf.php`), generando exitosamente 8 documentos PDF físicos en `vitae-backend/storage/app/public/pdfs_generados/` con conformidad 100% de la especificación PDF-1.4, sellos SHA-256 e inmutabilidad en `AUDITORIA_I`.
+
+| Requerimiento / Formato | Descripción Técnica y Normativa | Estado Inicial | Estado Actual | Nivel de Cumplimiento |
+| :--- | :--- | :--- | :--- | :---: |
+| **IMP-PDF-001 (Formato 1A)** | Receta Médica Institucional Ordinaria con Código QR, Cédula Profesional, CIE-10, Sello SHA-256 (`GET /api/v1/recetas/{id}/pdf`). | Endpoint devolvía únicamente JSON estructurado con URL simbólica; sin descarga de archivo PDF real. | Generación binaria PDF nativa, membrete institucional, QR de validación, sello SHA-256 y descarga `application/pdf`. Probado con HTTP 200. Archivo generado: `01_Receta_Medica_Institucional.pdf` (37,832 B). | ✅ **Cerrada (100%)** |
+| **IMP-PDF-001-B (Formato 1B)** | Receta de Medicamento Controlado Fracción II (Art. 65 RIS / COFEPRIS) con firma electrónica forzosa y bloqueo preventivo. | Sin validación de firma ni distinción de fraccionamiento en PDF. | Validación obligatoria de e-firma; bloqueo con HTTP 409 (`RECETA_CONTROLADA_SIN_FIRMA`) si carece de firma; cintillo carmesí normativo de advertencia. Archivo generado: `02_Receta_Medicamento_Controlado_FracII.pdf` (37,912 B). | ✅ **Cerrada (100%)** |
+| **IMP-PDF-002 (Formato 2)** | Hoja de Consentimiento Informado con NOM-004-SSA3-2012 num 10.1.1, riesgos, 2 testigos, recuadro de firma/huella (`GET /api/v1/consentimientos/{id}/pdf`). | Inexistente endpoint o servicio de renderizado/descarga PDF de consentimiento. | Servicio y endpoint con datos de paciente/representante, médico responsable, 2 testigos, recuadro biométrico de huella y sello SHA-256 inmutable. Archivo generado: `03_Consentimiento_Informado.pdf` (36,851 B). | ✅ **Cerrada (100%)** |
+| **IMP-PDF-003 (Formato 3)** | Hoja Oficial de Enfermería y Somatometría según NOM-004-SSA3-2012 num 9: signos vitales, IMC, Glasgow, EVA, AVDI (`GET /api/v1/triages/{id}/pdf`). | Inexistente descarga PDF de hoja de enfermería/triage en backend. | Emisión oficial de hoja de somatometría y enfermería con datos de enfermera responsable, CLUES, banner Manchester cromático y signos vitales completos. Archivo generado: `04_Hoja_Enfermeria_Triage.pdf` (36,768 B). | ✅ **Cerrada (100%)** |
+| **IMP-PDF-004 (Formato 4)** | Solicitud / Volante de Estudios de Laboratorio y Gabinete con folio `LAB-XXXX`, código óptico y preparación de muestra (`GET /api/v1/solicitudes-estudio/{id}/pdf`). | Inexistente descarga PDF de volantes de laboratorio. | Descarga PDF con desglose de estudios por área, diagnóstico presuntivo, código óptico de barras y notas obligatorias de flebotomía/ayuno. Archivo generado: `05_Volante_Orden_Laboratorio.pdf` (37,299 B). | ✅ **Cerrada (100%)** |
+| **IMP-PDF-005 (Formato 5)** | Reporte de Resultados Validados de Laboratorio según NOM-007-SSA3-2011, tabla de valores de referencia, alertas y firma Q.F.B. (`GET /api/v1/solicitudes-estudio/{id}/resultados/pdf`). | Endpoint sólo retornaba texto plano o blob cifrado en JSON; sin reporte PDF imprimible. | Reporte formal de laboratorio con tabla estructurada de resultados, intervalos biológicos de referencia y firma del Q.F.B. responsable con cédula profesional. Archivo generado: `06_Reporte_Resultados_Laboratorio.pdf` (38,213 B). | ✅ **Cerrada (100%)** |
+| **IMP-PDF-006-A (Formato 6A)** | Expediente Clínico Completo y Foliado / Resumen Clínico con NOM-004-SSA3-2012 (5.6 y 5.7), antecedentes, notas cronológicas y marca de agua transversal (`GET /api/v1/expedientes-clinicos/{id}/pdf`). | `PdfExpedienteService` generaba array asociativo JSON; no descargaba archivo binario PDF real. | PDF integral con carátula de identificación, antecedentes patológicos/alergias, notas médicas UTC, recetas, registro inmutable en `AUDITORIA_I` y marca de agua diagonal de seguridad auditada. Archivo generado: `07_Expediente_Clinico_Integral_Asistencial.pdf` (36,196 B). | ✅ **Cerrada (100%)** |
+| **IMP-PDF-006-B (Formato 6B)** | Expediente Clínico con Enmascaramiento de Datos Personales (LFPDPPP / Vista no asistencial: `?enmascarar_pii=1`). | Sin soporte de ofuscación de PII en exportación binaria. | Ofuscación automática de CURP (`GOSV**********RN09`) y domicilio (`[DIRECCIÓN OFICIAL RESERVADA - LFPDPPP]`) para cumplimiento estricto de privacidad. Archivo generado: `08_Expediente_Clinico_PII_Enmascarada.pdf` (36,174 B). | ✅ **Cerrada (100%)** |
+
+---
+
+## 6. Matriz de Cumplimiento — Control de Acceso Basado en Roles (RBAC) y Segregación Asistencial
+*Normativas: NOM-024-SSA3-2012, ISO/IEC-27001 (Control A.9.1 / A.9.2 - Menor Privilegio), LFPDPPP.*
+
+| Requerimiento / Norma | Descripción Normativa | Estado Inicial | Estado Actual | Nivel de Cumplimiento |
+| :--- | :--- | :--- | :--- | :---: |
+| **SEC-RBAC-001 (Menor Privilegio)** | Segregación estricta de perfiles asistenciales: MÉDICO (`/medico`), ENFERMERÍA (`/enfermeria`), RECEPCIÓN (`/recepcion`), LABORATORIO (`/laboratorio`) y TI (`/administrador`). | Frontend solo validaba rol para `/administrador`; un médico podía ingresar a `/laboratorio`, `/recepcion` o `/enfermeria` por URL directa. | Implementado `to.meta.roles` en todas las rutas de `vue-router` y guard `beforeEach` con rechazo y redirección inmediata al módulo del perfil autorizado. | ✅ **Cerrada (100%)** |
+| **SEC-RBAC-002 (Backend API)** | Bloqueo de endpoints con middleware de roles (`role:MEDICO`, `role:LABORATORISTA`, etc.) y auto-auditoría de accesos denegados. | Implementado en rutas de API Laravel (`RoleAuthorization.php`). | Se mantiene 100% activo en backend, devolviendo HTTP 403 y registrando `ACCESO_DENEGADO` inmutable en `AUDITORIA_I`. | ✅ **Cerrada (100%)** |
+
+

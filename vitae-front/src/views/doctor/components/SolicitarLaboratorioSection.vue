@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import type { Paciente, Doctor } from '../types'
 import api from '@/services/api'
 import { eceService } from '@/services/eceService'
+import { pdfExportService } from '@/services/pdfExportService'
 
 const props = defineProps<{
   doctor: Doctor
@@ -271,7 +272,9 @@ const enviarSolicitud = async () => {
       indicaciones_clinicas: justificacionTecnica.value || `Diagnóstico: ${diagnosticoCie.value || 'Estudio de rutina urgencias'}`
     })
 
-    alert(`Solicitud de estudio clínico registrada exitosamente.\n\nID Solicitud: ${res.id_solicitud}\nEstudios: ${estudioTipo}\nPrioridad: ${prioridad}\nEstado: PENDIENTE (Enviado a Laboratorio LIS/RIS vía HL7 FHIR)`)
+    ultimaSolicitud.value = res
+
+    alert(`Solicitud de estudio clínico registrada exitosamente.\n\nID Solicitud: ${res.id_solicitud}\nEstudios: ${estudioTipo}\nPrioridad: ${prioridad}\nEstado: PENDIENTE (Enviado a Laboratorio LIS/RIS vía HL7 FHIR)\n\nYa puede descargar e imprimir el volante foleado oficial para el paciente.`)
 
     emit('enviarSolicitud')
     seleccionadosIds.value = []
@@ -280,6 +283,24 @@ const enviarSolicitud = async () => {
     alert('Error al registrar solicitud de laboratorio: ' + (err?.response?.data?.message || err.message))
   } finally {
     guardandoLab.value = false
+  }
+}
+
+const ultimaSolicitud = ref<any>(null)
+const descargandoPdfLab = ref(false)
+
+const descargarVolanteLabPdf = async () => {
+  if (!ultimaSolicitud.value?.id_solicitud) {
+    alert('Atención: Primero debe enviar y registrar la solicitud de laboratorio para emitir el volante oficial.')
+    return
+  }
+  descargandoPdfLab.value = true
+  try {
+    await pdfExportService.descargarSolicitudEstudioPdf(ultimaSolicitud.value.id_solicitud)
+  } catch (err: any) {
+    alert('Error al descargar volante de laboratorio en PDF: ' + (err?.response?.data?.message || err.message))
+  } finally {
+    descargandoPdfLab.value = false
   }
 }
 </script>
@@ -583,8 +604,8 @@ const enviarSolicitud = async () => {
             <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Enviar Solicitud a Laboratorio / Imagen
           </button>
 
-          <button class="btn-print-voucher" type="button">
-            <svg viewBox="0 0 24 24" class="svg-inline-print" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Imprimir Volante Foleado para el Paciente
+          <button class="btn-print-voucher" type="button" :disabled="descargandoPdfLab" @click="descargarVolanteLabPdf">
+            <svg viewBox="0 0 24 24" class="svg-inline-print" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> {{ descargandoPdfLab ? 'Generando PDF...' : 'Descargar Volante Foleado PDF' }}
           </button>
 
           <div class="hl7-cert-row">
