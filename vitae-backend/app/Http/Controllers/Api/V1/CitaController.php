@@ -46,6 +46,16 @@ class CitaController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $rawPacienteId = $request->input('id_paciente');
+        if ($rawPacienteId && !preg_match('/^[0-9a-fA-F-]{36}$/', $rawPacienteId)) {
+            $pac = Paciente::where('curp', $rawPacienteId)
+                ->orWhereHas('usuario', fn($q) => $q->where('id_usuario', $rawPacienteId))
+                ->first();
+            if ($pac) {
+                $request->merge(['id_paciente' => $pac->id_paciente]);
+            }
+        }
+
         $validated = $request->validate([
             'id_paciente' => 'required|uuid|exists:paciente,id_paciente',
             'id_usuario' => 'nullable|string|exists:usuario,id_usuario',

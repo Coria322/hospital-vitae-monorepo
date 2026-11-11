@@ -19,6 +19,16 @@ class SolicitudArcoController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $user = $request->user();
+        if ($user && $user->rol === 'PACIENTE' && $user->id_paciente) {
+            $request->merge(['id_paciente' => $user->id_paciente]);
+        } elseif ($request->filled('id_paciente') && !\Illuminate\Support\Str::isUuid($request->input('id_paciente'))) {
+            $pacienteEncontrado = \App\Models\Usuario::where('id_usuario', $request->input('id_paciente'))->value('id_paciente');
+            if ($pacienteEncontrado) {
+                $request->merge(['id_paciente' => $pacienteEncontrado]);
+            }
+        }
+
         $validated = $request->validate([
             'id_paciente' => 'required|uuid|exists:paciente,id_paciente',
             'derecho' => 'required|string|in:ACCESO,RECTIFICACION,CANCELACION,OPOSICION',
@@ -90,7 +100,14 @@ class SolicitudArcoController extends Controller
         $query = SolicitudArco::with('paciente');
 
         if ($request->filled('id_paciente')) {
-            $query->where('id_paciente', $request->input('id_paciente'));
+            $idBuscado = $request->input('id_paciente');
+            if (!\Illuminate\Support\Str::isUuid($idBuscado)) {
+                $uuid = \App\Models\Usuario::where('id_usuario', $idBuscado)->value('id_paciente');
+                if ($uuid) {
+                    $idBuscado = $uuid;
+                }
+            }
+            $query->where('id_paciente', $idBuscado);
         }
 
         if ($request->filled('derecho')) {

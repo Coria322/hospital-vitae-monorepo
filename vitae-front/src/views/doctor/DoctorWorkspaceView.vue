@@ -126,6 +126,10 @@ const cargarColaReal = async () => {
   }
 
   // FUSIONAR CITAS ACTIVAS DE CONSULTA EXTERNA PARA ESTE MÉDICO O CONSULTORIO
+  try {
+    await citasService.sincronizarConBackend()
+  } catch {}
+
   const citasDelMedico = citasService.obtenerCitasParaMedico(
     usuarioAuth?.id_usuario,
     doctor.value.nombre,

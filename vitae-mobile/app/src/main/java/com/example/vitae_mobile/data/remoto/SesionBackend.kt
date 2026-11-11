@@ -15,8 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 data class PacienteActivo(val id: String, val expediente: String?, val nombre: String?, val seguroActivo: Boolean?)
 
 /**
- * Con los endpoints actuales del backend inicia sesión el personal, no el paciente, y cada consulta lleva el id del
- * paciente. Aquí se guarda quién inició sesión y qué paciente se eligió; se borra al cerrar la sesión.
+ * Gestiona la identidad del paciente autenticado y la sesión activa en el portal móvil (RF-011).
  */
 class SesionBackend(private val api: ApiBackend) {
     @Volatile
@@ -25,6 +24,21 @@ class SesionBackend(private val api: ApiBackend) {
     private val _paciente = MutableStateFlow<PacienteActivo?>(null)
     val paciente: StateFlow<PacienteActivo?> = _paciente
     val activo: PacienteActivo? get() = _paciente.value
+
+    fun activarUsuario(id: String, nombre: String? = null) {
+        usuarioId = id
+        if (_paciente.value == null) {
+            _paciente.value = PacienteActivo(id = id, expediente = null, nombre = nombre, seguroActivo = true)
+        }
+    }
+
+    fun actualizarActivo(paciente: PacienteActivo) {
+        _paciente.value = paciente
+    }
+
+    suspend fun sincronizarPerfil(): Resultado<PacienteActivo> = llamarDatos { api.mobilePerfil() }.mapear { p ->
+        PacienteActivo(p.idPaciente, null, p.nombreCompleto, p.seguroActivo).also { _paciente.value = it }
+    }
 
     suspend fun pacientes(): Resultado<List<PacienteDto>> = llamarDatos { api.pacientes() }.mapear { it.data }
 
@@ -39,21 +53,20 @@ class SesionBackend(private val api: ApiBackend) {
     }
 }
 
-/** `POST /auth/login`, `/auth/refresh` y `/auth/logout`. Sin OTP ni PKCE: el backend actual no los tiene. */
+/** `POST /auth/login`, `/auth/refresh` y `/auth/logout`. */
 class AuthRemoto(private val api: ApiBackend, private val backend: SesionBackend) : AuthRepository {
-    // El campo "correo" de la app lleva el id de usuario del backend (`id_usuario`).
     override suspend fun iniciarSesion(correo: String, contrasena: String): Resultado<ResultadoLogin> =
         llamarDatos { api.login(LoginCuerpo(correo, contrasena)) }.mapear { datos ->
             backend.usuarioId = datos.usuario.idUsuario
+            backend.activarUsuario(datos.usuario.idUsuario)
             ResultadoLogin.Autenticado(Sesion(datos.token, datos.token, datos.expiraEn))
         }
 
     override suspend fun verificarOtp(codigo: String): Resultado<Sesion> = Resultado.Fallo(ApiError.Desconocido)
 
-    // No hay refresh token: se renueva con el access token vigente, que el backend revoca y reemplaza.
     override suspend fun renovar(refreshToken: String): Resultado<Sesion> =
         llamarDatos { api.refrescar("Bearer $refreshToken") }.mapear { Sesion(it.token, it.token, it.expiraEn) }
 
     override suspend fun cerrarSesion(accessToken: String): Resultado<Unit> =
-        llamar { api.cerrarSesion("Bearer $accessToken") }.mapear { }
+        llamar { api.cerrarSesion("Bearer $accessToken") }.mapear { backend.olvidar() }
 }

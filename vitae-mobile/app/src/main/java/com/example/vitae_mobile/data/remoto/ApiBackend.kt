@@ -13,9 +13,8 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 /**
- * Endpoints normales de `vitae-backend` (los de personal bajo `/api/v1`; no hay namespace móvil). Las formas salen de
- * respuestas reales del backend (`app/src/test/resources/backend`). Estos endpoints identifican al paciente con un id
- * en la ruta o el cuerpo, por eso este archivo es la excepción documentada a RF-002.1 (ver PLAN.md, decisión 16).
+ * Endpoints de `vitae-backend`. Incluye los endpoints normativos bajo mobile/ (RF-011, RF-002.1 Anti-IDOR)
+ * donde la identidad se resuelve del token Sanctum del paciente, y los endpoints de compatibilidad institucional.
  */
 interface ApiBackend {
     @POST("auth/login")
@@ -27,6 +26,25 @@ interface ApiBackend {
 
     @POST("auth/logout")
     suspend fun cerrarSesion(@Header("Authorization") bearer: String): ApiEnvelope<JsonElement>
+
+    // Endpoints oficiales del Portal Móvil del Paciente (RF-011 / RF-002.1)
+    @GET("mobile/perfil")
+    suspend fun mobilePerfil(): ApiEnvelope<MobilePerfilDto>
+
+    @GET("mobile/citas")
+    suspend fun mobileCitas(): ApiEnvelope<List<MobileCitaDto>>
+
+    @POST("mobile/citas")
+    suspend fun solicitarCita(@Body cuerpo: SolicitarCitaCuerpo): ApiEnvelope<MobileCitaDto>
+
+    @GET("mobile/recetas")
+    suspend fun mobileRecetas(): ApiEnvelope<List<MobileRecetaDto>>
+
+    @GET("mobile/resultados")
+    suspend fun mobileResultados(): ApiEnvelope<List<MobileResultadoDto>>
+
+    @GET("mobile/resultados/{id}")
+    suspend fun mobileResultadoDetalle(@Path("id") id: String): ApiEnvelope<ResultadoDetalleDto>
 
     @GET("pacientes")
     suspend fun pacientes(): ApiEnvelope<PaginaDto<PacienteDto>>
@@ -67,6 +85,13 @@ interface ApiBackend {
 data class LoginCuerpo(@SerialName("id_usuario") val idUsuario: String, val password: String)
 
 @Serializable
+data class SolicitarCitaCuerpo(
+    @SerialName("fecha_hora") val fechaHora: String,
+    val especialidad: String? = "Medicina General",
+    val motivo: String? = null,
+)
+
+@Serializable
 data class LoginDatos(val token: String, @SerialName("expires_in") val expiraEn: Long, val usuario: UsuarioDto)
 
 @Serializable
@@ -74,6 +99,68 @@ data class UsuarioDto(@SerialName("id_usuario") val idUsuario: String, val rol: 
 
 @Serializable
 data class TokenDatos(val token: String, @SerialName("expires_in") val expiraEn: Long)
+
+/** DTOs oficiales del portal móvil (RF-011) */
+@Serializable
+data class MobilePerfilDto(
+    @SerialName("id_paciente") val idPaciente: String,
+    @SerialName("nombre_completo") val nombreCompleto: String? = null,
+    val curp: String? = null,
+    @SerialName("fecha_nacimiento") val fechaNacimiento: String? = null,
+    val sexo: String? = null,
+    val domicilio: String? = null,
+    @SerialName("seguro_activo") val seguroActivo: Boolean? = null,
+    val identificado: Boolean? = null,
+)
+
+@Serializable
+data class MobileCitaDto(
+    @SerialName("id_cita") val idCita: String,
+    @SerialName("fecha_hora") val fechaHora: String,
+    val especialidad: String? = null,
+    val motivo: String? = null,
+    val consultorio: String? = null,
+    val estado: String? = null,
+    val medico: MobileMedicoDto? = null,
+)
+
+@Serializable
+data class MobileMedicoDto(
+    @SerialName("id_usuario") val idUsuario: String? = null,
+    @SerialName("nombre_completo") val nombreCompleto: String? = null,
+    val cedula: String? = null,
+)
+
+@Serializable
+data class MobileRecetaDto(
+    @SerialName("id_receta") val idReceta: String,
+    val folio: String? = null,
+    val medicamentos: String? = null,
+    val indicaciones: String? = null,
+    @SerialName("qr_codigo") val qrCodigo: String? = null,
+    @SerialName("qr_estado") val qrEstado: String? = null,
+    @SerialName("fecha_hora_emision") val fechaHoraEmision: String? = null,
+    val medico: MobileMedicoDto? = null,
+)
+
+@Serializable
+data class MobileResultadoDto(
+    @SerialName("id_resultado") val idResultado: String,
+    @SerialName("id_solicitud") val idSolicitud: String? = null,
+    val mime: String? = null,
+    val observaciones: String? = null,
+    @SerialName("hash_sha256") val hashSha256: String? = null,
+    @SerialName("fecha_hora") val fechaHora: String,
+    val solicitud: MobileSolicitudDto? = null,
+)
+
+@Serializable
+data class MobileSolicitudDto(
+    @SerialName("id_solicitud") val idSolicitud: String,
+    @SerialName("id_expediente") val idExpediente: String? = null,
+    @SerialName("tipo_estudio") val tipoEstudio: String? = null,
+    @SerialName("fecha_hora_solicitud") val fechaHoraSolicitud: String? = null,
+)
 
 /** Página de Laravel: la lista viene en `data`. */
 @Serializable

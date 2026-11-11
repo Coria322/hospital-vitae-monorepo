@@ -46,6 +46,9 @@ const nuevoRegistroForm = ref({
   tipoAsegurador: '',
   numeroSeguridadSocial: '',
   estatusVigencia: 'Pendiente de captura',
+  // Paso 3: Credenciales de Portal de Paciente
+  activarPortal: true,
+  passwordPortal: 'password123',
   // Consentimiento administrativo
   consentimientoAceptado: false
 })
@@ -101,6 +104,8 @@ const limpiarFormularioRegistro = () => {
     tipoAsegurador: '',
     numeroSeguridadSocial: '',
     estatusVigencia: 'Pendiente de captura',
+    activarPortal: true,
+    passwordPortal: 'password123',
     consentimientoAceptado: false
   }
 }
@@ -124,6 +129,8 @@ const cargarDemoRegistro = () => {
     tipoAsegurador: 'IMSS Régimen Ordinario',
     numeroSeguridadSocial: '4819-92-01928-1',
     estatusVigencia: 'Vigente en Padrón IMSS',
+    activarPortal: true,
+    passwordPortal: 'password123',
     consentimientoAceptado: true
   }
 }
@@ -164,14 +171,15 @@ const completarRegistroExpediente = async () => {
       nuevoRegistroForm.value.municipioAlcaldia,
       nuevoRegistroForm.value.entidadFederativa
     ].filter(Boolean).join(', ') || 'No especificado',
-    seguro_activo: true
+    seguro_activo: true,
+    password: nuevoRegistroForm.value.activarPortal ? (nuevoRegistroForm.value.passwordPortal || 'password123') : undefined
   }
 
   try {
     guardando.value = true
     const response = await api.post('/pacientes', payload)
     const paciente = response.data?.data || response.data
-    alert(`Paciente registrado exitosamente conforme a NOM-024. Clave Única / Folio: ${paciente.folio_urgencias || paciente.id_paciente || 'Generado'}`)
+    alert(`Paciente registrado exitosamente.\n\nExpediente: ${paciente.folio_urgencias || paciente.id_paciente || 'Generado'}\nCURP de Acceso: ${curpLimpia}\nPortal Móvil: ${nuevoRegistroForm.value.activarPortal ? 'Activo (Contraseña asignada)' : 'No activado'}`)
     limpiarFormularioRegistro()
   } catch (error: any) {
     console.error('Error registrando paciente:', error)
@@ -504,15 +512,76 @@ const llamarSiguienteTurno = () => {
                   </div>
 
                 </div>
+              </div>
+
+              <!-- PASO 3: Credenciales de Acceso al Portal Móvil (Estilo IMSS Digital) -->
+              <div class="step-card">
+                <div class="step-card-header">
+                  <div class="step-num-title">
+                    <span class="step-circle">3</span>
+                    <div>
+                      <h4>Paso 3: Credenciales de Acceso al Portal Móvil</h4>
+                      <small>El paciente podrá consultar citas, recetas y resultados desde su celular identificándose con su CURP.</small>
+                    </div>
+                  </div>
+                  <span class="step-shortcut">Acceso Digital</span>
+                </div>
+
+                <div class="step-body">
+                  <div class="consent-block-wrapper" style="margin-bottom: 12px;">
+                    <div class="consent-check-col">
+                      <input 
+                        type="checkbox" 
+                        id="check-activar-portal"
+                        v-model="nuevoRegistroForm.activarPortal" 
+                      />
+                    </div>
+                    <div class="consent-text-col">
+                      <label for="check-activar-portal">
+                        <strong>Habilitar acceso inmediato al Portal Móvil:</strong>
+                        Crea la cuenta de usuario vinculada a la CURP del paciente.
+                      </label>
+                    </div>
+                  </div>
+
+                  <div v-if="nuevoRegistroForm.activarPortal" class="form-grid-3">
+                    <div class="field-group">
+                      <label>Usuario de Acceso (CURP)</label>
+                      <input 
+                        type="text" 
+                        :value="nuevoRegistroForm.curpIngresada || 'Se usará la CURP del Paso 1'" 
+                        disabled 
+                        class="form-input" 
+                        style="background: #f1f5f9; font-weight: 600;"
+                      />
+                    </div>
+                    <div class="field-group">
+                      <label>Contraseña Inicial <span class="req">*</span></label>
+                      <input 
+                        type="text" 
+                        v-model="nuevoRegistroForm.passwordPortal" 
+                        placeholder="Contraseña inicial" 
+                        class="form-input" 
+                      />
+                    </div>
+                    <div class="field-group">
+                      <label>Rol Asignado</label>
+                      <input 
+                        type="text" 
+                        value="PACIENTE (Solo lectura médica)" 
+                        disabled 
+                        class="form-input" 
+                        style="background: #f1f5f9;"
+                      />
+                    </div>
+                  </div>
+                </div>
 
                 <!-- Barra de Acciones del Formulario -->
                 <div class="form-bottom-actions">
                   <div class="actions-left">
                     <button type="button" class="btn-clear-form" @click="limpiarFormularioRegistro">
                       <svg viewBox="0 0 24 24" class="svg-inline-sync" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Limpiar Formulario
-                    </button>
-                    <button type="button" class="btn-print-cred" @click="mostrarAlerta('Imprimiendo credencial temporal del paciente y carátula de expediente...')">
-                      <svg viewBox="0 0 24 24" class="svg-inline-print" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Imprimir Credencial / Formato
                     </button>
                   </div>
 

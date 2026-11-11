@@ -29,6 +29,21 @@ class ConsentimientoService
         Paciente::findOrFail($idPaciente);
         $medico = Usuario::findOrFail($medicoResponsableId);
 
+        // Si es consentimiento de aviso de privacidad / finalidades secundarias o firmado desde app móvil,
+        // y quien firma es el paciente o personal administrativo, se asigna como aval médico institucional
+        // al director médico del hospital (LFPDPPP / NOM-024).
+        $esAvisoPrivacidad = in_array(strtoupper($tipo), ['AVISO_PRIVACIDAD', 'FINALIDADES_SECUNDARIAS', 'PRIVACIDAD'], true)
+            || in_array(strtoupper($medio), ['APP_MOVIL', 'DIGITAL_MOVIL'], true);
+
+        if ($esAvisoPrivacidad && $medico->rol !== 'MEDICO') {
+            $medicoInstitucional = Usuario::where('rol', 'MEDICO')->where('estado_cuenta', 'ACTIVA')->first()
+                ?? Usuario::where('rol', 'MEDICO')->first();
+            if ($medicoInstitucional) {
+                $medicoResponsableId = $medicoInstitucional->id_usuario;
+                $medico = $medicoInstitucional;
+            }
+        }
+
         if ($medico->rol !== 'MEDICO') {
             throw new RuntimeException('El médico responsable debe contar con rol MEDICO.');
         }

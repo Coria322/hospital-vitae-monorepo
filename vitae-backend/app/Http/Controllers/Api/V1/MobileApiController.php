@@ -189,6 +189,52 @@ class MobileApiController extends Controller
     }
 
     /**
+     * Consulta y descifrado seguro de un resultado de estudio del paciente autenticado (RF-011 / Anti-IDOR).
+     */
+    public function resultadoDetalle(Request $request, string $id): JsonResponse
+    {
+        $idPaciente = $this->getAuthPacienteId($request);
+
+        $resultado = ResultadoEstudio::where(function ($q) use ($id) {
+                $q->where('id_resultado', $id)
+                  ->orWhere('id_solicitud', $id);
+            })
+            ->whereHas('solicitud.expediente', function ($q) use ($idPaciente) {
+                $q->where('id_paciente', $idPaciente);
+            })
+            ->first();
+
+        if (!$resultado) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 'NOT_FOUND',
+                'message' => 'Resultado de estudio no encontrado o no pertenece al paciente.',
+            ], 404);
+        }
+
+        $contenidoPlano = null;
+        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($resultado->archivo_cifrado_ref)) {
+            $blobCifrado = \Illuminate\Support\Facades\Storage::disk('local')->get($resultado->archivo_cifrado_ref);
+            $cifradoService = app(\App\Services\CifradoService::class);
+            $contenidoPlano = $cifradoService->descifrar($blobCifrado);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'resultado' => [
+                    'id_resultado' => $resultado->id_resultado,
+                    'id_solicitud' => $resultado->id_solicitud,
+                    'mime' => $resultado->mime,
+                    'fecha_hora' => $resultado->fecha_hora->toIso8601String(),
+                ],
+                'contenido_descifrado' => $contenidoPlano ?? $resultado->observaciones,
+                'integridad_sha256' => $resultado->hash_sha256,
+            ],
+        ], 200);
+    }
+
+    /**
      * Consulta de expediente clínico resumido del paciente (RF-011 / NOM-004).
      */
     public function expediente(Request $request): JsonResponse

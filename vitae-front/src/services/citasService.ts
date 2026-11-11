@@ -1,3 +1,5 @@
+import api from '@/services/api'
+
 export interface CitaMedica {
   id: string
   folio: string
@@ -57,7 +59,56 @@ class CitasService {
     }
     citas.unshift(nueva)
     this.guardarCitas(citas)
+
+    // Sincronización asíncrona con el backend relacional
+    api.post('/citas', {
+      id_paciente: cita.idPaciente || cita.pacienteCurp,
+      id_usuario: cita.idMedico,
+      fecha_hora: `${cita.dia} ${cita.hora || '10:00'}:00`,
+      especialidad: cita.especialidad || 'Medicina General',
+      motivo: `Consulta ${cita.tipoIntervencion}`,
+      consultorio: cita.consultorio || 'Cons. 1'
+    }).catch(e => {
+      console.warn('Cita almacenada localmente; fallo de réplica en API:', e)
+    })
+
     return nueva
+  }
+
+  async sincronizarConBackend(): Promise<CitaMedica[]> {
+    try {
+      const res = await api.get('/citas')
+      const remoteList = res.data?.data?.data || res.data?.data || []
+      if (Array.isArray(remoteList) && remoteList.length > 0) {
+        const local = this.obtenerCitas()
+        for (const r of remoteList) {
+          const yaExiste = local.some(c => c.id === r.id_cita || c.id === r.id)
+          if (!yaExiste) {
+            local.push({
+              id: r.id_cita || r.id,
+              folio: r.folio || ('VTE-' + (r.id_cita ? r.id_cita.substring(0, 4) : '0000')),
+              idPaciente: r.id_paciente,
+              pacienteNombre: r.paciente?.nombre_completo || 'Paciente Cita Externa',
+              pacienteCurp: r.paciente?.curp || 'S/N',
+              idMedico: r.id_usuario,
+              medicoNombre: r.medico?.nombre_completo || 'Médico Asignado',
+              especialidad: r.especialidad || 'Medicina General',
+              consultorio: r.consultorio || 'Cons. 1',
+              dia: r.fecha_hora ? r.fecha_hora.substring(0, 10) : new Date().toISOString().substring(0, 10),
+              hora: r.fecha_hora ? r.fecha_hora.substring(11, 16) : '10:00',
+              tipoIntervencion: 'primera',
+              estado: r.estado === 'PENDIENTE' ? 'PROGRAMADA' : (r.estado as any || 'PROGRAMADA'),
+              fechaRegistro: r.created_at || new Date().toISOString()
+            })
+          }
+        }
+        this.guardarCitas(local)
+        return local
+      }
+    } catch {
+      // Si el backend no responde, se conserva el estado local sin interrupciones
+    }
+    return this.obtenerCitas()
   }
 
   actualizarEstadoCita(id: string, nuevoEstado: CitaMedica['estado']): void {

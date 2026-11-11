@@ -22,12 +22,15 @@ import org.junit.Test
  * paciente en la ruta o el cuerpo (PLAN.md, decisión 16), así que `ApiBackend.kt` lo declara. En ningún otro archivo.
  */
 class SoloLecturaTest {
-    private fun metodos(tipo: Class<*>) = tipo.declaredMethods.map { it.name }.toSet()
+    private fun metodos(tipo: Class<*>) = tipo.declaredMethods
+        .filter { !it.isSynthetic && !it.name.contains('$') }
+        .map { it.name }
+        .toSet()
 
-    // Los repositorios clínicos solo leen: una función nueva (guardar, actualizar, eliminar...) rompe esta prueba.
+    // Los repositorios clínicos solo leen (salvo solicitud de cita móvil PROV-RF-002):
     @Test
     fun losRepositoriosClinicosSoloExponenLecturas() {
-        assertEquals(setOf("citas"), metodos(CitasRepository::class.java))
+        assertEquals(setOf("citas", "solicitarCita"), metodos(CitasRepository::class.java))
         assertEquals(setOf("perfil"), metodos(PerfilRepository::class.java))
         assertEquals(setOf("recetas", "receta"), metodos(RecetasRepository::class.java))
         assertEquals(setOf("resultados", "archivo"), metodos(ResultadosRepository::class.java))
@@ -49,7 +52,7 @@ class SoloLecturaTest {
     @Test
     fun ningunaEscrituraDeRetrofitSaleDeLaListaBlanca() {
         // Prefijos de los endpoints normales del backend; `consentimientos/{id}/revocaciones` cuelga de `consentimientos`.
-        val permitidas = listOf("auth/login", "auth/refresh", "auth/logout", "consentimientos", "solicitudes-arco")
+        val permitidas = listOf("auth/login", "auth/refresh", "auth/logout", "consentimientos", "solicitudes-arco", "mobile/citas")
         // También la anotación calificada (@retrofit2.http.DELETE).
         val escritura = Regex("""@(?:[\w.]+\.)?(?:POST|PUT|DELETE|PATCH)\(\s*"([^"]*)"""")
         val fuera = fuentes.filter { it.extension == "kt" }.flatMap { archivo ->

@@ -73,7 +73,7 @@ class AppContainer(contexto: Context) {
     }
     val avisoPrevio = AvisoPrevioLocal(contexto)
     val perfilRepository: PerfilRepository = backend?.let { PerfilRemoto(api, it) } ?: crearPerfilRepository()
-    val citasRepository: CitasRepository = backend?.let { CitasRemoto() } ?: crearCitasRepository()
+    val citasRepository: CitasRepository = backend?.let { CitasRemoto(api) } ?: crearCitasRepository()
     val recetasRepository: RecetasRepository = backend?.let { RecetasRemoto(api, it) } ?: crearRecetasRepository()
     val privacidadRepository: PrivacidadRepository =
         backend?.let { PrivacidadRemoto(api, it, contexto.getString(R.string.aviso_previo_texto)) } ?: crearPrivacidadRepository()

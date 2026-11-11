@@ -130,6 +130,9 @@ Route::prefix('v1')->group(function () {
         Route::post('/pacientes', [\App\Http\Controllers\Api\V1\PacienteController::class, 'store']);
         Route::get('/pacientes', [\App\Http\Controllers\Api\V1\PacienteController::class, 'index']);
         Route::get('/pacientes/{id}', [\App\Http\Controllers\Api\V1\PacienteController::class, 'show']);
+        Route::post('/pacientes/{id}/activar-portal', [\App\Http\Controllers\Api\V1\PacienteController::class, 'activarPortal']);
+        Route::post('/pacientes/{id}/bloquear-portal', [\App\Http\Controllers\Api\V1\PacienteController::class, 'bloquearPortal']);
+        Route::post('/pacientes/{id}/reactivar-portal', [\App\Http\Controllers\Api\V1\PacienteController::class, 'reactivarPortal']);
         Route::post('/pacientes/{id}/fusiones', [\App\Http\Controllers\Api\V1\PacienteController::class, 'fusionar'])
             ->middleware('role:MEDICO,ADMINISTRADOR');
 
@@ -239,6 +242,7 @@ Route::prefix('v1')->group(function () {
             Route::patch('/citas/{id}/cancelar', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'cancelarCita']);
             Route::get('/recetas', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'recetas']);
             Route::get('/resultados', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'resultados']);
+            Route::get('/resultados/{id}', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'resultadoDetalle']);
             Route::get('/expediente', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'expediente']);
             Route::post('/consentimientos', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'consentimiento']);
             Route::post('/solicitudes-arco', [\App\Http\Controllers\Api\V1\MobileApiController::class, 'solicitudArco']);
