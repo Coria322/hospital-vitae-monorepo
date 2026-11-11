@@ -53,7 +53,7 @@ android {
             buildConfigField("String", "API_BASE_URL", "\"https://auditoria-backend-u47a.onrender.com/api/v1/\"")
             buildConfigField("String", "API_PINES", "\"sha256/8emdl/UmneUm0I4Y/vHzOTQzb9eJwG4voRHtMdNmBPk=,sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=\"")
             signingConfig = signingConfigs.getByName("debug")
-            buildConfigField("boolean", "PERMITIR_CAPTURAS", "false")
+            buildConfigField("boolean", "PERMITIR_CAPTURAS", "$permitirCapturasDebug")
             buildConfigField("boolean", "BACKEND_REAL", "true")
             // PROV-SEC-011: ofuscación y reducción con R8 (reglas en src/main/keepRules).
             optimization {
