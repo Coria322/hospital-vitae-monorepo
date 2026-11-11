@@ -3,9 +3,12 @@ package com.example.vitae_mobile.ui.citas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -26,9 +29,9 @@ import com.example.vitae_mobile.ui.components.formatearHora
 import com.example.vitae_mobile.ui.components.Encabezado
 import com.example.vitae_mobile.ui.seguridad.PantallaSegura
 
-/** Solo lectura (PROV-RF-002): fecha, hora y estado de cada cita propia; sin acciones por fila. */
+/** PROV-RF-002: fecha, hora y estado de cada cita propia, sin acciones por fila, y un botón que abre la solicitud de una nueva. */
 @Composable
-fun CitasScreen(viewModel: CargaViewModel<List<Cita>>, modifier: Modifier = Modifier) {
+fun CitasScreen(viewModel: CargaViewModel<List<Cita>>, alSolicitar: () -> Unit, modifier: Modifier = Modifier) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
 
     PantallaSegura {
@@ -38,6 +41,9 @@ fun CitasScreen(viewModel: CargaViewModel<List<Cita>>, modifier: Modifier = Modi
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Encabezado(stringResource(R.string.pantalla_citas))
+                Button(onClick = alSolicitar, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                    Text(stringResource(R.string.citas_solicitar))
+                }
                 ContenidoCarga(
                     estado = estado,
                     alReintentar = viewModel::cargar,

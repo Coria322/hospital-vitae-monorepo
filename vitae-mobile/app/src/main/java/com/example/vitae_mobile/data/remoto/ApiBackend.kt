@@ -35,6 +35,9 @@ interface ApiBackend {
     @GET("mobile/citas")
     suspend fun citas(): ApiEnvelope<List<CitaDto>>
 
+    @POST("mobile/citas")
+    suspend fun solicitarCita(@Body cuerpo: CitaCuerpo): ApiEnvelope<CitaDto>
+
     @GET("mobile/recetas")
     suspend fun recetas(): ApiEnvelope<List<RecetaDto>>
 
@@ -81,6 +84,14 @@ data class CitaDto(
     @SerialName("id_usuario") val idMedico: String? = null,
     @SerialName("fecha_hora") val fechaHora: String,
     val estado: String,
+)
+
+/** Cuerpo de `POST /mobile/citas`: la hora va en UTC y los dos textos son opcionales (el servidor limita 60 y 500 caracteres). */
+@Serializable
+data class CitaCuerpo(
+    @SerialName("fecha_hora") val fechaHora: String,
+    val especialidad: String? = null,
+    val motivo: String? = null,
 )
 
 @Serializable

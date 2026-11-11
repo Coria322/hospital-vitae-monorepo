@@ -42,6 +42,24 @@
     <string name="cita_fecha">Fecha</string>
     <string name="cita_hora">Hora</string>
     <string name="cita_estado">Estado</string>
+    <string name="citas_solicitar">Solicitar cita</string>
+    <string name="pantalla_solicitar_cita">Solicitar cita</string>
+    <string name="solicitar_ayuda">Elige el día y la hora que prefieres. Recepción revisará tu solicitud y la confirmará.</string>
+    <string name="solicitar_elegir_fecha">Elegir fecha</string>
+    <string name="solicitar_elegir_hora">Elegir hora</string>
+    <string name="solicitar_fecha_elegida">Fecha: %1$s</string>
+    <string name="solicitar_hora_elegida">Hora: %1$s</string>
+    <string name="solicitar_especialidad">Especialidad (opcional)</string>
+    <string name="solicitar_motivo">Motivo de la consulta (opcional)</string>
+    <string name="solicitar_enviar">Enviar solicitud</string>
+    <string name="solicitar_error_pasada">Elige una fecha y una hora posteriores a este momento.</string>
+    <string name="solicitar_error_envio">No se pudo enviar la solicitud. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="solicitar_error_permisos">Esta cuenta no puede solicitar citas.</string>
+    <string name="solicitar_enviada">Solicitud enviada</string>
+    <string name="solicitar_enviada_desc">Tu cita quedó pendiente. Recepción la confirmará.</string>
+    <string name="solicitar_ver_citas">Ver mis citas</string>
+    <string name="dialogo_elegir">Elegir</string>
+    <string name="dialogo_cancelar">Cancelar</string>
 
     <string name="recetas_vacio">No tienes recetas.</string>
     <string name="receta_medicamento">Medicamento</string>

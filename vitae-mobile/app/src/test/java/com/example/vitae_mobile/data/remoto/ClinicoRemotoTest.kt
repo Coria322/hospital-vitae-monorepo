@@ -3,6 +3,7 @@ package com.example.vitae_mobile.data.remoto
 import com.example.vitae_mobile.core.ApiError
 import com.example.vitae_mobile.data.perfil.Perfil
 import com.example.vitae_mobile.data.recetas.EstadoReceta
+import java.time.Instant
 import kotlin.io.path.createTempDirectory
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -49,6 +50,44 @@ class ClinicoRemotoTest : BackendTest() {
         assertEquals("CONFIRMADA", citas[0].estado)
         assertEquals("2026-11-13T10:00:00Z", citas[0].fechaHora.toString())
         assertEquals("PENDIENTE", citas[1].estado)
+    }
+
+    // PROV-RF-002 (colección Bruno 07): POST /mobile/citas con la hora en UTC, sin id_paciente, y responde 201 PENDIENTE.
+    @Test
+    fun solicitarUnaCitaManda_fechaEnUtcYTextos_yDevuelveLaCitaPendiente() = runTest {
+        responder(fixture("mobile-cita-creada"), 201)
+
+        val cita = exito(CitasRemoto(api).solicitar(Instant.parse("2026-11-15T00:51:09.123456Z"), "Medicina General", "Prueba de contrato de la app"))
+
+        assertEquals("20eb80f8-d999-465a-bc86-13a83d289b2a", cita.id)
+        assertEquals("PENDIENTE", cita.estado)
+        assertEquals("2026-11-15T00:51:09Z", cita.fechaHora.toString())
+        val p = peticion()
+        assertEquals("POST", p.method)
+        assertEquals("/api/v1/mobile/citas", p.url.encodedPath)
+        // Sin fracciones de segundo ni identificador de paciente.
+        assertEquals("""{"fecha_hora":"2026-11-15T00:51:09Z","especialidad":"Medicina General","motivo":"Prueba de contrato de la app"}""", p.body?.utf8())
+        assertEquals("Bearer TOKEN", p.headers["Authorization"])
+    }
+
+    @Test
+    fun losTextosOpcionalesNulosNoViajan() = runTest {
+        responder(fixture("mobile-cita-creada"), 201)
+        exito(CitasRemoto(api).solicitar(Instant.parse("2026-11-15T10:00:00Z"), null, null))
+        assertEquals("""{"fecha_hora":"2026-11-15T10:00:00Z"}""", peticion().body?.utf8())
+    }
+
+    @Test
+    fun siElServidorRechazaLaCitaElErrorLlegaSinInventarNada() = runTest {
+        val cuando = Instant.parse("2026-11-15T10:00:00Z")
+        responder("""{"message":"The fecha hora field must be a date after now.","errors":{"fecha_hora":["x"]}}""", 422)
+        assertEquals(ApiError.Desconocido, error(CitasRemoto(api).solicitar(cuando, null, null)))
+
+        responder("""{"status":"error","code":"FORBIDDEN_ROLE"}""", 403)
+        assertEquals(ApiError.SinPermisos, error(CitasRemoto(api).solicitar(cuando, null, null)))
+
+        responder("""{"status":"success","data":{"id_cita":"c-9","fecha_hora":"mañana","estado":"PENDIENTE"}}""", 201)
+        assertEquals("una respuesta con fecha ilegible no se inventa", ApiError.Desconocido, error(CitasRemoto(api).solicitar(cuando, null, null)))
     }
 
     @Test

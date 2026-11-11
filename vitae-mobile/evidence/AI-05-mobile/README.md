@@ -11,7 +11,7 @@ Paquete de TASK-M-020. Reúne lo que se midió en `vitae-mobile/` hasta la etapa
 | 5 | [05-cobertura-contrato-y-solo-lectura.md](05-cobertura-contrato-y-solo-lectura.md) | TASK-M-015, M-018, M-019 | Cumplido en lo local. Colección compartida y repositorios remotos pendientes |
 | 6 | [06-accesibilidad.md](06-accesibilidad.md) | TASK-M-017, PROV-UX-003 | Comprobaciones propias en 14 pantallas. **Sin TalkBack ni Accessibility Scanner** |
 | 7 | [07-conexion-backend.md](07-conexion-backend.md) | RF-002, RF-002.1, RF-003, PROV-RF-002, PROV-RN-008/009 | **Probado contra el backend local** (`dev`, portal móvil). No se probó contra Render. Hallazgos de seguridad del backend |
-| — | [resultados-pruebas.md](resultados-pruebas.md) | todas | 228 unitarias y 44 instrumentadas en verde |
+| — | [resultados-pruebas.md](resultados-pruebas.md) | todas | 240 unitarias y 46 instrumentadas en verde |
 | — | `cobertura.mjs`, `resumen-pruebas.mjs` | M-019 | Scripts para reproducir las cifras |
 
 ## Cómo reproducirlo

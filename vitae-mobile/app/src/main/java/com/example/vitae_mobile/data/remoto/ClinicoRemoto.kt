@@ -17,6 +17,8 @@ import com.example.vitae_mobile.data.resultados.ResultadoEstudio
 import com.example.vitae_mobile.data.resultados.ResultadosRepository
 import java.io.File
 import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -26,12 +28,18 @@ class PerfilRemoto(private val api: ApiBackend) : PerfilRepository {
         llamarDatos { api.perfil() }.mapear { Perfil(it.nombre, it.curp, it.fechaNacimiento, it.seguroActivo) }
 }
 
-/** `GET /mobile/citas`: citas del paciente, de la más próxima a la más lejana. */
+/** `GET /mobile/citas`: citas del paciente, de la más próxima a la más lejana; `POST /mobile/citas` pide una nueva. */
 class CitasRemoto(private val api: ApiBackend) : CitasRepository {
-    override suspend fun citas(): Resultado<List<Cita>> = llamarDatos { api.citas() }.mapear { lista ->
-        lista.mapNotNull { c -> runCatching { Cita(c.id, Instant.parse(c.fechaHora), c.estado) }.getOrNull() }
+    override suspend fun citas(): Resultado<List<Cita>> = llamarDatos { api.citas() }.mapear { lista -> lista.mapNotNull { it.aCita() } }
+
+    override suspend fun solicitar(fechaHora: Instant, especialidad: String?, motivo: String?): Resultado<Cita> {
+        val cuerpo = CitaCuerpo(DateTimeFormatter.ISO_INSTANT.format(fechaHora.truncatedTo(ChronoUnit.SECONDS)), especialidad, motivo)
+        return llamarDatos { api.solicitarCita(cuerpo) }.luego { dto -> dto.aCita()?.let { Resultado.Exito(it) } ?: Resultado.Fallo(ApiError.Desconocido) }
     }
 }
+
+// Una cita con la fecha ilegible se omite: no se inventa una hora.
+private fun CitaDto.aCita(): Cita? = runCatching { Cita(id, Instant.parse(fechaHora), estado) }.getOrNull()
 
 /** `GET /mobile/recetas`: la lista ya trae todo lo que la app muestra, así que el detalle sale de ella. */
 class RecetasRemoto(private val api: ApiBackend) : RecetasRepository {

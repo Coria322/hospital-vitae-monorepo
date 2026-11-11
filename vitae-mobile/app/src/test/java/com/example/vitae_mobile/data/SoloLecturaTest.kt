@@ -26,13 +26,14 @@ class SoloLecturaTest {
     // Los repositorios clínicos solo leen: una función nueva (guardar, actualizar, eliminar...) rompe esta prueba.
     @Test
     fun losRepositoriosClinicosSoloExponenLecturas() {
-        assertEquals(setOf("citas"), metodos(CitasRepository::class.java))
+        // Pedir una cita (PROV-RF-002) es la única escritura de este grupo: no toca ningún registro clínico.
+        assertEquals(setOf("citas", "solicitar"), metodos(CitasRepository::class.java))
         assertEquals(setOf("perfil"), metodos(PerfilRepository::class.java))
         assertEquals(setOf("recetas", "receta"), metodos(RecetasRepository::class.java))
         assertEquals(setOf("resultados", "archivo"), metodos(ResultadosRepository::class.java))
     }
 
-    // Lista blanca: lo único que la app escribe es auth, consentimientos y solicitudes ARCO.
+    // Lista blanca: lo único que la app escribe es auth, la solicitud de una cita, consentimientos y solicitudes ARCO.
     @Test
     fun lasEscriturasSonSoloLasDeLaListaBlanca() {
         assertEquals(setOf("iniciarSesion", "verificarOtp", "renovar", "cerrarSesion"), metodos(AuthRepository::class.java))
@@ -47,7 +48,7 @@ class SoloLecturaTest {
     // Cualquier interfaz Retrofit con POST, PUT, DELETE o PATCH debe apuntar a la lista blanca.
     @Test
     fun ningunaEscrituraDeRetrofitSaleDeLaListaBlanca() {
-        val permitidas = listOf("auth/login", "auth/refresh", "auth/logout", "mobile/consentimientos", "mobile/solicitudes-arco")
+        val permitidas = listOf("auth/login", "auth/refresh", "auth/logout", "mobile/citas", "mobile/consentimientos", "mobile/solicitudes-arco")
         // También la anotación calificada (@retrofit2.http.DELETE).
         val escritura = Regex("""@(?:[\w.]+\.)?(?:POST|PUT|DELETE|PATCH)\(\s*"([^"]*)"""")
         val fuera = fuentes.filter { it.extension == "kt" }.flatMap { archivo ->

@@ -16,6 +16,7 @@ enum class Ruta(val ruta: String, @param:StringRes val titulo: Int) {
     Aviso("aviso-privacidad", R.string.pantalla_aviso),
     Inicio("inicio", R.string.pantalla_inicio),
     Citas("citas", R.string.pantalla_citas),
+    SolicitarCita("solicitar-cita", R.string.pantalla_solicitar_cita),
     Recetas("recetas", R.string.pantalla_recetas),
     Resultados("resultados", R.string.pantalla_resultados),
     Perfil("perfil", R.string.pantalla_perfil),

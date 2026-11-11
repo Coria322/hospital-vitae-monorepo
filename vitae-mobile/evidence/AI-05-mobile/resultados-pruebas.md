@@ -1,6 +1,6 @@
 # Resultados de pruebas
 
-Generado a partir de los XML de las ejecuciones reales (etapa 10, 10 de noviembre de 2026).
+Generado a partir de los XML de las ejecuciones reales (etapa 11, 10 de noviembre de 2026).
 
 ## Unitarias (JVM): `./gradlew testDebugUnitTest`
 
@@ -23,7 +23,7 @@ Generado a partir de los XML de las ejecuciones reales (etapa 10, 10 de noviembr
 | data.perfil.PerfilTest | 3 | 0 |
 | data.privacidad.MockPrivacidadYArcoTest | 8 | 0 |
 | data.remoto.AuthRemotoTest | 8 | 0 |
-| data.remoto.ClinicoRemotoTest | 11 | 0 |
+| data.remoto.ClinicoRemotoTest | 14 | 0 |
 | data.remoto.PrivacidadArcoRemotoTest | 15 | 0 |
 | data.seguridad.DetectorRootDebugTest | 3 | 0 |
 | data.seguridad.DetectorRootTest | 12 | 0 |
@@ -31,6 +31,7 @@ Generado a partir de los XML de las ejecuciones reales (etapa 10, 10 de noviembr
 | data.SoloLecturaTest | 5 | 0 |
 | ExampleUnitTest | 1 | 0 |
 | ui.arco.ArcoViewModelTest | 9 | 0 |
+| ui.citas.SolicitarCitaViewModelTest | 9 | 0 |
 | ui.components.CargaViewModelTest | 4 | 0 |
 | ui.components.FormatoTest | 2 | 0 |
 | ui.login.LoginViewModelTest | 8 | 0 |
@@ -41,7 +42,7 @@ Generado a partir de los XML de las ejecuciones reales (etapa 10, 10 de noviembr
 | ui.resultados.ResultadoVisorViewModelTest | 5 | 0 |
 | ui.screens.ResumenViewModelTest | 9 | 0 |
 | ui.seguridad.ContadorProteccionTest | 3 | 0 |
-| **Total** | **228** | **0** |
+| **Total** | **240** | **0** |
 
 ## Instrumentadas (teléfono físico): `./gradlew connectedDebugAndroidTest -Pvitae.backend=simulado`
 
@@ -49,12 +50,12 @@ Generado a partir de los XML de las ejecuciones reales (etapa 10, 10 de noviembr
 |---|---|---|
 | data.auth.KeystoreTokenStoreTest | 3 | 0 |
 | ExampleInstrumentedTest | 1 | 0 |
-| ui.AccesibilidadTest | 4 | 0 |
+| ui.AccesibilidadTest | 5 | 0 |
 | ui.ArcoTest | 4 | 0 |
 | ui.AvisoPrevioTest | 3 | 0 |
-| ui.ClinicoTest | 9 | 0 |
+| ui.ClinicoTest | 10 | 0 |
 | ui.HomeTest | 6 | 0 |
 | ui.PrivacidadTest | 6 | 0 |
 | ui.SeguridadTest | 7 | 0 |
 | ui.SinEdicionTest | 1 | 0 |
-| **Total** | **44** | **0** |
+| **Total** | **46** | **0** |

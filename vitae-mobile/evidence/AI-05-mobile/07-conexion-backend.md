@@ -18,6 +18,7 @@ Desde el 10 de noviembre de 2026 la app usa el portal móvil de `vitae-backend` 
 | Aviso de privacidad | Aceptar con una finalidad opcional creó **2 filas** en el backend (aviso y finalidades) con `medio = DIGITAL_MOVIL`, el nombre del perfil como firmante y `MED-001` (médico de la cita) como responsable | OK |
 | Inicio | Nombre real del perfil, próxima cita (13/11/2026 04:00 hora local), 2 recetas activas y última biometría | OK |
 | Citas | 2 citas reales del portal, con su estado (`CONFIRMADA`, `CANCELADA`) | OK |
+| Solicitar cita (etapa 11) | Selector de fecha y de hora en español; el envío creó una cita `PENDIENTE` con la hora local convertida a UTC (09:00 en México, 15:00Z) y los textos opcionales; la lista la muestra tras "Ver mis citas"; una hora que ya pasó se rechaza con un aviso sin llamar al servidor | OK |
 | Recetas | 3 recetas reales con su estado; la lista trae todo lo que muestra el detalle | OK |
 | Resultados | La biometría de texto; el visor muestra el contenido descifrado | OK |
 | Perfil | Nombre, CURP, fecha de nacimiento y seguro "Activo" de `GET /mobile/perfil` | OK |
@@ -33,7 +34,7 @@ Pruebas negativas del portal contra el backend local (sin la app, con `PAC-001`)
 
 ## Qué NO se verificó
 
-- **Render:** responde 401 en `mobile/perfil`, `citas`, `recetas`, `resultados` y `expediente`, así que ya sirve el portal; **no se inició sesión allí** y el flujo no se probó contra producción.
+- **Render:** prueba de solo lectura del 10 de noviembre de 2026 con la cuenta sintética `PAC-001` de la colección Bruno `09-Portal-Movil-QA`: login 200 con rol `PACIENTE`; `perfil`, `citas` (7 filas) y `expediente` 200; `recetas` y `resultados` 200 pero vacíos (su forma no se pudo comparar); 400 sin `X-Client-Version`, 426 con `API-28`, 401 sin token; cierre de sesión 200. La forma de login, perfil y citas coincide con los fixtures. **No se probó la app en el teléfono contra Render ni las altas de consentimiento y ARCO** (escriben en el servidor compartido y se omitieron).
 - **Pines de certificado** del servidor de producción (`API_PINES` sigue vacío; el release se niega a arrancar sin ellos).
 - **OTP y PKCE:** el backend no los tiene; solo existen con datos simulados.
 - **Resultados en PDF o imagen:** el backend los devuelve como texto dentro del JSON; un archivo binario no cabe en ese formato y no se probó.

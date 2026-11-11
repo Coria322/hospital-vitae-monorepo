@@ -37,7 +37,7 @@ La especificación pide que la app nunca envíe `id_paciente`. Entre el 8 y el 1
 | Control | Prueba |
 |---|---|
 | `id_paciente` no aparece en **ningún** archivo de `src/main`, `src/debug` ni `src/release` | `SoloLecturaTest.idPacienteNoApareceEnNingunArchivo` |
-| Las escrituras de Retrofit se limitan a `auth`, `mobile/consentimientos` y `mobile/solicitudes-arco`; recetas, resultados y perfil siguen siendo de solo lectura | `SoloLecturaTest.ningunaEscrituraDeRetrofitSaleDeLaListaBlanca` |
+| Las escrituras de Retrofit se limitan a `auth`, `mobile/citas` (pedir una cita, etapa 11), `mobile/consentimientos` y `mobile/solicitudes-arco`; recetas, resultados y perfil siguen siendo de solo lectura | `SoloLecturaTest.ningunaEscrituraDeRetrofitSaleDeLaListaBlanca` |
 | Las lecturas salen de `/mobile`, salvo el contenido de un resultado (`solicitudes-estudio/{id}/resultados`, decisión 19) | `SoloLecturaTest.lasLecturasSalenDelPortalMovilSalvoElContenidoDeUnResultado` |
 | Una petición real a través de `ApiClient` no lleva `id_paciente` en ruta, query, cabeceras ni cuerpo | `ApiClientTest.respuestaExitosaLlevaBearerYNoEnviaIdPaciente`, `ClinicoRemotoTest.elPerfilSaleDeMobilePerfilSinMandarNingunId` |
 | El consentimiento y la solicitud ARCO no llevan `id_paciente` en el cuerpo | `PrivacidadArcoRemotoTest` |
