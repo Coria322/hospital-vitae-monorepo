@@ -2,64 +2,63 @@ package com.example.vitae_mobile.data.remoto
 
 import com.example.vitae_mobile.core.ApiError
 import com.example.vitae_mobile.core.Resultado
+import com.example.vitae_mobile.core.luego
 import com.example.vitae_mobile.core.mapear
+import com.example.vitae_mobile.data.arco.SolicitudArco
 import com.example.vitae_mobile.data.auth.AuthRepository
 import com.example.vitae_mobile.data.auth.ResultadoLogin
 import com.example.vitae_mobile.data.auth.Sesion
 import com.example.vitae_mobile.data.network.llamar
 import com.example.vitae_mobile.data.network.llamarDatos
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import java.util.concurrent.CopyOnWriteArrayList
 
-/** El paciente cuyos datos se consultan. [expediente] es null si aún no tiene expediente clínico. */
-data class PacienteActivo(val id: String, val expediente: String?, val nombre: String?, val seguroActivo: Boolean?)
+private const val ROL_PACIENTE = "PACIENTE"
 
-/**
- * Gestiona la identidad del paciente autenticado y la sesión activa en el portal móvil (RF-011).
- */
-class SesionBackend(private val api: ApiBackend) {
+data class PacienteActivo(
+    val id: String,
+    val expediente: String? = null,
+    val nombre: String? = null,
+    val seguroActivo: Boolean? = null,
+)
+
+/** Lo que la app recuerda de la sesión del paciente, solo en memoria; se borra al cerrar la sesión. */
+class SesionBackend(private val api: ApiBackend? = null) {
     @Volatile
     var usuarioId: String? = null
 
-    private val _paciente = MutableStateFlow<PacienteActivo?>(null)
-    val paciente: StateFlow<PacienteActivo?> = _paciente
-    val activo: PacienteActivo? get() = _paciente.value
+    @Volatile
+    var activo: PacienteActivo? = null
 
-    fun activarUsuario(id: String, nombre: String? = null) {
-        usuarioId = id
-        if (_paciente.value == null) {
-            _paciente.value = PacienteActivo(id = id, expediente = null, nombre = nombre, seguroActivo = true)
-        }
-    }
+    /** El portal móvil no tiene consulta de solicitudes ARCO: se muestran las enviadas en esta sesión. */
+    val arcoEnviadas = CopyOnWriteArrayList<SolicitudArco>()
 
     fun actualizarActivo(paciente: PacienteActivo) {
-        _paciente.value = paciente
-    }
-
-    suspend fun sincronizarPerfil(): Resultado<PacienteActivo> = llamarDatos { api.mobilePerfil() }.mapear { p ->
-        PacienteActivo(p.idPaciente, null, p.nombreCompleto, p.seguroActivo).also { _paciente.value = it }
-    }
-
-    suspend fun pacientes(): Resultado<List<PacienteDto>> = llamarDatos { api.pacientes() }.mapear { it.data }
-
-    /** Lee el detalle (trae el expediente y el seguro) y deja al paciente como activo. */
-    suspend fun elegir(id: String): Resultado<PacienteActivo> = llamarDatos { api.paciente(id) }.mapear { p ->
-        PacienteActivo(p.id, p.expediente?.id, p.nombre, p.seguroActivo).also { _paciente.value = it }
+        activo = paciente
     }
 
     fun olvidar() {
         usuarioId = null
-        _paciente.value = null
+        activo = null
+        arcoEnviadas.clear()
     }
 }
 
-/** `POST /auth/login`, `/auth/refresh` y `/auth/logout`. */
+/**
+ * `POST /auth/login`, `/auth/refresh` y `/auth/logout`. Sin OTP ni PKCE: el backend actual no los tiene. El portal móvil
+ * es solo para pacientes (RF-002): una cuenta de personal inicia sesión en el servidor, pero la app la rechaza y revoca
+ * su token en el acto.
+ */
 class AuthRemoto(private val api: ApiBackend, private val backend: SesionBackend) : AuthRepository {
     override suspend fun iniciarSesion(correo: String, contrasena: String): Resultado<ResultadoLogin> =
-        llamarDatos { api.login(LoginCuerpo(correo, contrasena)) }.mapear { datos ->
-            backend.usuarioId = datos.usuario.idUsuario
-            backend.activarUsuario(datos.usuario.idUsuario)
-            ResultadoLogin.Autenticado(Sesion(datos.token, datos.token, datos.expiraEn))
+        llamarDatos { api.login(LoginCuerpo(correo, contrasena)) }.luego<LoginDatos, ResultadoLogin> { datos ->
+            if (datos.usuario.rol != null && datos.usuario.rol != ROL_PACIENTE) {
+                llamar { api.cerrarSesion("Bearer ${datos.token}") }
+                Resultado.Fallo(ApiError.SinPermisos)
+            } else {
+                backend.usuarioId = datos.usuario.idUsuario
+                backend.actualizarActivo(PacienteActivo(datos.usuario.idUsuario, null, null, true))
+                Resultado.Exito(ResultadoLogin.Autenticado(Sesion(datos.token, datos.token, datos.expiraEn)))
+            }
         }
 
     override suspend fun verificarOtp(codigo: String): Resultado<Sesion> = Resultado.Fallo(ApiError.Desconocido)
