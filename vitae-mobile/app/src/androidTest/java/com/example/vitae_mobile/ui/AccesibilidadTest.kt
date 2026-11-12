@@ -60,6 +60,18 @@ class AccesibilidadTest : AppTest() {
         assertTrue(pantallasRevisadas.toString(), pantallasRevisadas.size == 7 && pantallasRevisadas.sumOf { it.second } >= 8)
     }
 
+    // PROV-RF-002: el formulario de solicitud de cita (los selectores de fecha y hora son ventanas de Material, aparte).
+    @Test
+    fun laSolicitudDeCitaCumple() {
+        entrar()
+        abrirSeccion(R.string.pantalla_citas)
+        esperar { visible("Atendida") }
+        pulsar(texto(R.string.citas_solicitar))
+        esperar { visible(texto(R.string.solicitar_enviar)) }
+        revisar("Solicitar cita")
+        volverAInicio(veces = 2)
+    }
+
     @Test
     fun avisoPrevioYLoginCumplen() {
         enHiloPrincipal { sesion.expirar() }

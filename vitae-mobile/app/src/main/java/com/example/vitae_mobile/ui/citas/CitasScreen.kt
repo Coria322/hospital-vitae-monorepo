@@ -39,10 +39,11 @@ import com.example.vitae_mobile.ui.seguridad.PantallaSegura
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
-/** Citas del paciente (PROV-RF-002): consulta y agendamiento directo desde el portal. */
+/** PROV-RF-002: fecha, hora y estado de cada cita propia, y un botón que abre la solicitud o agendamiento de una nueva. */
 @Composable
 fun CitasScreen(
     viewModel: CargaViewModel<List<Cita>>,
+    alSolicitar: (() -> Unit)? = null,
     alAgendar: (suspend (fechaHora: String, especialidad: String, motivo: String) -> Resultado<Cita>)? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -62,7 +63,11 @@ fun CitasScreen(
             ) {
                 Encabezado(stringResource(R.string.pantalla_citas))
 
-                if (alAgendar != null) {
+                if (alSolicitar != null) {
+                    Button(onClick = alSolicitar, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                        Text(stringResource(R.string.citas_solicitar))
+                    }
+                } else if (alAgendar != null) {
                     Button(
                         onClick = { mostrarDialogo = true },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),

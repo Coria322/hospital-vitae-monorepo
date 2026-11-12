@@ -1,46 +1,54 @@
-# 7. Conexión de la app a los endpoints normales del backend
+# 7. Conexión de la app al portal móvil del backend
 
-Decisión del Product Owner del 8 de noviembre de 2026: la app no usa `/api/v1/mobile/*` (no existe); se conecta a los endpoints normales de `vitae-backend` (ver PLAN.md, etapa 8 y decisiones 16 y 17).
+Desde el 10 de noviembre de 2026 la app usa el portal móvil de `vitae-backend` (`/api/v1/mobile/…`, Sprint 5 de `dev`, en `main` como v1.0.0) y el login. Antes (8 de noviembre) se conectó a los endpoints de personal porque el portal no existía; esa decisión quedó reemplazada (PLAN.md, etapa 10 y decisión 19).
 
 ## Cómo se probó
 
-- **Backend:** la rama `dev` (Sprint 4) corriendo en el equipo con `php artisan serve` (PHP 8.2.12, SQLite), migraciones y seeders sintéticos. Se añadieron por API datos sintéticos: 3 recetas (una vigente con QR, una dispensada y una sin firmar), 2 solicitudes de estudio (una con resultado de texto y otra pendiente), consentimientos y solicitudes ARCO.
+- **Backend:** la rama `dev` (commit `2248de8`) corriendo en el equipo con `php artisan serve` (PHP 8.2.12, SQLite), con las migraciones del Sprint 5 aplicadas y los seeders sintéticos (`PAC-001`, `PAC-002` y sus citas, recetas y resultados).
 - **App:** compilación de debug con el backend real (por omisión) en un Xiaomi M2007J20CG con Android 12, usando `adb reverse tcp:8080 tcp:8080` y `-Pvitae.apiUrl=http://localhost:8080/api/v1/`.
 - **Acciones con las que se manejó el teléfono:** entradas de texto y toques por `adb`, leyendo la pantalla con `uiautomator`. Las credenciales son las del seeder del repositorio (usuarios sintéticos del backend local).
+- **Contrato:** las respuestas guardadas como fixtures (`app/src/test/resources/backend/mobile-*.json`) son capturas reales del backend local con datos sintéticos; el token se sustituyó por un valor de prueba.
 
 ## Resultado, pantalla por pantalla
 
 | Pantalla | Qué se comprobó | Resultado |
 |---|---|---|
-| Aviso previo → Login | El campo dice "Usuario" (modo backend real) | OK |
-| Login | `POST /auth/login` con el usuario `MED-001`; sesión de 15 min | OK |
-| Elegir paciente | `GET /pacientes` muestra los 3 pacientes sintéticos (el de urgencias, por su folio) | OK |
-| Aviso de privacidad | Estado leído de `GET /consentimientos`; aceptar con una finalidad opcional creó **2 filas** en el backend (aviso y finalidades) con `medio = APP_MOVIL` y el responsable que inició sesión | OK |
-| Inicio | Nombre del Patient FHIR real, 2 recetas activas, última biometría; el aviso de privacidad ya aceptado se salta solo | OK |
-| Citas | "Esta sección aún no está disponible en el servidor." sin botón de reintento (no hay endpoint de agenda) | OK |
-| Recetas | 3 recetas reales con su estado; el detalle de la vigente muestra el QR y el de la dispensada "Código QR no válido" | OK |
-| Resultados | Solo aparece la solicitud con resultado; el visor muestra el texto descifrado del backend | OK |
-| Perfil | Nombre, CURP y fecha de nacimiento del Patient FHIR y el seguro "Activo" del detalle del paciente | OK |
-| ARCO | Se creó una solicitud de "Oposición"; el backend la guardó con folio y `acreditacion_identidad = true`; la lista muestra la anterior | OK |
-| Privacidad | Revocar la finalidad opcional creó una fila `REVOCADO` enlazada a la original | OK |
+| Login | `POST /auth/login` con `PAC-001`; sesión de 15 min; sin pantalla de elegir paciente | OK |
+| Login con personal | `MED-001` inicia sesión en el servidor, pero la app muestra "Acceso no disponible" y revoca el token | OK |
+| Aviso de privacidad | Aceptar con una finalidad opcional creó **2 filas** en el backend (aviso y finalidades) con `medio = DIGITAL_MOVIL`, el nombre del perfil como firmante y `MED-001` (médico de la cita) como responsable | OK |
+| Inicio | Nombre real del perfil, próxima cita (13/11/2026 04:00 hora local), 2 recetas activas y última biometría | OK |
+| Citas | 2 citas reales del portal, con su estado (`CONFIRMADA`, `CANCELADA`) | OK |
+| Solicitar cita (etapa 11) | Selector de fecha y de hora en español; el envío creó una cita `PENDIENTE` con la hora local convertida a UTC (09:00 en México, 15:00Z) y los textos opcionales; la lista la muestra tras "Ver mis citas"; una hora que ya pasó se rechaza con un aviso sin llamar al servidor | OK |
+| Recetas | 3 recetas reales con su estado; la lista trae todo lo que muestra el detalle | OK |
+| Resultados | La biometría de texto; el visor muestra el contenido descifrado | OK |
+| Perfil | Nombre, CURP, fecha de nacimiento y seguro "Activo" de `GET /mobile/perfil` | OK |
+| ARCO | Una solicitud de "Rectificación" creó la fila `RECTIFICACION` con folio y plazos que la app mostró | OK |
+| Privacidad | Aceptar la finalidad opcional desde Inicio creó la fila `FINALIDADES_SECUNDARIAS` | OK |
 
-Sin caídas (`FATAL EXCEPTION`: 0). La misma ruta se repitió con la compilación minificada por R8 (`-Pvitae.minificarDebug=true`): login, elección de paciente, Inicio y Recetas sin excepciones de clases ni de serialización.
+Pruebas negativas del portal contra el backend local (sin la app, con `PAC-001`): sin `X-Client-Version` responde 400 (`CLIENT_VERSION_REQUIRED`); con `API-28`, 426 (`UPGRADE_REQUIRED`); con el `id_paciente` de otro, 403 (`IDOR_VIOLATION_DETECTED`); un token de personal, 403 (`FORBIDDEN_ROLE`); `POST /mobile/recetas`, 403 (`CLINICAL_WRITE_FORBIDDEN`); sin token, 401; un derecho ARCO en minúsculas, 422.
 
 ## Pruebas automáticas
 
-- 36 pruebas unitarias nuevas (227 en total, todas en verde): 30 en `data/remoto` sobre **13 respuestas reales del backend** guardadas como fixtures (sin tokens), 4 de `PacienteViewModel` y 2 del resumen de Inicio.
-- Las 44 instrumentadas siguen en verde con `-Pvitae.backend=simulado` (exigido por `AppTest`, que falla con un mensaje claro si se corre contra el backend real).
-- `SoloLecturaTest` limita `id_paciente` a un archivo y las escrituras a `auth`, `consentimientos` y `solicitudes-arco`.
+- 228 pruebas unitarias en verde. Las de `data/remoto` usan las respuestas reales guardadas como fixtures: login de paciente y de personal, perfil, citas, recetas, resultados, consentimiento y ARCO. `SoloLecturaTest` exige que `id_paciente` no aparezca en ningún archivo, que las escrituras se limiten a `auth`, `mobile/consentimientos` y `mobile/solicitudes-arco`, y que la única lectura fuera de `/mobile` sea el contenido de un resultado.
+- Las instrumentadas siguen con `-Pvitae.backend=simulado` (exigido por `AppTest`, que falla con un mensaje claro si se corre contra el backend real).
 
 ## Qué NO se verificó
 
-- **Producción:** el servidor de Render (`auditoria-backend-u47a.onrender.com`) **no tiene** FHIR, recetas, consentimientos, ARCO ni laboratorio: sus rutas responden 404. Corre lo de `main`, hasta el Sprint 3. El release no puede funcionar allí hasta que se despliegue `dev`.
+- **Render:** prueba de solo lectura del 10 de noviembre de 2026 con la cuenta sintética `PAC-001` de la colección Bruno `09-Portal-Movil-QA`: login 200 con rol `PACIENTE`; `perfil`, `citas` (7 filas) y `expediente` 200; `recetas` y `resultados` 200 pero vacíos (su forma no se pudo comparar); 400 sin `X-Client-Version`, 426 con `API-28`, 401 sin token; cierre de sesión 200. La forma de login, perfil y citas coincide con los fixtures. **No se probó la app en el teléfono contra Render ni las altas de consentimiento y ARCO** (escriben en el servidor compartido y se omitieron).
 - **Pines de certificado** del servidor de producción (`API_PINES` sigue vacío; el release se niega a arrancar sin ellos).
-- **OTP y PKCE:** el backend actual no los tiene; solo existen con datos simulados.
-- **Recetas y resultados de otro médico:** el backend solo entrega el expediente al médico dueño o con acceso de emergencia; con otro usuario la app mostrará "sin permiso" (probado en unitarias con un 403 simulado, no en el teléfono).
+- **OTP y PKCE:** el backend no los tiene; solo existen con datos simulados.
 - **Resultados en PDF o imagen:** el backend los devuelve como texto dentro del JSON; un archivo binario no cabe en ese formato y no se probó.
-- **Pantalla "Elegir paciente"** con TalkBack y con una prueba instrumentada propia: las instrumentadas corren con datos simulados, donde esa pantalla no existe.
+- **Paciente sin citas ni recetas:** no puede registrar el aviso (el servidor exige un médico responsable y la app no tiene a quién nombrar); se cubre en unitarias, no en el teléfono.
+- **Revocar finalidades, consultar solicitudes ARCO anteriores y actualizar su estado:** el portal no tiene esos endpoints; la app lo dice como "no disponible" y se probó en unitarias.
 
-## Hallazgo de seguridad del backend
+## Hallazgos de seguridad del backend
 
-Las rutas `GET /api/v1/fhir/Patient/{id}`, `Encounter`, `Observation` y `MedicationRequest` de `dev` **no exigen token**: `Patient` responde 200 con nombre, CURP, fecha de nacimiento y domicilio al consultarlo por id **o por CURP** sin autenticar (confirmado en el backend local; `pacientes` y `recetas` sin token sí dan 401). No están en producción. Hay que ponerlas detrás de `auth:sanctum` antes de desplegar el Sprint 4. No se tocó: está fuera de `vitae-mobile/`.
+Confirmados en el backend local con el token de `PAC-001` (paciente) y datos sintéticos; no se corrigen desde la app.
+
+| Hallazgo | Evidencia |
+|---|---|
+| El aislamiento solo cubre `/mobile`: un paciente lee a otros fuera de ese prefijo | `GET /pacientes` (lista de todos), `GET /pacientes/{otro}`, `GET /recetas/{id}` y `GET /solicitudes-estudio/{id}/resultados` responden 200 |
+| Consentimientos y ARCO se consultan por `id_paciente` sin comprobar el dueño | `GET /consentimientos?id_paciente=…` y `GET /solicitudes-arco?id_paciente=…` responden 200 |
+| Las rutas FHIR no exigen token | `GET /fhir/Patient/{id}` responde 200 sin `Authorization` (confirmado en local; en Render, `fhir/Patient/x` responde 500 en lugar de 404) |
+| El portal expone una ruta interna | `GET /mobile/resultados` incluye `archivo_cifrado_ref` (p. ej. `laboratorio/….enc`) |
+| El consentimiento exige un médico | `POST /mobile/consentimientos` pide `medico_responsable_id` existente: un paciente sin médico no puede aceptar el aviso |

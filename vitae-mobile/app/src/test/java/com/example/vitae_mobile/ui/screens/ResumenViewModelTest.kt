@@ -39,6 +39,8 @@ class ResumenViewModelTest {
 
     private class Citas(var respuesta: Resultado<List<Cita>>) : CitasRepository {
         override suspend fun citas() = respuesta
+
+        override suspend fun solicitar(fechaHora: Instant, especialidad: String?, motivo: String?): Resultado<Cita> = Resultado.Fallo(ApiError.Desconocido)
     }
 
     private class Recetas(var respuesta: Resultado<List<Receta>>) : RecetasRepository {

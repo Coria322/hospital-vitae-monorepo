@@ -9,31 +9,44 @@ import java.time.LocalDate
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Consentimientos y ARCO contra los endpoints normales del backend. */
+/** Lo que el dispositivo recuerda, en memoria para las pruebas. */
+private class MemoriaFalsa : MemoriaConsentimientos {
+    var aviso: String? = null
+    var finalidades: Set<String> = emptySet()
+
+    override fun avisoAceptado(usuario: String) = aviso
+
+    override fun finalidadesAceptadas(usuario: String) = finalidades
+
+    override fun guardar(usuario: String, aviso: String?, finalidades: Set<String>) {
+        this.aviso = aviso
+        this.finalidades = finalidades
+    }
+}
+
+/** Consentimientos y ARCO contra el portal móvil del backend (`POST /mobile/consentimientos` y `/mobile/solicitudes-arco`). */
 class PrivacidadArcoRemotoTest : BackendTest() {
-    private val privacidad get() = PrivacidadRemoto(api, backend, "Texto del aviso")
+    private val memoria = MemoriaFalsa()
+    private val privacidad get() = PrivacidadRemoto(api, backend, memoria, "Texto del aviso")
+    private val arco get() = ArcoRemoto(api, backend)
 
-    private fun fila(id: String, tipo: String, finalidades: String, estado: String = "OTORGADO", original: String? = null) =
-        """{"id_consentimiento":"$id","tipo":"$tipo","version_documento":"1.0","finalidades":"$finalidades","estado":"$estado",""" +
-            """"id_consentimiento_original":${original?.let { "\"$it\"" }},"fecha_hora":"2026-11-08T17:00:00.000000Z"}"""
+    private val sinCitasNiRecetas = """{"status":"success","data":[]}"""
 
-    private fun lista(vararg filas: String) = """{"status":"success","data":[${filas.joinToString(",")}]}"""
+    private fun aceptarAviso(vararg finalidades: String) =
+        SolicitudConsentimiento(TipoConsentimiento.AVISO_PRIVACIDAD, "1.0", finalidades.toList(), AccionConsentimiento.ACEPTAR)
 
-    private suspend fun entrarComoMedico() {
-        responder(fixture("auth-login"))
-        exito(AuthRemoto(api, backend).iniciarSesion("MED-001", "x"))
-        servidor.takeRequest()
-        elegirPacienteAlfa()
+    // Quién firma y quién es el médico responsable salen del perfil y de la cita más reciente.
+    private fun prepararFirma() {
+        responder(fixture("mobile-perfil"))
+        responder(fixture("mobile-citas"))
     }
 
     @Test
-    fun sinConsentimientosElAvisoNoEstaAceptado() = runTest {
-        elegirPacienteAlfa()
-        responder(lista())
-
+    fun sinNadaRecordadoElAvisoNoEstaAceptadoYNoSePreguntaAlServidor() = runTest {
         val aviso = exito(privacidad.aviso())
 
         assertFalse(aviso.aceptada)
@@ -41,20 +54,14 @@ class PrivacidadArcoRemotoTest : BackendTest() {
         assertEquals("Texto del aviso", aviso.textoSimplificado)
         assertEquals(listOf("RECORDATORIOS", "ESTADISTICA"), aviso.finalidadesSecundarias.map { it.codigo })
         assertTrue(aviso.finalidadesSecundarias.none { it.aceptada })
-        val p = peticion()
-        assertEquals("/api/v1/consentimientos", p.url.encodedPath)
-        assertEquals(ID_ALFA, p.url.queryParameter("id_paciente"))
+        // El portal móvil no tiene consulta de consentimientos.
+        assertEquals(0, servidor.requestCount)
     }
 
     @Test
-    fun elAvisoOtorgadoYSusFinalidadesSeLeenDeLaLista() = runTest {
-        elegirPacienteAlfa()
-        responder(
-            lista(
-                fila("c1", "AVISO_PRIVACIDAD", "Aviso de privacidad simplificado v1.0"),
-                fila("c2", "FINALIDADES_SECUNDARIAS", "Finalidades opcionales | SECUNDARIAS: ESTADISTICA"),
-            ),
-        )
+    fun elAvisoYLasFinalidadesAceptadasSeLeenDeLaMemoriaDelDispositivo() = runTest {
+        memoria.aviso = "1.0"
+        memoria.finalidades = setOf("ESTADISTICA")
 
         val aviso = exito(privacidad.aviso())
 
@@ -62,136 +69,167 @@ class PrivacidadArcoRemotoTest : BackendTest() {
         assertEquals(listOf(false, true), aviso.finalidadesSecundarias.map { it.aceptada })
     }
 
-    // La lista real del backend: una fila OTORGADA y otra REVOCADO que apunta a ella. Revocado = no aceptado.
     @Test
-    fun unAvisoRevocadoNoCuentaComoAceptado() = runTest {
-        elegirPacienteAlfa()
-        responder(fixture("consentimientos-lista"))
-
+    fun unaVersionAnteriorDelAvisoNoCuentaComoAceptada() = runTest {
+        memoria.aviso = "0.9"
         assertFalse(exito(privacidad.aviso()).aceptada)
     }
 
-    private val consentimientoCreado = """{"status":"success","data":${fila("nuevo", "AVISO_PRIVACIDAD", "x")}}"""
-
     @Test
-    fun aceptarConFinalidadesEnvia_elAviso_yLasFinalidadesAparte() = runTest {
-        entrarComoMedico()
-        responder(consentimientoCreado, 201)
-        responder(consentimientoCreado, 201)
-
-        val r = exito(privacidad.registrar(SolicitudConsentimiento(TipoConsentimiento.AVISO_PRIVACIDAD, "1.0", listOf("ESTADISTICA", "RECORDATORIOS"), AccionConsentimiento.ACEPTAR)))
-
-        assertEquals("nuevo", r.id)
-        assertEquals(2, servidor.requestCount - 2) // descontando el login y la elección del paciente
-        val primera = peticion().body!!.utf8()
-        val segunda = peticion().body!!.utf8()
-        assertTrue(primera, """"tipo":"AVISO_PRIVACIDAD"""" in primera)
-        assertTrue(primera, """"id_paciente":"$ID_ALFA"""" in primera)
-        // Quien registra es el usuario que inició sesión; el firmante es el paciente.
-        assertTrue(primera, """"medico_responsable_id":"MED-001"""" in primera)
-        assertTrue(primera, """"firmante_nombre":"Paciente Sintético Alfa"""" in primera)
-        assertTrue(primera, """"medio":"APP_MOVIL"""" in primera)
-        assertTrue(primera, """"finalidades":"Aviso de privacidad simplificado v1.0"""" in primera)
-        assertTrue(segunda, """"tipo":"FINALIDADES_SECUNDARIAS"""" in segunda)
-        assertTrue(segunda, "SECUNDARIAS: ESTADISTICA,RECORDATORIOS" in segunda)
+    fun sinSesionNoHayAvisoNiRegistro() = runTest {
+        backend.usuarioId = null
+        assertEquals(ApiError.SesionInvalida, error(privacidad.aviso()))
+        assertEquals(ApiError.SesionInvalida, error(privacidad.registrar(aceptarAviso())))
     }
 
     @Test
-    fun aceptarSinFinalidadesEnviaSoloElAviso() = runTest {
-        entrarComoMedico()
-        responder(consentimientoCreado, 201)
+    fun aceptarElAvisoManda_unPost_conFirmanteYMedicoResponsableSinIdPaciente() = runTest {
+        prepararFirma()
+        responder(fixture("mobile-consentimiento"), 201)
 
-        exito(privacidad.registrar(SolicitudConsentimiento(TipoConsentimiento.AVISO_PRIVACIDAD, "1.0", emptyList(), AccionConsentimiento.ACEPTAR)))
+        val consentimiento = exito(privacidad.registrar(aceptarAviso()))
 
-        assertEquals(1, servidor.requestCount - 2)
+        assertEquals("01a1c2ef-fe85-7033-8292-29f83006239f", consentimiento.id)
+        assertEquals("/api/v1/mobile/perfil", peticion().url.encodedPath)
+        assertEquals("/api/v1/mobile/citas", peticion().url.encodedPath)
+        val p = peticion()
+        assertEquals("POST", p.method)
+        assertEquals("/api/v1/mobile/consentimientos", p.url.encodedPath)
+        assertEquals(
+            """{"tipo":"AVISO_PRIVACIDAD","finalidades":"Aviso de privacidad simplificado v1.0","firmante_nombre":"Paciente Sintético Alfa","medico_responsable_id":"MED-001"}""",
+            p.body?.utf8(),
+        )
+        assertEquals("1.0", memoria.aviso)
+        assertEquals(emptySet<String>(), memoria.finalidades)
     }
 
     @Test
-    fun revocarUnaFinalidadRevocaLaFilaYVuelveAOtorgarLasQueSobran() = runTest {
-        entrarComoMedico()
-        responder(lista(fila("aviso", "AVISO_PRIVACIDAD", "Aviso"), fila("sec", "FINALIDADES_SECUNDARIAS", "Finalidades opcionales | SECUNDARIAS: ESTADISTICA,RECORDATORIOS")))
-        responder(consentimientoCreado, 201) // la revocación
-        responder(consentimientoCreado, 201) // se vuelve a otorgar ESTADISTICA
+    fun aceptarConFinalidadesOpcionalesCreaUnaSegundaFilaYLasRecuerda() = runTest {
+        prepararFirma()
+        responder(fixture("mobile-consentimiento"), 201)
+        responder(fixture("mobile-consentimiento"), 201)
 
-        exito(privacidad.registrar(SolicitudConsentimiento(TipoConsentimiento.FINALIDADES_SECUNDARIAS, "1.0", listOf("RECORDATORIOS"), AccionConsentimiento.REVOCAR)))
+        exito(privacidad.registrar(aceptarAviso("RECORDATORIOS", "ESTADISTICA")))
 
-        assertEquals("GET", peticion().method)
-        val revocacion = peticion()
-        assertEquals("/api/v1/consentimientos/sec/revocaciones", revocacion.url.encodedPath)
-        assertTrue(revocacion.body!!.utf8().contains("motivo_revocacion"))
-        val otorgada = peticion().body!!.utf8()
-        assertTrue(otorgada, """"tipo":"FINALIDADES_SECUNDARIAS"""" in otorgada)
-        assertTrue(otorgada, "SECUNDARIAS: ESTADISTICA\"" in otorgada)
+        repeat(2) { peticion() } // perfil y citas
+        assertTrue(peticion().body!!.utf8().contains(""""tipo":"AVISO_PRIVACIDAD""""))
+        val secundarias = peticion().body!!.utf8()
+        assertTrue(secundarias, secundarias.contains(""""tipo":"FINALIDADES_SECUNDARIAS""""))
+        assertTrue(secundarias, secundarias.contains("Finalidades opcionales | SECUNDARIAS: ESTADISTICA,RECORDATORIOS"))
+        assertEquals(setOf("RECORDATORIOS", "ESTADISTICA"), memoria.finalidades)
     }
 
     @Test
-    fun revocarLoQueNoEstaOtorgadoNoMandaNada() = runTest {
-        entrarComoMedico()
-        responder(lista())
+    fun aceptarSoloFinalidadesNoTocaElAviso() = runTest {
+        memoria.aviso = "1.0"
+        prepararFirma()
+        responder(fixture("mobile-consentimiento"), 201)
 
-        exito(privacidad.registrar(SolicitudConsentimiento(TipoConsentimiento.FINALIDADES_SECUNDARIAS, "1.0", listOf("ESTADISTICA"), AccionConsentimiento.REVOCAR)))
+        exito(privacidad.registrar(SolicitudConsentimiento(TipoConsentimiento.FINALIDADES_SECUNDARIAS, "1.0", listOf("ESTADISTICA"), AccionConsentimiento.ACEPTAR)))
 
-        assertEquals(1, servidor.requestCount - 2) // solo la consulta de la lista
+        assertEquals("1.0", memoria.aviso)
+        assertEquals(setOf("ESTADISTICA"), memoria.finalidades)
+        assertEquals(3, servidor.requestCount)
     }
 
     @Test
-    fun sinPacienteElegidoNoSePuedeConsultarNiRegistrar() = runTest {
-        assertEquals(ApiError.Desconocido, error(privacidad.aviso()))
-        assertEquals(ApiError.Desconocido, error(privacidad.registrar(SolicitudConsentimiento(TipoConsentimiento.AVISO_PRIVACIDAD, "1.0", emptyList(), AccionConsentimiento.ACEPTAR))))
+    fun sinCitasElMedicoResponsableSaleDeLaPrimeraReceta() = runTest {
+        responder(fixture("mobile-perfil"))
+        responder(sinCitasNiRecetas)
+        responder(fixture("mobile-recetas"))
+        responder(fixture("mobile-consentimiento"), 201)
+
+        exito(privacidad.registrar(aceptarAviso()))
+
+        repeat(3) { peticion() }
+        assertTrue(peticion().body!!.utf8().contains(""""medico_responsable_id":"MED-001""""))
+    }
+
+    // El servidor exige un médico responsable existente: sin cita ni receta no hay a quién nombrar y nada se registra.
+    @Test
+    fun sinCitasNiRecetasNoSePuedeRegistrar() = runTest {
+        responder(fixture("mobile-perfil"))
+        responder(sinCitasNiRecetas)
+        responder(sinCitasNiRecetas)
+
+        assertEquals(ApiError.NoDisponible, error(privacidad.registrar(aceptarAviso())))
+
+        assertEquals("solo se leyeron el perfil, las citas y las recetas", 3, servidor.requestCount)
+        assertNull(memoria.aviso)
     }
 
     @Test
-    fun crearUnaSolicitudArcoEnviaElDerechoYLaAcreditacion() = runTest {
-        elegirPacienteAlfa()
-        responder("""{"status":"success","data":${JSON_ARCO}}""", 201)
+    fun siElServidorRechazaElRegistroNoSeRecuerdaNada() = runTest {
+        prepararFirma()
+        responder("""{"message":"The finalidades field must be at least 10 characters."}""", 422)
 
-        val solicitud = exito(ArcoRemoto(api, backend).crear(DerechoArco.Acceso))
+        assertEquals(ApiError.Desconocido, error(privacidad.registrar(aceptarAviso())))
 
-        assertEquals("ARCO-20261108-JTQX", solicitud.folio)
+        assertNull(memoria.aviso)
+    }
+
+    // El portal móvil no tiene revocación: no se simula ni se escribe nada.
+    @Test
+    fun revocarNoEstaDisponible() = runTest {
+        memoria.finalidades = setOf("ESTADISTICA")
+        val revocar = SolicitudConsentimiento(TipoConsentimiento.FINALIDADES_SECUNDARIAS, "1.0", listOf("ESTADISTICA"), AccionConsentimiento.REVOCAR)
+
+        assertEquals(ApiError.NoDisponible, error(privacidad.registrar(revocar)))
+
+        assertEquals(0, servidor.requestCount)
+        assertEquals(setOf("ESTADISTICA"), memoria.finalidades)
+    }
+
+    @Test
+    fun crearUnaSolicitudArcoManda_derechoYDescripcion_yLaRecuerdaEnLaSesion() = runTest {
+        responder(fixture("mobile-arco"), 201)
+
+        val solicitud = exito(arco.crear(DerechoArco.Acceso))
+
+        assertEquals("ARCO-MOV-7236876A", solicitud.folio)
         assertEquals(DerechoArco.Acceso, solicitud.derecho)
-        assertEquals(LocalDate.of(2026, 11, 8), solicitud.fechaRecepcion)
-        assertEquals(LocalDate.of(2026, 12, 4), solicitud.respuestaLimite)
-        assertEquals(LocalDate.of(2026, 12, 25), solicitud.ejecucionLimite)
+        assertEquals(LocalDate.of(2026, 11, 10), solicitud.fechaRecepcion)
+        assertEquals(LocalDate.of(2026, 12, 8), solicitud.respuestaLimite)
+        assertEquals(LocalDate.of(2026, 12, 29), solicitud.ejecucionLimite)
         assertEquals("RECIBIDA", solicitud.estado)
         val p = peticion()
         assertEquals("POST", p.method)
-        assertEquals("/api/v1/solicitudes-arco", p.url.encodedPath)
-        assertEquals("""{"id_paciente":"$ID_ALFA","derecho":"ACCESO","acreditacion_identidad":true}""", p.body?.utf8())
+        assertEquals("/api/v1/mobile/solicitudes-arco", p.url.encodedPath)
+        val cuerpo = p.body!!.utf8()
+        assertTrue(cuerpo, cuerpo.startsWith("""{"derecho":"ACCESO","descripcion_peticion":"""))
+        assertFalse("sin id_paciente ni acreditación: el portal móvil no los pide", cuerpo.contains("id_paciente") || cuerpo.contains("acreditacion"))
+        assertEquals(listOf(solicitud), exito(arco.solicitudes()))
+        assertEquals(solicitud, exito(arco.consultar("ARCO-MOV-7236876A")))
     }
 
+    // El servidor pide al menos 15 caracteres de descripción y solo acepta el derecho en mayúsculas.
     @Test
-    fun cadaDerechoViajaConElNombreDelBackend() = runTest {
-        elegirPacienteAlfa()
+    fun todosLosDerechosViajanEnMayusculasConUnaDescripcionSuficiente() = runTest {
         DerechoArco.entries.forEach { derecho ->
-            responder("""{"status":"success","data":${JSON_ARCO.replace("ACCESO", derecho.name.uppercase())}}""", 201)
-            assertEquals(derecho, exito(ArcoRemoto(api, backend).crear(derecho)).derecho)
-            assertTrue(peticion().body!!.utf8().contains(""""derecho":"${derecho.name.uppercase()}""""))
+            responder(fixture("mobile-arco"), 201)
+            exito(arco.crear(derecho))
+            val cuerpo = peticion().body!!.utf8()
+            assertTrue(cuerpo, cuerpo.contains(""""derecho":"${derecho.name.uppercase()}""""))
+            val descripcion = Regex(""""descripcion_peticion":"([^"]*)"""").find(cuerpo)!!.groupValues[1]
+            assertTrue("$derecho: ${descripcion.length}", descripcion.length >= 15)
         }
     }
 
     @Test
-    fun laListaYLaConsultaPorFolioSalenDeLasSolicitudesDelPaciente() = runTest {
-        elegirPacienteAlfa()
-        responder(fixture("arco-lista"))
-        val lista = exito(ArcoRemoto(api, backend).solicitudes())
-        assertEquals(listOf("ARCO-20261108-JTQX"), lista.map { it.folio })
-        assertEquals(ID_ALFA, peticion().url.queryParameter("id_paciente"))
-
-        responder(fixture("arco-lista"))
-        assertEquals("ARCO-20261108-JTQX", exito(ArcoRemoto(api, backend).consultar("ARCO-20261108-JTQX")).folio)
-
-        responder(fixture("arco-lista"))
-        assertEquals(ApiError.Desconocido, error(ArcoRemoto(api, backend).consultar("ARCO-NO-EXISTE")))
+    fun noHayConsultaDeSolicitudesAjenasNiDeFoliosDesconocidos() = runTest {
+        assertEquals(emptyList<Any>(), exito(arco.solicitudes()))
+        assertEquals(ApiError.NoDisponible, error(arco.consultar("ARCO-DESCONOCIDO")))
+        assertEquals(0, servidor.requestCount)
     }
 
     @Test
-    fun unaSolicitudConDatosIlegiblesSeOmite() = runTest {
-        elegirPacienteAlfa()
-        responder("""{"status":"success","data":[{"folio":"A","derecho":"OTRO","fecha_recepcion":"x","respuesta_limite":"x","ejecucion_limite":"x","estado":"RECIBIDA"}]}""")
-        assertEquals(emptyList<Any>(), exito(ArcoRemoto(api, backend).solicitudes()))
-    }
+    fun siElServidorRechazaLaSolicitudNoQuedaNadaEnLaSesion() = runTest {
+        responder("""{"message":"The selected derecho is invalid.","errors":{"derecho":["The selected derecho is invalid."]}}""", 422)
+        assertEquals(ApiError.Desconocido, error(arco.crear(DerechoArco.Oposicion)))
 
-    private companion object {
-        val JSON_ARCO = """{"folio":"ARCO-20261108-JTQX","id_paciente":"fb7d76f1","derecho":"ACCESO","fecha_recepcion":"2026-11-08T00:00:00.000000Z","respuesta_limite":"2026-12-04T00:00:00.000000Z","ejecucion_limite":"2026-12-25T00:00:00.000000Z","estado":"RECIBIDA"}"""
+        responder("""{"status":"error","code":"FORBIDDEN_ROLE"}""", 403)
+        assertEquals(ApiError.SinPermisos, error(arco.crear(DerechoArco.Oposicion)))
+
+        assertEquals(emptyList<Any>(), backend.arcoEnviadas.toList())
     }
 }

@@ -1,5 +1,6 @@
 package com.example.vitae_mobile.ui
 
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -47,6 +48,25 @@ class ClinicoTest : AppTest() {
         prohibidos.forEach { assertFalse("Citas: $it", visible(it)) }
         assertFalse(visible(texto(R.string.abrir))) // las citas no tienen acción por fila
         volverAInicio()
+    }
+
+    // PROV-RF-002: Citas abre la solicitud de una cita nueva; sin fecha y hora no se puede enviar. El resto del flujo (los
+    // selectores de fecha y hora y el envío) lo cubren SolicitarCitaViewModelTest y la prueba en el teléfono con el backend.
+    @Test
+    fun solicitarCitaAbreElFormularioYNoSeEnviaSinFechaYHora() {
+        entrar()
+        abrirSeccion(R.string.pantalla_citas)
+        esperar { visible("Atendida") }
+
+        pulsar(texto(R.string.citas_solicitar))
+        esperar { visible(texto(R.string.solicitar_enviar)) }
+
+        assertTrue(visible(texto(R.string.solicitar_elegir_fecha)))
+        assertTrue(visible(texto(R.string.solicitar_elegir_hora)))
+        assertTrue(visible(texto(R.string.solicitar_especialidad)))
+        assertTrue(visible(texto(R.string.solicitar_motivo)))
+        rule.onNodeWithText(texto(R.string.solicitar_enviar)).assertIsNotEnabled()
+        volverAInicio(veces = 2)
     }
 
     @Test

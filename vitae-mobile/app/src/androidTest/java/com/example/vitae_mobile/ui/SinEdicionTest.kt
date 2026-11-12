@@ -10,6 +10,8 @@ import org.junit.runner.RunWith
  * TASK-M-015 (RF-011): las pantallas de consulta clínica son de solo lectura. Se recorren todas y se cuentan los
  * controles de edición: debe haber 0. Un control de edición es un campo donde se pueda escribir, o algo que se pueda
  * tocar cuyo texto sea una acción de escritura. Privacidad y ARCO no entran: son las escrituras de la lista blanca SUP-002.
+ * Citas solo tiene el botón "Solicitar cita", que abre otra pantalla (PROV-RF-002, decisión 20 del plan); esa pantalla de
+ * solicitud tampoco entra en este recorrido.
  */
 @RunWith(AndroidJUnit4::class)
 class SinEdicionTest : AppTest() {
