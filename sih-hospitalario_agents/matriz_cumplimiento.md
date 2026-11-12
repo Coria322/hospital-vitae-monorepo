@@ -220,4 +220,32 @@
 | **SEC-RBAC-001 (Menor Privilegio)** | Segregación estricta de perfiles asistenciales: MÉDICO (`/medico`), ENFERMERÍA (`/enfermeria`), RECEPCIÓN (`/recepcion`), LABORATORIO (`/laboratorio`) y TI (`/administrador`). | Frontend solo validaba rol para `/administrador`; un médico podía ingresar a `/laboratorio`, `/recepcion` o `/enfermeria` por URL directa. | Implementado `to.meta.roles` en todas las rutas de `vue-router` y guard `beforeEach` con rechazo y redirección inmediata al módulo del perfil autorizado. | ✅ **Cerrada (100%)** |
 | **SEC-RBAC-002 (Backend API)** | Bloqueo de endpoints con middleware de roles (`role:MEDICO`, `role:LABORATORISTA`, etc.) y auto-auditoría de accesos denegados. | Implementado en rutas de API Laravel (`RoleAuthorization.php`). | Se mantiene 100% activo en backend, devolviendo HTTP 403 y registrando `ACCESO_DENEGADO` inmutable en `AUDITORIA_I`. | ✅ **Cerrada (100%)** |
 
+---
+
+## 7. Matriz de Cumplimiento — Parches de Seguridad de Auditoría y Aprovisionamiento Automático (VULN-01 a VULN-05, RF-011)
+*Fecha de Integración a `dev`: 2026-11-10 • Normativas: NOM-024-SSA3-2012, OWASP ASVS L2, ISO/IEC-27001, LFPDPPP.*
+
+| Vulnerabilidad / Req | Descripción Técnica y de Seguridad | Estado Inicial | Estado Actual | Nivel de Cumplimiento |
+| :--- | :--- | :--- | :--- | :---: |
+| **VULN-01** (ISO-27001) | Expiración determinística de tokens Sanctum a 480 minutos (8 horas) para sesiones clínicas y administrativas. | Expiración por defecto nula o no forzada en configuración Sanctum. | Configurado `'expiration' => 480` en `config/sanctum.php`. | ✅ **Cerrada (100%)** |
+| **VULN-02 / VULN-05** (OWASP ASVS L2) | Mitigación de ataques de fuerza bruta y DDoS mediante Rate Limiting en endpoints sensibles (login, hello, auditoría y FHIR). | Endpoints sin límite estricto de peticiones por minuto. | Middleware `throttle:login` (5/min), `throttle:auditoria` (60/min) y límites aplicados en `routes/api.php`. | ✅ **Cerrada (100%)** |
+| **VULN-03** (LFPDPPP / NOM-024) | Restricción horizontal de consulta global de expedientes clínicos (`GET /api/v1/expedientes-clinicos`) únicamente a personal médico y enfermería. | Accesible sin verificación explícita de perfil asistencial calificado. | Restringido exclusivamente a roles `MEDICO` y `ENFERMERO` con auto-auditoría. | ✅ **Cerrada (100%)** |
+| **VULN-04** (ISO-27001) | Endurecimiento RBAC en rutas de prescripción médica y carga de resultados de laboratorio. | Posible acceso cruzado a emisión o alteración de recetas y laboratorios. | Restricción estricta de emisión a `MEDICO` y validación de laboratorio a `LABORATORISTA`. | ✅ **Cerrada (100%)** |
+| **RF-011 / TASK-W-AUDIT-02** | Aprovisionamiento automático de credenciales y cuenta de paciente al momento de su admisión clínica. | Paciente admitido quedaba sin cuenta de usuario asociada, impidiendo acceso al portal. | Servicio `AdmisionService` y `UsuarioService` crean automáticamente la cuenta con rol `PACIENTE` y notificación auditada. | ✅ **Cerrada (100%)** |
+
+---
+
+## 8. Matriz de Cumplimiento — Estado y Sincronización Escalonada de Ramas Remotas
+*Fecha de Evaluación: 2026-11-12 • Entorno: Git Monorepo (GitHub origin)*
+
+| Rama Remota | Commits Ahead vs `main` | Commits Behind vs `main` | Estado de Integración en `dev` | Estado de Conflictos | Acción / Dictamen de Sincronización |
+| :--- | :---: | :---: | :--- | :--- | :--- |
+| **`origin/main`** | 0 | 0 | Base de producción protegida. | N/A | Rama sagrada; sólo recibe integraciones auditadas de `dev`. |
+| **`origin/dev`** | 4 | 10 | Rama activa de integración (al día localmente). | ✅ 0 conflictos con `main` (Merge Tree limpio). | Contiene parches de seguridad (VULN 01-05), portal pacientes y ajustes release. Lista para sincronizar a `main` tras pruebas. |
+| **`origin/feature/mobile-app`** | 5 | 11 | Divergida respecto a `dev` (5 ahead / 5 behind). | ⚠️ **11 conflictos** con `dev` (desarrollo paralelo en `vitae-mobile`). | **Requiere resolución de conflictos manual/consensuada en `dev`** antes de poder pasar a `main`. |
+| **`origin/bugfix/auditoria-ece-flujos`** | 0 | 31 | 100% fusionada en `main` y en `dev`. | ✅ Sin cambios pendientes. | Al día con `main` (rama histórica/obsoleta). |
+| **`origin/feature/sprint-2-auditoria-inalterable`** | 0 | 49 | 100% fusionada en `main` y en `dev`. | ✅ Sin cambios pendientes. | Al día con `main` (rama histórica/obsoleta). |
+
+
+
 
