@@ -18,7 +18,6 @@ import com.example.vitae_mobile.data.resultados.ResultadosRepository
 import java.io.File
 import java.time.Clock
 import java.time.Duration
-import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -29,9 +28,6 @@ private const val RETRASO_MS = 500L
 
 /** Dos citas futuras y una pasada, relativas al reloj para que el resumen de Inicio siempre tenga una "próxima". */
 class MockCitasRepository(private val reloj: Clock = Clock.systemUTC()) : CitasRepository {
-    // Las citas pedidas durante la ejecución, como las guardaría el servidor: quedan PENDIENTE.
-    private val pedidas = mutableListOf<Cita>()
-
     override suspend fun citas(): Resultado<List<Cita>> {
         delay(RETRASO_MS)
         val hoy = reloj.instant().truncatedTo(ChronoUnit.HOURS)
@@ -40,13 +36,8 @@ class MockCitasRepository(private val reloj: Clock = Clock.systemUTC()) : CitasR
                 Cita("cita-001", hoy.plus(Duration.ofDays(3)).plusSeconds(60 * 30), "Programada"),
                 Cita("cita-002", hoy.plus(Duration.ofDays(10)), "Programada"),
                 Cita("cita-003", hoy.minus(Duration.ofDays(20)), "Atendida"),
-            ) + pedidas
+            )
         )
-    }
-
-    override suspend fun solicitar(fechaHora: Instant, especialidad: String?, motivo: String?): Resultado<Cita> {
-        delay(RETRASO_MS)
-        return Resultado.Exito(Cita("cita-pedida-${pedidas.size + 1}", fechaHora, "PENDIENTE").also { pedidas += it })
     }
 }
 

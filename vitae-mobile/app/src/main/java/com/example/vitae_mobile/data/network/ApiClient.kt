@@ -1,6 +1,5 @@
 package com.example.vitae_mobile.data.network
 
-import android.os.Build
 import java.util.concurrent.TimeUnit
 import kotlinx.serialization.json.Json
 import okhttp3.CertificatePinner
@@ -28,16 +27,12 @@ object ApiClient {
         pines: List<String> = emptyList(),
         bloqueado: () -> Boolean = { false },
         alIncompatible: () -> Unit = {},
-        nivelApi: Int = Build.VERSION.SDK_INT,
     ): Retrofit {
         val fijarCertificados = certificatePinner(baseUrl, pines)
         val cliente = OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
-            // Render duerme el servidor tras un rato sin tráfico: la primera petición tarda de 25 s a un minuto en despertarlo
-            // (medido: 24 s). Con 10 s el primer login fallaba como "sin conexión".
-            .readTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
             .addInterceptor(DispositivoInterceptor(bloqueado, alIncompatible))
-            .addInterceptor(VersionInterceptor(nivelApi))
             .addInterceptor(AuthInterceptor(token))
             .addInterceptor(SesionInterceptor(alSesionInvalida))
             .apply { fijarCertificados?.let { certificatePinner(it) } }

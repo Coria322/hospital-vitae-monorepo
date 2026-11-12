@@ -14,8 +14,6 @@ import com.example.vitae_mobile.data.citas.Cita
 import com.example.vitae_mobile.data.recetas.Receta
 import com.example.vitae_mobile.data.resultados.ResultadoEstudio
 import com.example.vitae_mobile.ui.citas.CitasScreen
-import com.example.vitae_mobile.ui.citas.SolicitarCitaScreen
-import com.example.vitae_mobile.ui.citas.SolicitarCitaViewModel
 import com.example.vitae_mobile.ui.components.CargaViewModel
 import com.example.vitae_mobile.ui.recetas.RecetaDetalleScreen
 import com.example.vitae_mobile.ui.recetas.RecetasScreen
@@ -35,28 +33,13 @@ object Destinos {
 
 private val argumentoId = listOf(navArgument(Destinos.ARG_ID) { type = NavType.StringType })
 
-/** Pantallas clínicas: citas (con la solicitud de una nueva), recetas (lista y detalle) y resultados (lista y visor). */
+/** Pantallas de lectura clínica: citas, recetas (lista y detalle) y resultados (lista y visor). */
 fun NavGraphBuilder.clinico(navController: NavHostController, contenedor: AppContainer) {
     composable(Ruta.Citas.ruta) {
         val vm: CargaViewModel<List<Cita>> = viewModel(
             factory = viewModelFactory { initializer { CargaViewModel { contenedor.citasRepository.citas() } } },
         )
-        CitasScreen(
-            vm,
-            alSolicitar = { navController.navigate(Ruta.SolicitarCita.ruta) },
-            alAgendar = { f, e, m -> contenedor.citasRepository.solicitarCita(f, e, m) },
-        )
-    }
-    composable(Ruta.SolicitarCita.ruta) {
-        val vm: SolicitarCitaViewModel = viewModel(
-            factory = viewModelFactory { initializer { SolicitarCitaViewModel(contenedor.citasRepository) } },
-        )
-        SolicitarCitaScreen(
-            vm,
-            // Citas se crea de nuevo para que lea la lista con la cita recién pedida.
-            alVerCitas = { navController.navigate(Ruta.Citas.ruta) { popUpTo(Ruta.Citas.ruta) { inclusive = true } } },
-        )
-    }
+        CitasScreen(vm, alAgendar = { f, e, m -> contenedor.citasRepository.solicitarCita(f, e, m) })
     }
     composable(Ruta.Recetas.ruta) {
         val vm: CargaViewModel<List<Receta>> = viewModel(

@@ -73,6 +73,9 @@ fun InicioScreen(
                     is PerfilUiState.Error -> Unit
                 }
                 Resumen(resumen)
+                BotonSecundario(onClick = alReintentarResumen) {
+                    Text("Sincronizar con servidor")
+                }
                 // El error de reintento va fuera de la tarjeta azul: el rojo no se lee sobre ese azul.
                 if (resumen.hayError) {
                     EstadoError(mensaje = stringResource(R.string.error_carga), alReintentar = alReintentarResumen)

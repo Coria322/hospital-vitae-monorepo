@@ -3,7 +3,6 @@ package com.example.vitae_mobile.data.remoto
 import com.example.vitae_mobile.core.ApiError
 import com.example.vitae_mobile.data.perfil.Perfil
 import com.example.vitae_mobile.data.recetas.EstadoReceta
-import java.time.Instant
 import kotlin.io.path.createTempDirectory
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -12,97 +11,50 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** Perfil, citas, recetas y resultados del portal móvil, con respuestas reales del backend. */
+/** Perfil, citas, recetas y resultados, con respuestas reales del backend. */
 class ClinicoRemotoTest : BackendTest() {
     private val directorio = createTempDirectory("resultados").toFile()
 
     @Test
-    fun elPerfilSaleDeMobilePerfilSinMandarNingunId() = runTest {
-        responder(fixture("mobile-perfil"))
+    fun elPerfilSaleDelPatientFhirYElSeguroDelPaciente() = runTest {
+        elegirPacienteAlfa()
+        responder(fixture("fhir-patient"))
 
-        val perfil = exito(PerfilRemoto(api).perfil())
+        val perfil = exito(PerfilRemoto(api, backend).perfil())
 
+        // El Patient FHIR del backend no trae el seguro: lo aporta el detalle del paciente.
         assertEquals(Perfil("Paciente Sintético Alfa", "SINT900101HDFR01", "1990-01-01", true), perfil)
         val p = peticion()
-        assertEquals("/api/v1/mobile/perfil", p.url.encodedPath)
-        assertNull("la identidad sale del token, no de la URL", p.url.query)
+        assertEquals("/api/v1/fhir/Patient/$ID_ALFA", p.url.encodedPath)
         assertEquals("Bearer TOKEN", p.headers["Authorization"])
     }
 
     @Test
-    fun unPerfilIlegibleOUnErrorFalla() = runTest {
-        responder("""{"status":"success"}""")
-        assertEquals(ApiError.Desconocido, error(PerfilRemoto(api).perfil()))
+    fun elPerfilSinPacienteElegidoOConFhirInvalidoFalla() = runTest {
+        assertEquals(ApiError.Desconocido, error(PerfilRemoto(api, backend).perfil()))
 
-        responder("""{"status":"error","code":"FORBIDDEN_ROLE"}""", 403)
-        assertEquals(ApiError.SinPermisos, error(PerfilRemoto(api).perfil()))
+        elegirPacienteAlfa()
+        responder("""{"resourceType":"OperationOutcome","issue":[]}""")
+        assertEquals(ApiError.Desconocido, error(PerfilRemoto(api, backend).perfil()))
+
+        responder("""{"resourceType":"OperationOutcome"}""", 404)
+        assertEquals(ApiError.Desconocido, error(PerfilRemoto(api, backend).perfil()))
+    }
+
+    // El backend no tiene agenda: las citas no se inventan.
+    @Test
+    fun lasCitasNoEstanDisponibles() = runTest {
+        assertEquals(ApiError.NoDisponible, error(CitasRemoto().citas()))
     }
 
     @Test
-    fun lasCitasSalenDeMobileCitas() = runTest {
-        responder(fixture("mobile-citas"))
+    fun lasRecetasSalenDelExpedienteConSuEstadoYSuQr() = runTest {
+        elegirPacienteAlfa()
+        responder(fixture("expediente-detalle"))
 
-        val citas = exito(CitasRemoto(api).citas())
+        val recetas = exito(RecetasRemoto(api, backend).recetas())
 
-        assertEquals("/api/v1/mobile/citas", peticion().url.encodedPath)
-        assertEquals(2, citas.size)
-        assertEquals("a0000000-0000-0000-0000-000000000001", citas[0].id)
-        assertEquals("CONFIRMADA", citas[0].estado)
-        assertEquals("2026-11-13T10:00:00Z", citas[0].fechaHora.toString())
-        assertEquals("PENDIENTE", citas[1].estado)
-    }
-
-    // PROV-RF-002 (colección Bruno 07): POST /mobile/citas con la hora en UTC, sin id_paciente, y responde 201 PENDIENTE.
-    @Test
-    fun solicitarUnaCitaManda_fechaEnUtcYTextos_yDevuelveLaCitaPendiente() = runTest {
-        responder(fixture("mobile-cita-creada"), 201)
-
-        val cita = exito(CitasRemoto(api).solicitar(Instant.parse("2026-11-15T00:51:09.123456Z"), "Medicina General", "Prueba de contrato de la app"))
-
-        assertEquals("20eb80f8-d999-465a-bc86-13a83d289b2a", cita.id)
-        assertEquals("PENDIENTE", cita.estado)
-        assertEquals("2026-11-15T00:51:09Z", cita.fechaHora.toString())
-        val p = peticion()
-        assertEquals("POST", p.method)
-        assertEquals("/api/v1/mobile/citas", p.url.encodedPath)
-        // Sin fracciones de segundo ni identificador de paciente.
-        assertEquals("""{"fecha_hora":"2026-11-15T00:51:09Z","especialidad":"Medicina General","motivo":"Prueba de contrato de la app"}""", p.body?.utf8())
-        assertEquals("Bearer TOKEN", p.headers["Authorization"])
-    }
-
-    @Test
-    fun losTextosOpcionalesNulosNoViajan() = runTest {
-        responder(fixture("mobile-cita-creada"), 201)
-        exito(CitasRemoto(api).solicitar(Instant.parse("2026-11-15T10:00:00Z"), null, null))
-        assertEquals("""{"fecha_hora":"2026-11-15T10:00:00Z"}""", peticion().body?.utf8())
-    }
-
-    @Test
-    fun siElServidorRechazaLaCitaElErrorLlegaSinInventarNada() = runTest {
-        val cuando = Instant.parse("2026-11-15T10:00:00Z")
-        responder("""{"message":"The fecha hora field must be a date after now.","errors":{"fecha_hora":["x"]}}""", 422)
-        assertEquals(ApiError.Desconocido, error(CitasRemoto(api).solicitar(cuando, null, null)))
-
-        responder("""{"status":"error","code":"FORBIDDEN_ROLE"}""", 403)
-        assertEquals(ApiError.SinPermisos, error(CitasRemoto(api).solicitar(cuando, null, null)))
-
-        responder("""{"status":"success","data":{"id_cita":"c-9","fecha_hora":"mañana","estado":"PENDIENTE"}}""", 201)
-        assertEquals("una respuesta con fecha ilegible no se inventa", ApiError.Desconocido, error(CitasRemoto(api).solicitar(cuando, null, null)))
-    }
-
-    @Test
-    fun unaCitaConFechaIlegibleSeOmite() = runTest {
-        responder("""{"status":"success","data":[{"id_cita":"c1","fecha_hora":"mañana","estado":"PENDIENTE"},{"id_cita":"c2","fecha_hora":"2026-11-13T10:00:00.000000Z","estado":"PENDIENTE"}]}""")
-        assertEquals(listOf("c2"), exito(CitasRemoto(api).citas()).map { it.id })
-    }
-
-    @Test
-    fun lasRecetasTraenSuEstadoYSuQr() = runTest {
-        responder(fixture("mobile-recetas"))
-
-        val recetas = exito(RecetasRemoto(api).recetas())
-
-        assertEquals("/api/v1/mobile/recetas", peticion().url.encodedPath)
+        assertEquals("/api/v1/expedientes-clinicos/EXP-SINT01", peticion().url.encodedPath)
         assertEquals(3, recetas.size)
         val sinFirmar = recetas.single { it.id == "RC94158974" }
         // Sin firmar: el estado es vigente pero todavía no hay QR.
@@ -122,27 +74,50 @@ class ClinicoRemotoTest : BackendTest() {
         assertFalse("un QR consumido no es válido", surtida.qrVigente)
     }
 
-    // El portal móvil no tiene detalle de receta: la lista ya trae todo y el detalle sale de ella.
     @Test
-    fun elDetalleDeUnaRecetaSaleDeLaLista() = runTest {
-        responder(fixture("mobile-recetas"))
-        assertEquals("Paracetamol 500 mg tabletas", exito(RecetasRemoto(api).receta("RC94158939")).medicamento)
-        assertEquals("/api/v1/mobile/recetas", peticion().url.encodedPath)
+    fun elDetalleDeUnaRecetaUsaGetRecetas() = runTest {
+        responder(fixture("receta-detalle"))
+        val vigente = exito(RecetasRemoto(api, backend).receta("RC94158939"))
+        assertEquals("/api/v1/recetas/RC94158939", peticion().url.encodedPath)
+        assertEquals("Paracetamol 500 mg tabletas", vigente.medicamento)
+        assertTrue(vigente.qrVigente)
 
-        responder(fixture("mobile-recetas"))
-        assertEquals(ApiError.Desconocido, error(RecetasRemoto(api).receta("no-existe")))
+        responder(fixture("receta-detalle-consumida"))
+        val surtida = exito(RecetasRemoto(api, backend).receta("RC94158973"))
+        assertEquals(EstadoReceta.Dispensada, surtida.estado)
+        assertFalse(surtida.qrVigente)
+    }
+
+    // Solo el médico dueño del expediente (o con acceso de emergencia) lo ve: otro usuario recibe 403.
+    @Test
+    fun unExpedienteAjenoDaSinPermisos() = runTest {
+        elegirPacienteAlfa()
+        responder("""{"status":"error","code":"BREAK_THE_GLASS_REQUIRED"}""", 403)
+        assertEquals(ApiError.SinPermisos, error(RecetasRemoto(api, backend).recetas()))
     }
 
     @Test
-    fun losResultadosSalenDeMobileResultados() = runTest {
-        responder(fixture("mobile-resultados"))
+    fun unPacienteSinExpedienteNoTieneRecetasNiResultados() = runTest {
+        responder("""{"status":"success","data":{"id_paciente":"p-1","nombre_completo":"Sin Expediente","expediente":null}}""")
+        exito(backend.elegir("p-1"))
+        servidor.takeRequest()
+        val antes = servidor.requestCount
 
-        val resultados = exito(ResultadosRemoto(api, directorio).resultados())
+        assertEquals(emptyList<Any>(), exito(RecetasRemoto(api, backend).recetas()))
+        assertEquals(emptyList<Any>(), exito(ResultadosRemoto(api, backend, directorio).resultados()))
+        assertEquals("sin expediente no se pregunta nada al servidor", antes, servidor.requestCount)
+    }
 
-        assertEquals("/api/v1/mobile/resultados", peticion().url.encodedPath)
+    @Test
+    fun losResultadosSonLasSolicitudesQueYaTienenResultado() = runTest {
+        elegirPacienteAlfa()
+        responder(fixture("expediente-detalle"))
+
+        val resultados = exito(ResultadosRemoto(api, backend, directorio).resultados())
+
+        // La solicitud pendiente (radiografía) no aparece: aún no hay nada que ver.
         assertEquals(1, resultados.size)
         val biometria = resultados.single()
-        // El id es el de la solicitud de estudio: con él se pide el contenido.
         assertEquals("01a1bc34-d0ad-70c1-9f05-242686ea2472", biometria.id)
         assertEquals("Biometria hematica", biometria.tipoEstudio)
         assertEquals("text/plain", biometria.mime)
@@ -151,29 +126,12 @@ class ClinicoRemotoTest : BackendTest() {
     }
 
     @Test
-    fun unPacienteSinResultadosNiRecetasRecibeListasVacias() = runTest {
-        responder("""{"status":"success","data":[]}""")
-        responder("""{"status":"success","data":[]}""")
-
-        assertEquals(emptyList<Any>(), exito(RecetasRemoto(api).recetas()))
-        assertEquals(emptyList<Any>(), exito(ResultadosRemoto(api, directorio).resultados()))
-    }
-
-    // Un token de personal recibe 403 en todo el portal móvil.
-    @Test
-    fun unTokenDePersonalDaSinPermisos() = runTest {
-        responder("""{"status":"error","code":"FORBIDDEN_ROLE"}""", 403)
-        assertEquals(ApiError.SinPermisos, error(RecetasRemoto(api).recetas()))
-    }
-
-    @Test
     fun elArchivoSeGuardaEnElDirectorioInternoConSuTipo() = runTest {
         responder(fixture("resultado-detalle"))
         var avance = 0f
 
-        val archivo = exito(ResultadosRemoto(api, directorio).archivo("01a1bc34-d0ad-70c1-9f05-242686ea2472") { avance = it })
+        val archivo = exito(ResultadosRemoto(api, backend, directorio).archivo("01a1bc34-d0ad-70c1-9f05-242686ea2472") { avance = it })
 
-        // Única lectura fuera de /mobile (decisión 19): el portal móvil no entrega el contenido.
         assertEquals("/api/v1/solicitudes-estudio/01a1bc34-d0ad-70c1-9f05-242686ea2472/resultados", peticion().url.encodedPath)
         assertEquals("text/plain", archivo.mime)
         assertEquals(directorio, archivo.archivo.parentFile)
@@ -183,10 +141,10 @@ class ClinicoRemotoTest : BackendTest() {
 
     @Test
     fun unResultadoSinContenidoOAjenoFalla() = runTest {
-        responder("""{"status":"success","data":{"resultado":{"mime":"application/pdf"},"contenido_descifrado":null}}""")
-        assertEquals(ApiError.Desconocido, error(ResultadosRemoto(api, directorio).archivo("x") {}))
+        responder("""{"status":"success","data":{"resultado":{"mime":"application/pdf","fecha_hora":"2026-11-08T17:29:00.000000Z"},"contenido_descifrado":null}}""")
+        assertEquals(ApiError.Desconocido, error(ResultadosRemoto(api, backend, directorio).archivo("x") {}))
 
         responder("""{"status":"error"}""", 403)
-        assertEquals(ApiError.SinPermisos, error(ResultadosRemoto(api, directorio).archivo("x") {}))
+        assertEquals(ApiError.SinPermisos, error(ResultadosRemoto(api, backend, directorio).archivo("x") {}))
     }
 }

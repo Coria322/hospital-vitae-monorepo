@@ -6,10 +6,10 @@
     "token_type": "Bearer",
     "expires_in": 900,
     "usuario": {
-      "id_usuario": "PAC-001",
-      "nombre_completo": "Paciente Sintético Alfa",
-      "rol": "PACIENTE",
-      "cedula": null,
+      "id_usuario": "MED-001",
+      "nombre_completo": "Dr. Carlos Rivera",
+      "rol": "MEDICO",
+      "cedula": "1234567890",
       "estado_cuenta": "ACTIVA",
       "debe_cambiar_password": false
     }

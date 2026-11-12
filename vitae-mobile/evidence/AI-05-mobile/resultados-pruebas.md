@@ -1,6 +1,6 @@
 # Resultados de pruebas
 
-Generado a partir de los XML de las ejecuciones reales (etapa 11, 10 de noviembre de 2026).
+Generado con `resumen-pruebas.mjs` a partir de las ejecuciones reales.
 
 ## Unitarias (JVM): `./gradlew testDebugUnitTest`
 
@@ -22,40 +22,40 @@ Generado a partir de los XML de las ejecuciones reales (etapa 11, 10 de noviembr
 | data.perfil.MockPerfilRepositoryTest | 2 | 0 |
 | data.perfil.PerfilTest | 3 | 0 |
 | data.privacidad.MockPrivacidadYArcoTest | 8 | 0 |
-| data.remoto.AuthRemotoTest | 8 | 0 |
-| data.remoto.ClinicoRemotoTest | 14 | 0 |
-| data.remoto.PrivacidadArcoRemotoTest | 15 | 0 |
+| data.remoto.AuthYPacienteRemotoTest | 8 | 0 |
+| data.remoto.ClinicoRemotoTest | 10 | 0 |
+| data.remoto.PrivacidadArcoRemotoTest | 12 | 0 |
 | data.seguridad.DetectorRootDebugTest | 3 | 0 |
 | data.seguridad.DetectorRootTest | 12 | 0 |
 | data.seguridad.GuardiaDispositivoTest | 7 | 0 |
-| data.SoloLecturaTest | 5 | 0 |
+| data.SoloLecturaTest | 4 | 0 |
 | ExampleUnitTest | 1 | 0 |
 | ui.arco.ArcoViewModelTest | 9 | 0 |
-| ui.citas.SolicitarCitaViewModelTest | 9 | 0 |
 | ui.components.CargaViewModelTest | 4 | 0 |
 | ui.components.FormatoTest | 2 | 0 |
 | ui.login.LoginViewModelTest | 8 | 0 |
 | ui.otp.OtpViewModelTest | 5 | 0 |
+| ui.paciente.PacienteViewModelTest | 4 | 0 |
 | ui.perfil.PerfilViewModelTest | 5 | 0 |
 | ui.privacidad.AvisoViewModelTest | 14 | 0 |
 | ui.recetas.QrTest | 6 | 0 |
 | ui.resultados.ResultadoVisorViewModelTest | 5 | 0 |
 | ui.screens.ResumenViewModelTest | 9 | 0 |
 | ui.seguridad.ContadorProteccionTest | 3 | 0 |
-| **Total** | **240** | **0** |
+| **Total** | **227** | **0** |
 
-## Instrumentadas (teléfono físico): `./gradlew connectedDebugAndroidTest -Pvitae.backend=simulado`
+## Instrumentadas (teléfono físico): `am instrument`
 
 | Clase | Pruebas OK | Fallos |
 |---|---|---|
 | data.auth.KeystoreTokenStoreTest | 3 | 0 |
 | ExampleInstrumentedTest | 1 | 0 |
-| ui.AccesibilidadTest | 5 | 0 |
+| ui.AccesibilidadTest | 4 | 0 |
 | ui.ArcoTest | 4 | 0 |
 | ui.AvisoPrevioTest | 3 | 0 |
-| ui.ClinicoTest | 10 | 0 |
+| ui.ClinicoTest | 9 | 0 |
 | ui.HomeTest | 6 | 0 |
 | ui.PrivacidadTest | 6 | 0 |
 | ui.SeguridadTest | 7 | 0 |
 | ui.SinEdicionTest | 1 | 0 |
-| **Total** | **46** | **0** |
+| **Total** | **44** | **0** |

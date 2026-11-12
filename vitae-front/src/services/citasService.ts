@@ -61,10 +61,24 @@ class CitasService {
     this.guardarCitas(citas)
 
     // Sincronización asíncrona con el backend relacional
+    const esIsoDia = /^\d{4}-\d{2}-\d{2}$/.test(cita.dia || '')
+    const diaIso = esIsoDia ? cita.dia : new Date().toISOString().substring(0, 10)
+    const horaNormalizada = cita.hora && /^\d{2}:\d{2}/.test(cita.hora) ? cita.hora.substring(0, 5) : '10:00'
+    let fechaHoraPayload = `${diaIso} ${horaNormalizada}:00`
+    try {
+      const fechaLocal = new Date(`${diaIso}T${horaNormalizada}:00`)
+      if (!isNaN(fechaLocal.getTime())) {
+        fechaHoraPayload = fechaLocal.toISOString()
+      }
+    } catch {
+      // Conservar formato estándar si falla conversión
+    }
+    const idMedicoValido = cita.idMedico && cita.idMedico.startsWith('MED-') ? cita.idMedico : 'MED-001'
+
     api.post('/citas', {
       id_paciente: cita.idPaciente || cita.pacienteCurp,
-      id_usuario: cita.idMedico,
-      fecha_hora: `${cita.dia} ${cita.hora || '10:00'}:00`,
+      id_usuario: idMedicoValido,
+      fecha_hora: fechaHoraPayload,
       especialidad: cita.especialidad || 'Medicina General',
       motivo: `Consulta ${cita.tipoIntervencion}`,
       consultorio: cita.consultorio || 'Cons. 1'

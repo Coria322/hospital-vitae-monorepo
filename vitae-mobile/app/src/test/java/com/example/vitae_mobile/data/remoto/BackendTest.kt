@@ -8,6 +8,7 @@ import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import mockwebserver3.RecordedRequest
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 
 /**
@@ -25,8 +26,8 @@ abstract class BackendTest {
     @Before
     fun iniciarServidor() {
         servidor = MockWebServer().apply { start() }
-        api = ApiClient.crear(servidor.url("/api/v1/").toString(), { token }, {}, nivelApi = NIVEL_API).create(ApiBackend::class.java)
-        backend = SesionBackend().apply { usuarioId = "PAC-001" }
+        api = ApiClient.crear(servidor.url("/api/v1/").toString(), { token }, {}).create(ApiBackend::class.java)
+        backend = SesionBackend(api)
     }
 
     @After
@@ -38,6 +39,13 @@ abstract class BackendTest {
         servidor.enqueue(MockResponse.Builder().code(codigo).body(cuerpo).build())
     }
 
+    /** Elige al paciente sintético Alfa (con expediente EXP-SINT01 y seguro activo) como paciente activo. */
+    protected suspend fun elegirPacienteAlfa() {
+        responder(fixture("paciente-detalle"))
+        assertEquals(true, backend.elegir(ID_ALFA) is Resultado.Exito)
+        servidor.takeRequest() // la petición de elegir no interesa en cada prueba
+    }
+
     protected fun peticion(): RecordedRequest = servidor.takeRequest()
 
     protected fun <T> exito(resultado: Resultado<T>): T = (resultado as? Resultado.Exito)?.valor ?: error("Se esperaba éxito: $resultado")
@@ -45,6 +53,6 @@ abstract class BackendTest {
     protected fun error(resultado: Resultado<*>): ApiError = (resultado as? Resultado.Fallo)?.error ?: error("Se esperaba un fallo: $resultado")
 
     companion object {
-        const val NIVEL_API = 31
+        const val ID_ALFA = "fb7d76f1-3a30-43d2-bea0-8eb350b6dbb7"
     }
 }

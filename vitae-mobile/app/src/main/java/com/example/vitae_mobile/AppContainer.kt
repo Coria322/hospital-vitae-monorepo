@@ -14,7 +14,6 @@ import com.example.vitae_mobile.data.remoto.ArcoRemoto
 import com.example.vitae_mobile.data.remoto.AuthRemoto
 import com.example.vitae_mobile.data.remoto.CitasRemoto
 import com.example.vitae_mobile.data.remoto.PerfilRemoto
-import com.example.vitae_mobile.data.remoto.PreferenciasConsentimientos
 import com.example.vitae_mobile.data.remoto.PrivacidadRemoto
 import com.example.vitae_mobile.data.remoto.RecetasRemoto
 import com.example.vitae_mobile.data.remoto.ResultadosRemoto
@@ -49,9 +48,8 @@ class AppContainer(contexto: Context) {
 
     private val almacen = KeystoreTokenStore(contexto)
 
-    // Con BACKEND_REAL (por omisión; -Pvitae.backend=simulado lo apaga en debug) la app habla con el portal móvil de
-    // vitae-backend (`/api/v1/mobile/…`). Los lambdas leen `sesion` y `dispositivo` al llamar, no al crear el cliente: se
-    // declaran más abajo.
+    // Con BACKEND_REAL (por omisión; -Pvitae.backend=simulado lo apaga en debug) la app habla con los endpoints normales de
+    // vitae-backend. Los lambdas leen `sesion` y `dispositivo` al llamar, no al crear el cliente: se declaran más abajo.
     private val api: ApiBackend by lazy {
         ApiConfig.crearCliente(
             token = { sesion.token() },
@@ -61,8 +59,8 @@ class AppContainer(contexto: Context) {
         ).create(ApiBackend::class.java)
     }
 
-    /** Lo que la app recuerda de la sesión (usuario y solicitudes ARCO enviadas); null con datos simulados. */
-    val backend: SesionBackend? = if (BuildConfig.BACKEND_REAL) SesionBackend() else null
+    /** Quién inició sesión y qué paciente se consulta; null con datos simulados. */
+    val backend: SesionBackend? = if (BuildConfig.BACKEND_REAL) SesionBackend(api) else null
 
     val authRepository: AuthRepository = backend?.let { AuthRemoto(api, it) } ?: crearAuthRepository(almacen::idInstalacion)
     val sesion = SessionManager(almacen, authRepository, alcance)
@@ -77,15 +75,14 @@ class AppContainer(contexto: Context) {
     val perfilRepository: PerfilRepository = backend?.let { PerfilRemoto(api, it) } ?: crearPerfilRepository()
     val citasRepository: CitasRepository = backend?.let { CitasRemoto(api) } ?: crearCitasRepository()
     val recetasRepository: RecetasRepository = backend?.let { RecetasRemoto(api, it) } ?: crearRecetasRepository()
-    val privacidadRepository: PrivacidadRepository = backend?.let {
-        PrivacidadRemoto(api, it, PreferenciasConsentimientos(contexto), contexto.getString(R.string.aviso_previo_texto))
-    } ?: crearPrivacidadRepository()
+    val privacidadRepository: PrivacidadRepository =
+        backend?.let { PrivacidadRemoto(api, it, contexto.getString(R.string.aviso_previo_texto)) } ?: crearPrivacidadRepository()
     val arcoRepository: ArcoRepository = backend?.let { ArcoRemoto(api, it) } ?: crearArcoRepository()
 
     // Los resultados se descargan aquí, en la caché interna; nunca en almacenamiento compartido (RF-010).
     private val directorioResultados = File(contexto.cacheDir, "resultados")
     val resultadosRepository: ResultadosRepository =
-        backend?.let { ResultadosRemoto(api, directorioResultados) } ?: crearResultadosRepository(directorioResultados)
+        backend?.let { ResultadosRemoto(api, it, directorioResultados) } ?: crearResultadosRepository(directorioResultados)
 
     val inactividad = InactivityMonitor(alcance, SystemClock::elapsedRealtime) {
         alcance.launch { sesion.cerrar(MotivoCierre.Inactividad) }
@@ -100,7 +97,7 @@ class AppContainer(contexto: Context) {
                     inactividad.iniciar()
                 } else {
                     inactividad.detener()
-                    backend?.olvidar() // sin sesión no se recuerda ni al usuario ni sus solicitudes
+                    backend?.olvidar() // sin sesión no se recuerda ni al usuario ni al paciente
                     // Sin sesión no debe quedar ningún resultado clínico en disco (también al arrancar: restos de un proceso muerto).
                     withContext(Dispatchers.IO) { directorioResultados.deleteRecursively() }
                 }

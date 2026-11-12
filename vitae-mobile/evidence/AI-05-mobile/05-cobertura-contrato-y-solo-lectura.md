@@ -30,19 +30,17 @@ Medida con JaCoCo integrado en AGP: `./gradlew createDebugUnitTestCoverageReport
 
 **No verificado**: el rechazo `403/405` de `POST/PUT/DELETE` clínicos **del lado del servidor** (TASK-W-080); la app solo garantiza que no los envía.
 
-## `id_paciente` (RF-002.1): se cumple otra vez desde el 10 de noviembre de 2026
+## `id_paciente` (RF-002.1): excepción decidida el 8 de noviembre de 2026
 
-La especificación pide que la app nunca envíe `id_paciente`. Entre el 8 y el 10 de noviembre no se cumplió al pie de la letra, porque la app usaba los endpoints de personal (PLAN.md, decisión 16). Con el portal móvil del Sprint 5 (etapa 10, decisión 19) la identidad sale del token del paciente y la app ya no envía el identificador:
+La especificación pide que la app nunca envíe `id_paciente`. Los endpoints actuales del backend son de personal e identifican al paciente con un id en la ruta o el cuerpo, y el Product Owner decidió conectar la app a ellos (PLAN.md, etapa 8 y decisión 16). **RF-002.1 ya no se cumple al pie de la letra.** Lo que se conserva es el control:
 
 | Control | Prueba |
 |---|---|
-| `id_paciente` no aparece en **ningún** archivo de `src/main`, `src/debug` ni `src/release` | `SoloLecturaTest.idPacienteNoApareceEnNingunArchivo` |
-| Las escrituras de Retrofit se limitan a `auth`, `mobile/citas` (pedir una cita, etapa 11), `mobile/consentimientos` y `mobile/solicitudes-arco`; recetas, resultados y perfil siguen siendo de solo lectura | `SoloLecturaTest.ningunaEscrituraDeRetrofitSaleDeLaListaBlanca` |
-| Las lecturas salen de `/mobile`, salvo el contenido de un resultado (`solicitudes-estudio/{id}/resultados`, decisión 19) | `SoloLecturaTest.lasLecturasSalenDelPortalMovilSalvoElContenidoDeUnResultado` |
-| Una petición real a través de `ApiClient` no lleva `id_paciente` en ruta, query, cabeceras ni cuerpo | `ApiClientTest.respuestaExitosaLlevaBearerYNoEnviaIdPaciente`, `ClinicoRemotoTest.elPerfilSaleDeMobilePerfilSinMandarNingunId` |
-| El consentimiento y la solicitud ARCO no llevan `id_paciente` en el cuerpo | `PrivacidadArcoRemotoTest` |
+| `id_paciente` aparece en **un solo archivo**, `data/remoto/ApiBackend.kt` (el contrato del backend); en cualquier otro, la prueba falla | `SoloLecturaTest.idPacienteSoloApareceEnElContratoDelBackend` |
+| Las escrituras de Retrofit se limitan a `auth`, `consentimientos` y `solicitudes-arco`; recetas, expedientes, estudios y pacientes siguen siendo de solo lectura | `SoloLecturaTest.ningunaEscrituraDeRetrofitSaleDeLaListaBlanca` |
+| Una petición real a través de `ApiClient` no lleva `id_paciente` en ruta, query, cabeceras ni cuerpo (para las llamadas que no lo necesitan) | `ApiClientTest.respuestaExitosaLlevaBearerYNoEnviaIdPaciente` |
 
-**Del lado del servidor**, un `id_paciente` ajeno en `/mobile` responde 403 (`IDOR_VIOLATION_DETECTED`, comprobado a mano contra el backend local). Fuera de `/mobile` el backend sí deja a un paciente leer a otros: ver `07-conexion-backend.md`.
+**Consecuencias aceptadas**: entra personal, no el paciente; la app pide elegir un paciente tras el login; sin OTP ni PKCE.
 
 **No verificado**: la inspección de tráfico con proxy que pide TASK-M-019 (se probó el flujo contra el backend local, pero sin capturar con un proxy).
 
@@ -50,6 +48,6 @@ La especificación pide que la app nunca envíe `id_paciente`. Entre el 8 y el 1
 
 `ContratoFhirTest` lee todo `.json` de `app/src/test/resources/contrato/fhir/`: **7 válidos** (Patient completo y mínimo; MedicationRequest activa, dispensada y cancelada; Bundle con 2 recetas y vacío) deben leerse, y **8 inválidos** (sin `resourceType`, de otro tipo, JSON truncado, tipos erróneos, receta sin `id`, Bundle con una entrada inválida, `OperationOutcome` en lugar de Bundle) deben dar `ApiError.Desconocido` sin lanzar excepciones. Las pruebas `FhirParserTest` (9) y `FhirRecetasTest` (12) cubren los casos de detalle.
 
-Los ejemplos son sintéticos. Además, `app/src/test/resources/backend` guarda **respuestas reales del portal móvil** (login de paciente y de personal, perfil, citas, recetas, resultados, consentimiento, ARCO, renovación y error de login), capturadas del Laravel local de `dev` con datos sintéticos y sin tokens; las pruebas de `data/remoto` las leen. **Desde la etapa 10 el perfil llega como JSON propio (`GET /mobile/perfil`), no como FHIR**: `FhirParser` sigue probado con los ejemplos de arriba, pero la app con el backend real ya no lo usa (RNF-007 queda cubierto solo en el analizador; el portal móvil no entrega FHIR).
+Los ejemplos son sintéticos. Además, `app/src/test/resources/backend` guarda **13 respuestas reales del backend** (login, pacientes, Patient FHIR, expediente, recetas, resultado, consentimientos y ARCO, capturadas del Laravel local de `dev` con datos sintéticos y sin tokens) y los 34 tests de `data/remoto` y `PacienteViewModelTest` las usan: así el contrato que asume la app es el que el backend emite hoy.
 
-**No verificado**: la colección compartida (TASK-W-091) ni Newman contra Staging; no existen. Render ya sirve el portal móvil y los endpoints del Sprint 4 (responden 401 sin token), pero no se probó contra él.
+**No verificado**: la colección compartida (TASK-W-091) ni Newman contra Staging; no existen. El servidor de producción (Render) tampoco tiene todavía FHIR ni los endpoints del Sprint 4.

@@ -15,13 +15,6 @@ data class Cita(
 /** La identidad sale del token: no hay parámetro de paciente (RF-002.1). */
 interface CitasRepository {
     suspend fun citas(): Resultado<List<Cita>>
-
-    /**
-     * `POST /mobile/citas` (PROV-RF-002): el paciente pide una cita propia y queda `PENDIENTE` hasta que recepción la confirme.
-     */
-    suspend fun solicitar(fechaHora: Instant, especialidad: String?, motivo: String?): Resultado<Cita> =
-        solicitarCita(fechaHora.toString(), especialidad, motivo)
-
     suspend fun solicitarCita(fechaHora: String, especialidad: String?, motivo: String?): Resultado<Cita> =
         Resultado.Fallo(com.example.vitae_mobile.core.ApiError.Desconocido)
 }

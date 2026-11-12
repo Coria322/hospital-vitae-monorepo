@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.vitae_mobile.R
 import com.example.vitae_mobile.core.Resultado
 import com.example.vitae_mobile.data.citas.Cita
+import com.example.vitae_mobile.ui.components.BotonSecundario
 import com.example.vitae_mobile.ui.components.Campo
 import com.example.vitae_mobile.ui.components.CargaViewModel
 import com.example.vitae_mobile.ui.components.ContenidoCarga
@@ -38,17 +39,21 @@ import com.example.vitae_mobile.ui.components.formatearHora
 import com.example.vitae_mobile.ui.seguridad.PantallaSegura
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
-/** PROV-RF-002: fecha, hora y estado de cada cita propia, y un botón que abre la solicitud o agendamiento de una nueva. */
+/** Citas del paciente (PROV-RF-002): consulta y agendamiento directo desde el portal. */
 @Composable
 fun CitasScreen(
     viewModel: CargaViewModel<List<Cita>>,
-    alSolicitar: (() -> Unit)? = null,
     alAgendar: (suspend (fechaHora: String, especialidad: String, motivo: String) -> Resultado<Cita>)? = null,
     modifier: Modifier = Modifier,
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     var mostrarDialogo by remember { mutableStateOf(false) }
+    var fechaTexto by remember { mutableStateOf(LocalDate.now().plusDays(1).toString()) }
+    var horaTexto by remember { mutableStateOf("10:00") }
     var especialidad by remember { mutableStateOf("Medicina General") }
     var motivo by remember { mutableStateOf("Consulta de seguimiento") }
     var guardando by remember { mutableStateOf(false) }
@@ -63,11 +68,11 @@ fun CitasScreen(
             ) {
                 Encabezado(stringResource(R.string.pantalla_citas))
 
-                if (alSolicitar != null) {
-                    Button(onClick = alSolicitar, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                        Text(stringResource(R.string.citas_solicitar))
-                    }
-                } else if (alAgendar != null) {
+                BotonSecundario(onClick = viewModel::cargar) {
+                    Text("Sincronizar citas")
+                }
+
+                if (alAgendar != null) {
                     Button(
                         onClick = { mostrarDialogo = true },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
@@ -94,6 +99,20 @@ fun CitasScreen(
             title = { Text("Agendar Cita Médica") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = fechaTexto,
+                        onValueChange = { fechaTexto = it },
+                        label = { Text("Fecha (AAAA-MM-DD)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    OutlinedTextField(
+                        value = horaTexto,
+                        onValueChange = { horaTexto = it },
+                        label = { Text("Hora (HH:MM)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                     OutlinedTextField(
                         value = especialidad,
                         onValueChange = { especialidad = it },
@@ -124,18 +143,24 @@ fun CitasScreen(
                         scope.launch {
                             guardando = true
                             mensajeError = null
-                            val manana = LocalDate.now().plusDays(1).toString() + " 10:00:00"
-                            val res = alAgendar(manana, especialidad, motivo)
+                            val fechaIsoUtc = runCatching {
+                                val f = LocalDate.parse(fechaTexto.trim())
+                                val h = LocalTime.parse(horaTexto.trim())
+                                ZonedDateTime.of(f, h, ZoneId.systemDefault()).toInstant().toString()
+                            }.getOrElse {
+                                LocalDate.now().plusDays(1).toString() + " 16:00:00"
+                            }
+                            val res = alAgendar(fechaIsoUtc, especialidad, motivo)
                             guardando = false
                             if (res is Resultado.Exito) {
                                 mostrarDialogo = false
                                 viewModel.cargar()
                             } else {
-                                mensajeError = "No se pudo agendar la cita. Intente nuevamente."
+                                mensajeError = "No se pudo agendar la cita. Verifique que la fecha sea futura."
                             }
                         }
                     },
-                    enabled = !guardando && especialidad.isNotBlank(),
+                    enabled = !guardando && especialidad.isNotBlank() && fechaTexto.isNotBlank(),
                 ) {
                     Text(if (guardando) "Agendando…" else "Confirmar Cita")
                 }

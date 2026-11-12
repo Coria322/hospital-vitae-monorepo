@@ -4,6 +4,7 @@
     <string name="pantalla_login">Iniciar sesión</string>
     <string name="pantalla_otp">Verificación de dispositivo</string>
     <string name="pantalla_aviso">Aviso de privacidad</string>
+    <string name="pantalla_paciente">Elegir paciente</string>
     <string name="pantalla_inicio">Inicio</string>
     <string name="pantalla_citas">Citas</string>
     <string name="pantalla_recetas">Recetas</string>
@@ -42,24 +43,6 @@
     <string name="cita_fecha">Fecha</string>
     <string name="cita_hora">Hora</string>
     <string name="cita_estado">Estado</string>
-    <string name="citas_solicitar">Solicitar cita</string>
-    <string name="pantalla_solicitar_cita">Solicitar cita</string>
-    <string name="solicitar_ayuda">Elige el día y la hora que prefieres. Recepción revisará tu solicitud y la confirmará.</string>
-    <string name="solicitar_elegir_fecha">Elegir fecha</string>
-    <string name="solicitar_elegir_hora">Elegir hora</string>
-    <string name="solicitar_fecha_elegida">Fecha: %1$s</string>
-    <string name="solicitar_hora_elegida">Hora: %1$s</string>
-    <string name="solicitar_especialidad">Especialidad (opcional)</string>
-    <string name="solicitar_motivo">Motivo de la consulta (opcional)</string>
-    <string name="solicitar_enviar">Enviar solicitud</string>
-    <string name="solicitar_error_pasada">Elige una fecha y una hora posteriores a este momento.</string>
-    <string name="solicitar_error_envio">No se pudo enviar la solicitud. Revisa tu conexión e inténtalo de nuevo.</string>
-    <string name="solicitar_error_permisos">Esta cuenta no puede solicitar citas.</string>
-    <string name="solicitar_enviada">Solicitud enviada</string>
-    <string name="solicitar_enviada_desc">Tu cita quedó pendiente. Recepción la confirmará.</string>
-    <string name="solicitar_ver_citas">Ver mis citas</string>
-    <string name="dialogo_elegir">Elegir</string>
-    <string name="dialogo_cancelar">Cancelar</string>
 
     <string name="recetas_vacio">No tienes recetas.</string>
     <string name="receta_medicamento">Medicamento</string>
@@ -119,6 +102,11 @@
     <string name="arco_plazo_respuesta">Plazo de respuesta</string>
     <string name="arco_plazo_ejecucion">Plazo de ejecución</string>
     <string name="arco_actualizar">Actualizar estado</string>
+
+    <string name="paciente_ayuda">Elige al paciente cuyos datos quieres consultar.</string>
+    <string name="paciente_vacio">No hay pacientes registrados.</string>
+    <string name="paciente_folio">Folio de urgencias</string>
+    <string name="paciente_seleccionar">Seleccionar</string>
 
     <string name="perfil_nombre">Nombre</string>
     <string name="perfil_curp">CURP</string>

@@ -5,7 +5,8 @@ plugins {
 }
 
 // Backend local: 10.0.2.2 desde el emulador; en teléfono físico usar `adb reverse tcp:8080 tcp:8080`
-// y -Pvitae.apiUrl=http://localhost:8080/api/v1/ o https://auditoria-backend-u47a.onrender.com/api/v1/
+// y -Pvitae.apiUrl=http://localhost:8080/api/v1/
+//val apiUrlDebug = providers.gradleProperty("vitae.apiUrl").getOrElse("http://10.0.2.2:8080/api/v1/")
 val apiUrlDebug = providers.gradleProperty("vitae.apiUrl").getOrElse("http://localhost:8000/api/v1/")
 // Solo debug: -Pvitae.permitirCapturas=true quita FLAG_SECURE para poder hacer capturas al desarrollar. El release nunca.
 val permitirCapturasDebug = providers.gradleProperty("vitae.permitirCapturas").getOrElse("true").toBoolean()

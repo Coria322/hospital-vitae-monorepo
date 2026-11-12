@@ -72,7 +72,7 @@ class ContrasteTest {
         }
     }
 
-    // UI_UX_SPEC.md define 12 pantallas, más la de preferencias de privacidad, el aviso previo al login y la solicitud de cita, con rutas únicas.
+    // UI_UX_SPEC.md define 12 pantallas, más la de preferencias de privacidad, el aviso previo al login y la elección de paciente, con rutas únicas.
     @Test
     fun rutasSonUnicas() {
         assertEquals(15, Ruta.entries.size)

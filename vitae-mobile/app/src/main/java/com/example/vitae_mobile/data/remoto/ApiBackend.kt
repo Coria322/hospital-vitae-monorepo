@@ -4,20 +4,17 @@ import com.example.vitae_mobile.data.network.ApiEnvelope
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
+import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 /**
-/**
- * API del portal móvil de `vitae-backend` (`/api/v1/mobile/…`, Sprint 5) y el login. La identidad sale del token del
- * paciente: ninguna petición lleva el identificador del paciente (RF-002.1). Las formas salen de respuestas reales del backend
- * (`app/src/test/resources/backend`). Cada petición lleva `X-Client-Version` (ver `VersionInterceptor`).
- *
- * La única llamada fuera de `/mobile` es [resultado]: el portal móvil lista los resultados pero no entrega su contenido
- * (ver PLAN.md, decisión 19).
+ * Endpoints de `vitae-backend`. Incluye los endpoints normativos bajo mobile/ (RF-011, RF-002.1 Anti-IDOR)
+ * donde la identidad se resuelve del token Sanctum del paciente, y los endpoints de compatibilidad institucional.
  */
 interface ApiBackend {
     @POST("auth/login")
@@ -30,73 +27,58 @@ interface ApiBackend {
     @POST("auth/logout")
     suspend fun cerrarSesion(@Header("Authorization") bearer: String): ApiEnvelope<JsonElement>
 
-    @GET("mobile/perfil")
-    suspend fun perfil(): ApiEnvelope<PerfilDto>
-
+    // Endpoints oficiales del Portal Móvil del Paciente (RF-011 / RF-002.1)
     @GET("mobile/perfil")
     suspend fun mobilePerfil(): ApiEnvelope<MobilePerfilDto>
-
-    @GET("mobile/citas")
-    suspend fun citas(): ApiEnvelope<List<CitaDto>>
 
     @GET("mobile/citas")
     suspend fun mobileCitas(): ApiEnvelope<List<MobileCitaDto>>
 
     @POST("mobile/citas")
-    suspend fun solicitarCita(@Body cuerpo: CitaCuerpo): ApiEnvelope<CitaDto>
-
-    @POST("mobile/citas")
-    suspend fun solicitarCitaMobile(@Body cuerpo: SolicitarCitaCuerpo): ApiEnvelope<MobileCitaDto>
-
-    @GET("mobile/recetas")
-    suspend fun recetas(): ApiEnvelope<List<RecetaDto>>
+    suspend fun solicitarCita(@Body cuerpo: SolicitarCitaCuerpo): ApiEnvelope<MobileCitaDto>
 
     @GET("mobile/recetas")
     suspend fun mobileRecetas(): ApiEnvelope<List<MobileRecetaDto>>
 
     @GET("mobile/resultados")
-    suspend fun resultados(): ApiEnvelope<List<ResultadoDto>>
-
-    @GET("mobile/resultados")
     suspend fun mobileResultados(): ApiEnvelope<List<MobileResultadoDto>>
-
-    @POST("mobile/consentimientos")
-    suspend fun consentir(@Body cuerpo: ConsentimientoCuerpo): ApiEnvelope<ConsentimientoDto>
-
-    @POST("mobile/solicitudes-arco")
-    suspend fun crearArco(@Body cuerpo: ArcoCuerpo): ApiEnvelope<ArcoDto>
-
-    // Contenido del resultado, descifrado y como texto. Se pide solo con el id de un resultado de la lista del propio
-    // paciente (`mobile/resultados`); el backend aún no filtra este endpoint por dueño.
-    @GET("solicitudes-estudio/{id}/resultados")
-    suspend fun resultado(@Path("id") idSolicitud: String): ApiEnvelope<ResultadoDetalleDto>
 
     @GET("mobile/resultados/{id}")
     suspend fun mobileResultadoDetalle(@Path("id") id: String): ApiEnvelope<ResultadoDetalleDto>
-}
 
-    @GET("mobile/citas")
-    suspend fun citas(): ApiEnvelope<List<CitaDto>>
+    @GET("pacientes")
+    suspend fun pacientes(): ApiEnvelope<PaginaDto<PacienteDto>>
 
-    @POST("mobile/citas")
-    suspend fun solicitarCita(@Body cuerpo: CitaCuerpo): ApiEnvelope<CitaDto>
+    @GET("pacientes/{id}")
+    suspend fun paciente(@Path("id") id: String): ApiEnvelope<PacienteDto>
 
-    @GET("mobile/recetas")
-    suspend fun recetas(): ApiEnvelope<List<RecetaDto>>
+    // FHIR R4 crudo: lo lee `FhirParser`.
+    @GET("fhir/Patient/{id}")
+    suspend fun fhirPatient(@Path("id") id: String): ResponseBody
 
-    @GET("mobile/resultados")
-    suspend fun resultados(): ApiEnvelope<List<ResultadoDto>>
+    @GET("expedientes-clinicos/{id}")
+    suspend fun expediente(@Path("id") id: String): ApiEnvelope<ExpedienteDto>
 
-    @POST("mobile/consentimientos")
-    suspend fun consentir(@Body cuerpo: ConsentimientoCuerpo): ApiEnvelope<ConsentimientoDto>
+    @GET("recetas/{id}")
+    suspend fun receta(@Path("id") id: String): ApiEnvelope<RecetaDto>
 
-    @POST("mobile/solicitudes-arco")
-    suspend fun crearArco(@Body cuerpo: ArcoCuerpo): ApiEnvelope<ArcoDto>
-
-    // Contenido del resultado, descifrado y como texto. Se pide solo con el id de un resultado de la lista del propio
-    // paciente (`mobile/resultados`); el backend aún no filtra este endpoint por dueño.
     @GET("solicitudes-estudio/{id}/resultados")
     suspend fun resultado(@Path("id") idSolicitud: String): ApiEnvelope<ResultadoDetalleDto>
+
+    @GET("consentimientos")
+    suspend fun consentimientos(@Query("id_paciente") idPaciente: String): ApiEnvelope<List<ConsentimientoDto>>
+
+    @POST("consentimientos")
+    suspend fun consentir(@Body cuerpo: ConsentimientoCuerpo): ApiEnvelope<ConsentimientoDto>
+
+    @POST("consentimientos/{id}/revocaciones")
+    suspend fun revocar(@Path("id") id: String, @Body cuerpo: RevocacionCuerpo): ApiEnvelope<ConsentimientoDto>
+
+    @GET("solicitudes-arco")
+    suspend fun solicitudesArco(@Query("id_paciente") idPaciente: String): ApiEnvelope<List<ArcoDto>>
+
+    @POST("solicitudes-arco")
+    suspend fun crearArco(@Body cuerpo: ArcoCuerpo): ApiEnvelope<ArcoDto>
 }
 
 @Serializable
@@ -112,7 +94,6 @@ data class SolicitarCitaCuerpo(
 @Serializable
 data class LoginDatos(val token: String, @SerialName("expires_in") val expiraEn: Long, val usuario: UsuarioDto)
 
-/** [rol] decide si la cuenta es de paciente: el portal móvil solo admite `PACIENTE`. */
 @Serializable
 data class UsuarioDto(@SerialName("id_usuario") val idUsuario: String, val rol: String? = null)
 
@@ -181,36 +162,34 @@ data class MobileSolicitudDto(
     @SerialName("fecha_hora_solicitud") val fechaHoraSolicitud: String? = null,
 )
 
+/** Página de Laravel: la lista viene en `data`. */
+@Serializable
+data class PaginaDto<T>(val data: List<T> = emptyList())
 
 @Serializable
-data class PerfilDto(
+data class PacienteDto(
+    @SerialName("id_paciente") val id: String,
     @SerialName("nombre_completo") val nombre: String? = null,
     val curp: String? = null,
-    @SerialName("fecha_nacimiento") val fechaNacimiento: String? = null,
+    @SerialName("folio_urgencias") val folioUrgencias: String? = null,
     @SerialName("seguro_activo") val seguroActivo: Boolean? = null,
+    val expediente: ExpedienteRefDto? = null,
 )
 
-/** [idMedico] es el médico de la cita; sirve de responsable al registrar un consentimiento. */
 @Serializable
-data class CitaDto(
-    @SerialName("id_cita") val id: String,
-    @SerialName("id_usuario") val idMedico: String? = null,
-    @SerialName("fecha_hora") val fechaHora: String,
-    val estado: String,
-)
+data class ExpedienteRefDto(@SerialName("id_expediente") val id: String)
 
-/** Cuerpo de `POST /mobile/citas`: la hora va en UTC y los dos textos son opcionales (el servidor limita 60 y 500 caracteres). */
+/** Del expediente solo se leen las recetas y las solicitudes de estudio (con su resultado); lo demás se ignora. */
 @Serializable
-data class CitaCuerpo(
-    @SerialName("fecha_hora") val fechaHora: String,
-    val especialidad: String? = null,
-    val motivo: String? = null,
+data class ExpedienteDto(
+    val recetas: List<RecetaDto> = emptyList(),
+    @SerialName("solicitudes_estudio") val solicitudes: List<SolicitudDto> = emptyList(),
 )
 
 @Serializable
 data class RecetaDto(
     @SerialName("id_receta") val id: String,
-    @SerialName("id_usuario") val idMedico: String? = null,
+    val folio: String? = null,
     val medicamentos: String? = null,
     val indicaciones: String? = null,
     @SerialName("qr_codigo") val qrCodigo: String? = null,
@@ -218,43 +197,54 @@ data class RecetaDto(
 )
 
 @Serializable
-data class ResultadoDto(
-    @SerialName("id_solicitud") val idSolicitud: String,
-    val mime: String,
-    @SerialName("fecha_hora") val fechaHora: String,
-    val solicitud: SolicitudDto? = null,
+data class SolicitudDto(
+    @SerialName("id_solicitud") val id: String,
+    @SerialName("tipo_estudio") val tipo: String,
+    val resultado: ResultadoDto? = null,
 )
 
 @Serializable
-data class SolicitudDto(@SerialName("tipo_estudio") val tipo: String? = null)
+data class ResultadoDto(val mime: String, @SerialName("fecha_hora") val fechaHora: String)
 
 @Serializable
 data class ResultadoDetalleDto(
-    val resultado: ResultadoContenidoDto,
+    val resultado: ResultadoDto,
     @SerialName("contenido_descifrado") val contenido: String? = null,
-)
-
-@Serializable
-data class ResultadoContenidoDto(val mime: String)
-
-@Serializable
-data class ConsentimientoCuerpo(
-    val tipo: String,
-    val finalidades: String,
-    @SerialName("firmante_nombre") val firmante: String,
-    @SerialName("medico_responsable_id") val responsable: String,
 )
 
 @Serializable
 data class ConsentimientoDto(
     @SerialName("id_consentimiento") val id: String,
+    val tipo: String,
+    @SerialName("version_documento") val version: String,
+    val finalidades: String,
+    val estado: String,
+    @SerialName("id_consentimiento_original") val original: String? = null,
     @SerialName("fecha_hora") val fechaHora: String,
 )
 
 @Serializable
+data class ConsentimientoCuerpo(
+    @SerialName("id_paciente") val idPaciente: String,
+    val tipo: String,
+    val finalidades: String,
+    @SerialName("firmante_nombre") val firmante: String,
+    @SerialName("medico_responsable_id") val responsable: String,
+    @SerialName("version_documento") val version: String,
+    val medio: String,
+)
+
+@Serializable
+data class RevocacionCuerpo(
+    @SerialName("motivo_revocacion") val motivo: String,
+    @SerialName("firmante_nombre") val firmante: String,
+)
+
+@Serializable
 data class ArcoCuerpo(
+    @SerialName("id_paciente") val idPaciente: String,
     val derecho: String,
-    @SerialName("descripcion_peticion") val descripcion: String,
+    @SerialName("acreditacion_identidad") val acreditacionIdentidad: Boolean,
 )
 
 @Serializable
