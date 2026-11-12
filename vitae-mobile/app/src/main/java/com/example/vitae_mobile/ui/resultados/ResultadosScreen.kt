@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,12 +19,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.vitae_mobile.R
 import com.example.vitae_mobile.data.resultados.ResultadoEstudio
+import com.example.vitae_mobile.ui.components.BotonSecundario
 import com.example.vitae_mobile.ui.components.Campo
 import com.example.vitae_mobile.ui.components.CargaViewModel
 import com.example.vitae_mobile.ui.components.ContenidoCarga
+import com.example.vitae_mobile.ui.components.Encabezado
 import com.example.vitae_mobile.ui.components.Tarjeta
 import com.example.vitae_mobile.ui.components.formatearFecha
-import com.example.vitae_mobile.ui.components.Encabezado
 import com.example.vitae_mobile.ui.seguridad.PantallaSegura
 
 /** Lista de resultados propios (RF-010). La única acción por fila es "Abrir". */
@@ -40,6 +40,9 @@ fun ResultadosScreen(viewModel: CargaViewModel<List<ResultadoEstudio>>, alAbrir:
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Encabezado(stringResource(R.string.pantalla_resultados))
+                BotonSecundario(onClick = viewModel::cargar) {
+                    Text("Sincronizar resultados")
+                }
                 ContenidoCarga(
                     estado = estado,
                     alReintentar = viewModel::cargar,

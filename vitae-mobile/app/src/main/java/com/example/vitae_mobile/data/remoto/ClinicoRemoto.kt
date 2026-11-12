@@ -39,6 +39,7 @@ class PerfilRemoto(private val api: ApiBackend, private val backend: SesionBacke
         val respuestaMobile = llamarDatos { api.mobilePerfil() }
         if (respuestaMobile is Resultado.Exito) {
             val dto = respuestaMobile.valor
+            backend.usuarioId = dto.idPaciente
             backend.actualizarActivo(PacienteActivo(dto.idPaciente, null, dto.nombreCompleto, dto.seguroActivo))
             return Resultado.Exito(
                 Perfil(
@@ -120,7 +121,17 @@ class RecetasRemoto(private val api: ApiBackend, private val backend: SesionBack
         return expedienteActivo(api, backend).mapear { e -> e.recetas.map { it.aReceta() } }
     }
 
-    override suspend fun receta(id: String): Resultado<Receta> = llamarDatos { api.receta(id) }.mapear { it.aReceta() }
+    override suspend fun receta(id: String): Resultado<Receta> {
+        val directa = llamarDatos { api.receta(id) }
+        if (directa is Resultado.Exito) return Resultado.Exito(directa.valor.aReceta())
+        val lista = llamarDatos { api.mobileRecetas() }
+        if (lista is Resultado.Exito) {
+            lista.valor.firstOrNull { it.idReceta == id || it.folio == id }?.let {
+                return Resultado.Exito(it.aReceta())
+            }
+        }
+        return directa.mapear { it.aReceta() }
+    }
 }
 
 internal fun MobileRecetaDto.aReceta(): Receta {

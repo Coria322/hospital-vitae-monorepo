@@ -37,6 +37,7 @@ class SesionBackend(private val api: ApiBackend) {
     }
 
     suspend fun sincronizarPerfil(): Resultado<PacienteActivo> = llamarDatos { api.mobilePerfil() }.mapear { p ->
+        usuarioId = p.idPaciente
         PacienteActivo(p.idPaciente, null, p.nombreCompleto, p.seguroActivo).also { _paciente.value = it }
     }
 

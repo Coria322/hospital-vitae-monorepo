@@ -191,10 +191,17 @@ const recargarCitas = () => {
   sincronizarAgendaConsultorio()
 }
 
+const sincronizarTodoConServidor = async () => {
+  await cargarMedicosReales()
+  await citasService.sincronizarConBackend()
+  recargarCitas()
+}
+
 onMounted(() => {
   sincronizarPacienteCita()
   cargarMedicosReales()
   recargarCitas()
+  citasService.sincronizarConBackend().then(() => recargarCitas())
   window.addEventListener('vitae-citas-actualizadas', recargarCitas)
 })
 
@@ -436,7 +443,7 @@ const confirmarCitaExpedirComprobante = async () => {
     medicoCedula: medicoObj?.cedula,
     especialidad: espNombre,
     consultorio: consultorioNombre,
-    dia: (diaObj?.fechaTexto || agendamientoForm.value.diaSeleccionado || 'Hoy') as string,
+    dia: (agendamientoForm.value.diaSeleccionado || diaObj?.id || new Date().toISOString().substring(0, 10)) as string,
     hora: hora,
     tipoIntervencion: agendamientoForm.value.tipoIntervencion,
     estado: 'EN_SALA' // Pasa de inmediato a sala de espera del médico
@@ -484,7 +491,7 @@ const confirmarCitaExpedirComprobante = async () => {
                 </div>
               </div>
 
-              <button type="button" class="btn-sync-catalogs" @click="mostrarAlerta('Sincronizando agendas médicas y disponibilidad con PostgreSQL...')">
+              <button type="button" class="btn-sync-catalogs" @click="sincronizarTodoConServidor().then(() => mostrarAlerta('Agendas médicas y citas sincronizadas con el servidor.'))">
                 <svg viewBox="0 0 24 24" class="svg-inline-sync" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Sincronizar Catálogos
               </button>
             </div>

@@ -156,7 +156,10 @@ fun VitaeNavHost(
             InicioScreen(
                 perfil = perfil,
                 resumen = resumen,
-                alReintentarResumen = resumenVm::cargar,
+                alReintentarResumen = {
+                    vm.cargar()
+                    resumenVm.cargar()
+                },
                 onAbrir = { navController.navigate(it.ruta) },
                 onCerrarSesion = { alcance.launch { contenedor.sesion.cerrar(MotivoCierre.Voluntario) } },
             )

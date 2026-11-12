@@ -56,6 +56,11 @@ class CitaController extends Controller
             }
         }
 
+        $rawUsuarioId = $request->input('id_usuario');
+        if ($rawUsuarioId && !\App\Models\Usuario::where('id_usuario', $rawUsuarioId)->exists()) {
+            $request->merge(['id_usuario' => 'MED-001']);
+        }
+
         $validated = $request->validate([
             'id_paciente' => 'required|uuid|exists:paciente,id_paciente',
             'id_usuario' => 'nullable|string|exists:usuario,id_usuario',
