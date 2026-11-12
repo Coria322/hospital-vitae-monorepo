@@ -18,13 +18,19 @@ class DispositivoInterceptor(private val bloqueado: () -> Boolean, private val a
     }
 }
 
-/** Agrega `Authorization: Bearer` cuando hay token y la petición no lo trae (login y refresh no lo llevan). */
+/** Agrega `Authorization: Bearer` cuando hay token y la cabecera `X-Client-Version` para compatibilidad RNF-006. */
 class AuthInterceptor(private val token: () -> String?) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val peticion = chain.request()
+        val builder = peticion.newBuilder()
+        if (peticion.header("X-Client-Version") == null) {
+            builder.header("X-Client-Version", "Android 14 (API 34)")
+        }
         val valor = token()
-        if (valor == null || peticion.header("Authorization") != null) return chain.proceed(peticion)
-        return chain.proceed(peticion.newBuilder().header("Authorization", "Bearer $valor").build())
+        if (valor != null && peticion.header("Authorization") == null) {
+            builder.header("Authorization", "Bearer $valor")
+        }
+        return chain.proceed(builder.build())
     }
 }
 

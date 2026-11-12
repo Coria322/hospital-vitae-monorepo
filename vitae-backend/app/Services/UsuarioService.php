@@ -17,6 +17,7 @@ class UsuarioService
             'LABORATORIO' => 'LAB',
             'ADMINISTRADOR' => 'ADM',
             'AUDITOR' => 'AUD',
+            'PACIENTE' => 'PAC',
         ];
 
         $prefijo = $prefijoMap[strtoupper(trim($rol))] ?? 'USR';
@@ -54,6 +55,7 @@ class UsuarioService
             'rol' => $data['rol'],
             'password_hash' => $passwordHash,
             'cedula' => $data['cedula'] ?? null,
+            'id_paciente' => $data['id_paciente'] ?? null,
             'estado_cuenta' => 'ACTIVA',
             'intentos_fallidos' => 0,
             'mfa_habilitado' => false,

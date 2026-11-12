@@ -116,7 +116,7 @@
     <string name="perfil_seguro_inactivo">Sin seguro activo</string>
 
     <string name="login_correo">Correo electrónico</string>
-    <string name="login_usuario">Usuario</string>
+    <string name="login_usuario">CURP o Usuario</string>
     <string name="login_contrasena">Contraseña</string>
     <string name="login_entrar">Entrar</string>
     <string name="login_cargando">Verificando…</string>

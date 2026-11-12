@@ -55,11 +55,8 @@ fun VitaeNavHost(
     // Sin sesión se entra por el aviso de privacidad la primera vez (y cuando cambia su versión), después por Login.
     fun destinoSinSesion() = if (contenedor.avisoPrevio.visto()) Ruta.Login else Ruta.AvisoPrevio
 
-    // Con el backend real, antes del aviso hay que elegir el paciente del que se consultan los datos.
-    fun destinoTrasLogin(): Ruta {
-        val backend = contenedor.backend
-        return if (backend != null && backend.activo == null) Ruta.Paciente else Ruta.Aviso
-    }
+    // En el portal del paciente, tras iniciar sesión se pasa al aviso de privacidad y de ahí a Inicio.
+    fun destinoTrasLogin(): Ruta = Ruta.Aviso
 
     // PROV-SEC-011 / RNF-006: un dispositivo bloqueado manda sobre todo lo demás y no tiene salida.
     LaunchedEffect(estadoDispositivo) {

@@ -39,7 +39,7 @@ fun NavGraphBuilder.clinico(navController: NavHostController, contenedor: AppCon
         val vm: CargaViewModel<List<Cita>> = viewModel(
             factory = viewModelFactory { initializer { CargaViewModel { contenedor.citasRepository.citas() } } },
         )
-        CitasScreen(vm)
+        CitasScreen(vm, alAgendar = { f, e, m -> contenedor.citasRepository.solicitarCita(f, e, m) })
     }
     composable(Ruta.Recetas.ruta) {
         val vm: CargaViewModel<List<Receta>> = viewModel(

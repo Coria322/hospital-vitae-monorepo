@@ -36,6 +36,10 @@ interface PacienteEncontrado {
   citasActivas: boolean
   ultimoIngreso: string
   avatarUrl?: string
+  id_paciente?: string
+  usuario?: any
+  portalActivo?: boolean
+  portalEstado?: string
 }
 
 const pacienteEncontrado = ref<PacienteEncontrado | null>(null)
@@ -100,7 +104,11 @@ const consultarPacientePorTermino = async (termino: string) => {
         parentesco: p.representante_legal ? 'Representante Legal' : 'No especificado',
         telefonoContacto: p.telefono || 'Sin teléfono registrado',
         citasActivas: false,
-        ultimoIngreso: p.created_at ? new Date(p.created_at).toLocaleDateString('es-MX') : 'Reciente'
+        ultimoIngreso: p.created_at ? new Date(p.created_at).toLocaleDateString('es-MX') : 'Reciente',
+        id_paciente: p.id_paciente,
+        usuario: p.usuario || null,
+        portalActivo: p.usuario ? p.usuario.estado_cuenta === 'ACTIVA' : false,
+        portalEstado: p.usuario ? p.usuario.estado_cuenta : 'NO_ACTIVADO'
       }
 
       if (pacienteEncontrado.value) {
@@ -142,6 +150,68 @@ const actualizarDatosConPaciente = () => {
     emit('curpSeleccionada', pacienteEncontrado.value.curp)
   }
   emit('cambiarSeccion', 'registrar')
+}
+
+const activandoPortal = ref(false)
+
+const activarPortalPaciente = async () => {
+  if (!pacienteEncontrado.value?.id_paciente) return
+  const password = prompt('Ingrese la contraseña inicial para el portal móvil del paciente:', 'password123')
+  if (password === null) return
+  if (!password.trim()) {
+    alert('La contraseña no puede estar vacía.')
+    return
+  }
+
+  try {
+    activandoPortal.value = true
+    const res = await api.post(`/pacientes/${pacienteEncontrado.value.id_paciente}/activar-portal`, { password })
+    const data = res.data?.data
+    pacienteEncontrado.value.usuario = data
+    pacienteEncontrado.value.portalActivo = true
+    pacienteEncontrado.value.portalEstado = 'ACTIVA'
+    alert(`Portal activado exitosamente.\n\nUsuario (CURP): ${pacienteEncontrado.value.curp}\nContraseña asignada: ${password}\nEl paciente ya puede iniciar sesión en la aplicación móvil.`)
+  } catch (e: any) {
+    console.error('Error al activar portal:', e)
+    alert(e.response?.data?.message || 'Error al activar el portal del paciente.')
+  } finally {
+    activandoPortal.value = false
+  }
+}
+
+const bloquearPortalPaciente = async () => {
+  if (!pacienteEncontrado.value?.id_paciente) return
+  if (!confirm('Confirma que desea bloquear el acceso al portal móvil de este paciente?')) return
+
+  try {
+    activandoPortal.value = true
+    await api.post(`/pacientes/${pacienteEncontrado.value.id_paciente}/bloquear-portal`)
+    pacienteEncontrado.value.portalActivo = false
+    pacienteEncontrado.value.portalEstado = 'BLOQUEADA'
+    alert('Acceso al portal móvil bloqueado correctamente.')
+  } catch (e: any) {
+    console.error('Error al bloquear portal:', e)
+    alert(e.response?.data?.message || 'Error al bloquear el portal.')
+  } finally {
+    activandoPortal.value = false
+  }
+}
+
+const reactivarPortalPaciente = async () => {
+  if (!pacienteEncontrado.value?.id_paciente) return
+
+  try {
+    activandoPortal.value = true
+    await api.post(`/pacientes/${pacienteEncontrado.value.id_paciente}/reactivar-portal`)
+    pacienteEncontrado.value.portalActivo = true
+    pacienteEncontrado.value.portalEstado = 'ACTIVA'
+    alert('Acceso al portal móvil reactivado correctamente.')
+  } catch (e: any) {
+    console.error('Error al reactivar portal:', e)
+    alert(e.response?.data?.message || 'Error al reactivar el portal.')
+  } finally {
+    activandoPortal.value = false
+  }
 }
 
 const limpiarBusquedaCurp = () => {
@@ -497,6 +567,9 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
                 <div class="name-vigencia-row">
                   <h3>{{ pacienteEncontrado.nombreCompleto }}</h3>
                   <span class="vigencia-badge-green">● DERECHOHABIENCIA: {{ pacienteEncontrado.derechohabiencia }}</span>
+                  <span :class="pacienteEncontrado.portalActivo ? 'vigencia-badge-green' : (pacienteEncontrado.portalEstado === 'BLOQUEADA' ? 'vigencia-badge-red' : 'vigencia-badge-gray')" style="margin-left: 8px;">
+                    ● PORTAL MÓVIL: {{ pacienteEncontrado.portalEstado }}
+                  </span>
                 </div>
 
                 <div class="meta-pills-row">
@@ -547,8 +620,35 @@ const cargarDesdeHistorial = (item: typeof historialConsultas.value[0]) => {
                 <button type="button" class="btn-action-primary" @click="agendarCitaConPaciente">
                   <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Agendar Cita Médica <kbd>Alt + C</kbd>
                 </button>
-                <button type="button" class="btn-action-secondary" @click="mostrarAlerta('Generando hoja oficial de admisión hospitalaria en formato PDF...')">
-                  <svg viewBox="0 0 24 24" class="svg-inline-doc" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Expedir Hoja de Admisión
+                <button 
+                  v-if="!pacienteEncontrado.usuario" 
+                  type="button" 
+                  class="btn-action-primary" 
+                  style="background: #16a34a; border-color: #16a34a;" 
+                  :disabled="activandoPortal" 
+                  @click="activarPortalPaciente"
+                >
+                  <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Activar Portal de Paciente
+                </button>
+                <button 
+                  v-else-if="pacienteEncontrado.portalEstado === 'ACTIVA'" 
+                  type="button" 
+                  class="btn-action-secondary" 
+                  style="background: #dc2626; color: #fff; border-color: #dc2626;" 
+                  :disabled="activandoPortal" 
+                  @click="bloquearPortalPaciente"
+                >
+                  <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Bloquear Acceso Portal
+                </button>
+                <button 
+                  v-else 
+                  type="button" 
+                  class="btn-action-primary" 
+                  style="background: #2563eb; border-color: #2563eb;" 
+                  :disabled="activandoPortal" 
+                  @click="reactivarPortalPaciente"
+                >
+                  <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg> Reactivar Acceso Portal
                 </button>
                 <button type="button" class="btn-action-neutral" @click="actualizarDatosConPaciente">
                   <svg viewBox="0 0 24 24" class="svg-inline-icon" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg> Actualizar Datos Demográficos

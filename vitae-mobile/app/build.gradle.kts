@@ -6,10 +6,10 @@ plugins {
 
 // Backend local: 10.0.2.2 desde el emulador; en teléfono físico usar `adb reverse tcp:8080 tcp:8080`
 // y -Pvitae.apiUrl=http://localhost:8080/api/v1/
-val apiUrlDebug = providers.gradleProperty("vitae.apiUrl").getOrElse("http://10.0.2.2:8080/api/v1/")
-
+//val apiUrlDebug = providers.gradleProperty("vitae.apiUrl").getOrElse("http://10.0.2.2:8080/api/v1/")
+val apiUrlDebug = providers.gradleProperty("vitae.apiUrl").getOrElse("http://localhost:8000/api/v1/")
 // Solo debug: -Pvitae.permitirCapturas=true quita FLAG_SECURE para poder hacer capturas al desarrollar. El release nunca.
-val permitirCapturasDebug = providers.gradleProperty("vitae.permitirCapturas").getOrElse("false").toBoolean()
+val permitirCapturasDebug = providers.gradleProperty("vitae.permitirCapturas").getOrElse("true").toBoolean()
 
 // -Pvitae.backend=simulado usa los datos simulados de debug (lo que necesitan las pruebas instrumentadas); por omisión
 // debug y release hablan con el backend real (la URL sale de vitae.apiUrl en debug).
@@ -38,7 +38,8 @@ android {
     buildTypes {
         debug {
             buildConfigField("String", "API_BASE_URL", "\"$apiUrlDebug\"")
-            buildConfigField("String", "API_PINES", "\"\"")
+            buildConfigField("String", "API_PINES", "\"sha256/8emdl/UmneUm0I4Y/vHzOTQzb9eJwG4voRHtMdNmBPk=,sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=\"")
+            signingConfig = signingConfigs.getByName("debug")
             buildConfigField("boolean", "PERMITIR_CAPTURAS", "$permitirCapturasDebug")
             buildConfigField("boolean", "BACKEND_REAL", "$backendRealDebug")
             enableUnitTestCoverage = true
@@ -50,8 +51,9 @@ android {
             // ponytail: servidor de producción actual; RNF-003 exige los pines SHA-256 (sha256/..., separados por
             // coma) del certificado del servidor definitivo. Sin pines, el release se niega a crear el cliente.
             buildConfigField("String", "API_BASE_URL", "\"https://auditoria-backend-u47a.onrender.com/api/v1/\"")
-            buildConfigField("String", "API_PINES", "\"\"")
-            buildConfigField("boolean", "PERMITIR_CAPTURAS", "false")
+            buildConfigField("String", "API_PINES", "\"sha256/8emdl/UmneUm0I4Y/vHzOTQzb9eJwG4voRHtMdNmBPk=,sha256/kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4=\"")
+            signingConfig = signingConfigs.getByName("debug")
+            buildConfigField("boolean", "PERMITIR_CAPTURAS", "$permitirCapturasDebug")
             buildConfigField("boolean", "BACKEND_REAL", "true")
             // PROV-SEC-011: ofuscación y reducción con R8 (reglas en src/main/keepRules).
             optimization {

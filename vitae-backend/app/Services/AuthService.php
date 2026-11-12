@@ -12,6 +12,14 @@ class AuthService
     {
         $usuario = Usuario::where('id_usuario', $idUsuario)->first();
 
+        // Si no se encuentra por id_usuario, buscar por CURP de paciente (estilo IMSS Digital)
+        if (!$usuario) {
+            $paciente = \App\Models\Paciente::where('curp', strtoupper(trim($idUsuario)))->first();
+            if ($paciente) {
+                $usuario = Usuario::where('id_paciente', $paciente->id_paciente)->first();
+            }
+        }
+
         if (!$usuario) {
             try {
                 AuditLogger::log(

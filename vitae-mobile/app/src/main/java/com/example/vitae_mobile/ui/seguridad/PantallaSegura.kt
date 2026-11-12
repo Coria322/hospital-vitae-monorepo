@@ -43,11 +43,15 @@ private fun contadorDe(ventana: Window) = contadores.getOrPut(ventana) {
 @Composable
 fun PantallaSegura(contenido: @Composable () -> Unit) {
     val ventana = LocalContext.current.actividad()?.window
-    if (ventana != null && !BuildConfig.PERMITIR_CAPTURAS) {
-        DisposableEffect(ventana) {
-            val contador = contadorDe(ventana)
-            contador.entrar()
-            onDispose { contador.salir() }
+    if (ventana != null) {
+        if (BuildConfig.PERMITIR_CAPTURAS) {
+            ventana.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            DisposableEffect(ventana) {
+                val contador = contadorDe(ventana)
+                contador.entrar()
+                onDispose { contador.salir() }
+            }
         }
     }
     contenido()

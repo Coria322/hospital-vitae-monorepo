@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Paciente;
+use App\Models\Usuario;
 use App\Services\AdmisionService;
+use App\Services\AuditLogger;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Throwable;
@@ -63,7 +66,11 @@ class PacienteController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Paciente::with(['expediente', 'triages.sala'])->where('estado_activo', true);
+        $user = $request->user();
+        $esAsistencial = $user && in_array(strtoupper($user->rol), ['MEDICO', 'ENFERMERIA'], true);
+        $relaciones = $esAsistencial ? ['expediente', 'triages.sala', 'usuario'] : ['triages.sala', 'usuario'];
+
+        $query = Paciente::with($relaciones)->where('estado_activo', true);
 
         if ($request->filled('q')) {
             $rawTerm = trim((string) $request->input('q'));
@@ -169,5 +176,138 @@ class PacienteController extends Controller
                 'message' => 'Fallo en la transacción de fusión: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Activa o aprovisiona credenciales de acceso al portal móvil para el paciente.
+     */
+    public function activarPortal(Request $request, string $id): JsonResponse
+    {
+        $paciente = Paciente::findOrFail($id);
+        $usuarioService = app(\App\Services\UsuarioService::class);
+        $usuario = Usuario::where('id_paciente', $paciente->id_paciente)->first();
+        $password = $request->input('password', 'password123');
+
+        if ($usuario) {
+            $usuario->update([
+                'password_hash' => \Illuminate\Support\Facades\Hash::make($password),
+                'estado_cuenta' => 'ACTIVA',
+                'intentos_fallidos' => 0,
+                'bloqueado_hasta' => null,
+            ]);
+        } else {
+            $idUsuario = $usuarioService->generarSiguienteIdUsuario('PACIENTE');
+            $usuario = $usuarioService->crearUsuario([
+                'id_usuario' => $idUsuario,
+                'nombre_completo' => $paciente->nombre_completo,
+                'rol' => 'PACIENTE',
+                'password' => $password,
+                'id_paciente' => $paciente->id_paciente,
+            ]);
+        }
+
+        AuditLogger::log(
+            tipoMovimiento: 'PORTAL_ACTIVADO',
+            tablaAfectada: 'usuario',
+            registroId: $usuario->id_usuario,
+            valorAnterior: null,
+            valorNuevo: ['curp' => $paciente->curp, 'estado_cuenta' => 'ACTIVA'],
+            resultado: 'EXITOSO',
+            motivo: 'Activación de portal de paciente desde recepción',
+            esNecesarioAuditoriaInterna: true,
+            idUsuario: Auth::user()?->id_usuario ?? 'RECEPCION'
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Portal de paciente activado exitosamente.',
+            'data' => [
+                'id_usuario' => $usuario->id_usuario,
+                'curp' => $paciente->curp,
+                'nombre_completo' => $usuario->nombre_completo,
+                'estado_cuenta' => $usuario->estado_cuenta,
+            ],
+        ], 200);
+    }
+
+    /**
+     * Bloquea el acceso al portal móvil para el paciente.
+     */
+    public function bloquearPortal(Request $request, string $id): JsonResponse
+    {
+        $paciente = Paciente::findOrFail($id);
+        $usuario = Usuario::where('id_paciente', $paciente->id_paciente)->first();
+
+        if (!$usuario) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'El paciente no cuenta con credenciales de portal creadas.',
+            ], 404);
+        }
+
+        $usuarioService = app(\App\Services\UsuarioService::class);
+        $usuarioService->bloquear($usuario);
+        $usuario->tokens()->delete();
+
+        AuditLogger::log(
+            tipoMovimiento: 'PORTAL_BLOQUEADO',
+            tablaAfectada: 'usuario',
+            registroId: $usuario->id_usuario,
+            valorAnterior: ['estado_cuenta' => 'ACTIVA'],
+            valorNuevo: ['estado_cuenta' => 'BLOQUEADA'],
+            resultado: 'EXITOSO',
+            motivo: 'Bloqueo preventivo de portal de paciente desde recepción',
+            esNecesarioAuditoriaInterna: true,
+            idUsuario: Auth::user()?->id_usuario ?? 'RECEPCION'
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Acceso al portal móvil bloqueado correctamente.',
+            'data' => [
+                'id_usuario' => $usuario->id_usuario,
+                'estado_cuenta' => 'BLOQUEADA',
+            ],
+        ], 200);
+    }
+
+    /**
+     * Reactiva el acceso al portal móvil para el paciente.
+     */
+    public function reactivarPortal(Request $request, string $id): JsonResponse
+    {
+        $paciente = Paciente::findOrFail($id);
+        $usuario = Usuario::where('id_paciente', $paciente->id_paciente)->first();
+
+        if (!$usuario) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'El paciente no cuenta con credenciales de portal creadas.',
+            ], 404);
+        }
+
+        $usuarioService = app(\App\Services\UsuarioService::class);
+        $usuarioService->reactivar($usuario);
+
+        AuditLogger::log(
+            tipoMovimiento: 'PORTAL_REACTIVADO',
+            tablaAfectada: 'usuario',
+            registroId: $usuario->id_usuario,
+            valorAnterior: ['estado_cuenta' => 'BLOQUEADA'],
+            valorNuevo: ['estado_cuenta' => 'ACTIVA'],
+            resultado: 'EXITOSO',
+            motivo: 'Reactivación de portal de paciente desde recepción',
+            esNecesarioAuditoriaInterna: true,
+            idUsuario: Auth::user()?->id_usuario ?? 'RECEPCION'
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Portal de paciente reactivado correctamente.',
+            'data' => [
+                'id_usuario' => $usuario->id_usuario,
+                'estado_cuenta' => 'ACTIVA',
+            ],
+        ], 200);
     }
 }
